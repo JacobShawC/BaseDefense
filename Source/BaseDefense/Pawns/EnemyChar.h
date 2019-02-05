@@ -20,6 +20,7 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
 
 public:	
 	// Called every frame
@@ -31,14 +32,18 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void Damaged(float ADamage);
-	void Die();
+	void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
+
+	void OnKilled();
 
 	TArray<AActor*> GetActorsInRange();
 	UFUNCTION()
 	void OnMouseEnter(UPrimitiveComponent* TouchedComponent);
 	UFUNCTION()
 	void OnMouseLeave(UPrimitiveComponent * TouchedComponent);
+
+	UFUNCTION()
+	void OnRep_SetFloatingHeight();
 public:
 
 
@@ -59,5 +64,6 @@ public:
 	EEnemy Enemy = EEnemy::None;
 	float Health = 100;
 
-
+	UPROPERTY(ReplicatedUsing = OnRep_SetFloatingHeight)
+	float FloatingHeight = 0;
 };

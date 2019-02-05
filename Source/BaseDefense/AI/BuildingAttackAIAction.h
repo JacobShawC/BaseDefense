@@ -34,7 +34,6 @@ public:
 	UFUNCTION()
 	void FinishedAttack();
 public:
-
 	UPROPERTY(VisibleAnywhere)
 	class UCapsuleComponent* RangeCapsule = nullptr;
 

@@ -20,7 +20,7 @@ ABDGameMode::ABDGameMode()
 void ABDGameMode::PostLogin(APlayerController * NewPlayer)
 {
 	(NewPlayer->GetPlayerState<ABDPlayerState>())->SetUpTestData();
-
+	
 	Super::PostLogin(NewPlayer);
 }
 

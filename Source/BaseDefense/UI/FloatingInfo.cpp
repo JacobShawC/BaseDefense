@@ -9,7 +9,6 @@
 void UFloatingInfo::Initialise(FString AName, float AMaxHealth)
 {
 	MaxHealth = AMaxHealth;
-
 	SetHealth(AMaxHealth);
 }
 
@@ -18,12 +17,13 @@ void UFloatingInfo::SetHealth(float AHealth)
 	Health = AHealth;
 	SetHealthText(AHealth);
 	SetHealthProgressBar(AHealth);
+	
 }
 
 void UFloatingInfo::SetMaxHealth(float AMaxHealth)
 {
 	MaxHealth = AMaxHealth;
-	FString HealthString = FString::FromInt(FMath::RoundFromZero(Health)) + "/" + FString::FromInt(MaxHealth);
+	//FString HealthString = FString::FromInt(FMath::RoundFromZero(Health)) + "/" + FString::FromInt(MaxHealth);
 }
 
 void UFloatingInfo::SetHealthText(float AHealth)

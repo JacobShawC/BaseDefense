@@ -32,6 +32,8 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_SetHealth)
 	int Health = 0;
+	
+	int LastKnownHealth = 0;
 
 
 	class UFloatingInfo* FloatingWidget = nullptr;

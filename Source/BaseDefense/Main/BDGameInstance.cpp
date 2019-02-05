@@ -9,9 +9,13 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
 	static ConstructorHelpers::FClassFinder<UUserWidget> GUIBP(TEXT("WidgetBlueprint'/Game/UI/GUIWidget.GUIWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> SlotBP(TEXT("WidgetBlueprint'/Game/UI/SlotWidget.SlotWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> HotbarSlotBP(TEXT("WidgetBlueprint'/Game/UI/HotbarSlotWidget.HotbarSlotWidget_C'"));
+	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonMesh(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Cannon_03.SM_Prop_Cannon_03'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CoveredCrate(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Crate_Covered_01.SM_Prop_Crate_Covered_01'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonBall(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_CannonBalls_01.SM_Prop_CannonBalls_01'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Flowers(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Environments/SM_Env_Flowers_02.SM_Env_Flowers_02'"));
+	
 	static ConstructorHelpers::FObjectFinder<UTexture2D> BarrelImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/BarrelIcon.BarrelIcon'"));
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CannonImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/CannonIcon.CannonIcon'"));
 
@@ -42,7 +46,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
 	ConstructionData.Thumbnail = BarrelImage.Object;
 	ConstructionData.Building = EBuilding::Construction;
 	ConstructionData.MaxHealth = 1;
-	ConstructionData.Price = 0;
+	ConstructionData.Cost = 0;
 	ConstructionData.ConstructionTime = 0.0f;
 
 	
@@ -56,7 +60,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
 	WallBuildingData.Thumbnail = BarrelImage.Object;
 	WallBuildingData.Building = EBuilding::Wall;
 	WallBuildingData.MaxHealth = 100;
-	WallBuildingData.Price = 20;
+	WallBuildingData.Cost = 20;
 	WallBuildingData.ConstructionTime = 0.1f;
 
 	WallBuildingData.Properties.Add(EBuildingProperty::Regen);
@@ -67,10 +71,10 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
 	//Farm
 	FBuildingData FarmBuildingData = BaseBuildingData;
 	FarmBuildingData.Name = "Farm";
-	FarmBuildingData.Mesh = BarrelMesh.Object;
+	FarmBuildingData.Mesh = Flowers.Object;
 	FarmBuildingData.Building = EBuilding::Farm;
 	FarmBuildingData.MaxHealth = 50;
-	FarmBuildingData.Price = 100;
+	FarmBuildingData.Cost = 100;
 	FarmBuildingData.ConstructionTime = 4.f;
 
 	FarmBuildingData.Properties.Add(EBuildingProperty::Regen);
@@ -78,7 +82,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
 
 	FarmBuildingData.Properties.Add(EBuildingProperty::Income);
 	FarmBuildingData.Income.IncomeAmount = 5;
-	FarmBuildingData.Income.Cooldown = 3;
+	FarmBuildingData.Income.Cooldown = 2;
 
 	Buildings.Add(EBuilding::Farm, FarmBuildingData);
 
@@ -92,7 +96,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
 	ArrowTowerBuildingData.MeshScale = 0.4f;
 	ArrowTowerBuildingData.Building = EBuilding::ArrowTower;
 	ArrowTowerBuildingData.MaxHealth = 25;
-	ArrowTowerBuildingData.Price = 50;
+	ArrowTowerBuildingData.Cost = 50;
 	ArrowTowerBuildingData.ConstructionTime = 0.5f;
 
 	ArrowTowerBuildingData.Properties.Add(EBuildingProperty::Regen);
@@ -106,6 +110,8 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
 	ArrowTowerBuildingData.Attack.Damage = 5;
 	ArrowTowerBuildingData.Attack.ReloadTime = 1;
 	ArrowTowerBuildingData.Attack.Range = 200;
+	ArrowTowerBuildingData.Attack.Projectile.Mesh = CannonBall.Object;
+	ArrowTowerBuildingData.Attack.Projectile.Speed = 100;
 
 	Buildings.Add(EBuilding::ArrowTower, ArrowTowerBuildingData);
 
@@ -123,6 +129,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
 	SmallZombieData.Attack.Damage = 10;
 	SmallZombieData.Attack.ReloadTime = 2;
 	SmallZombieData.Attack.Range = 50;
+	SmallZombieData.Bounty = 50;
 	SmallZombieData.Attack.AttackRule = EAttackRule::Closest;
 	Enemies.Add(EEnemy::SmallZombie, SmallZombieData);
 }

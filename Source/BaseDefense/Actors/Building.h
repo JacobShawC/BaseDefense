@@ -20,7 +20,7 @@ public:
 	virtual void Tick(float DeltaSeconds) override;
 public:
 
-	void Initialise(EBuilding ABuilding);
+	//void Initialise(EBuilding ABuilding);
 	void Construct(EBuilding ABuilding, class APlayerChar* AConstructor);
 	void SetUpBuilding(EBuilding ABuilding);
 	UFUNCTION()
@@ -30,6 +30,8 @@ public:
 
 	void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 
+	UFUNCTION()
+	void GenerateIncome();
 
 	void WhatDo();
 
@@ -37,6 +39,9 @@ public:
 	void OnRep_SetConstruction();
 	UFUNCTION()
 	void OnRep_SetMaxConstruction();
+
+	UFUNCTION()
+	void OnRep_SetFloatingHeight();
 
 public:
 	UPROPERTY(VisibleAnywhere)
@@ -69,7 +74,6 @@ public:
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_SetMaxConstruction)
 	float MaxConstructionTime = 0;
 
-
 	UPROPERTY(VisibleAnywhere)
 	FBuildingData ConstructedBuildingData;
 
@@ -81,11 +85,12 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	class UBuildingAIAction* CurrentAction = nullptr;
 
-
+	UPROPERTY(ReplicatedUsing = OnRep_SetFloatingHeight)
+	float FloatingHeight = 0;
 
 protected:
 	class UBDGameInstance* GameInstance = nullptr;
-
+	class ABDGameState* GameState = nullptr;
 	
 
 };

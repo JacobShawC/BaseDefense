@@ -14,6 +14,7 @@
 #include "BuildingGhost.h"
 #include "Building.h"
 #include "PlayerChar.h"
+#include "BDPlayerState.h"
 #define COLLISION_BUILDABLE		ECC_GameTraceChannel1
 #define COLLISION_BUILDING		ECC_GameTraceChannel2
 
@@ -85,7 +86,16 @@ void ABDPlayerController::BeginPlay()
 				GUIWidget = Cast<UGUI>(CreateWidget<UUserWidget>(this, GUIClass->Get()));
 
 				if (GUIWidget)
+				{
 					(GUIWidget)->AddToViewport();
+					UGUI* GUITemp = Cast<UGUI>(GUIWidget);
+					ABDPlayerState* State = Cast<ABDPlayerState>(GetPlayerState<ABDPlayerState>());
+					if (State)
+					{
+						GUITemp->SetMoneyText(State->Money);
+					}
+				}
+
 			}
 		}
 	}
@@ -126,25 +136,38 @@ void ABDPlayerController::MoveRight(float Value)
 
 void ABDPlayerController::ServerConstructBuilding_Implementation(EBuilding ABuildingEnum, FVector APosition)
 {
-	FVector RoundedMouseVector = FVector(FMath::RoundHalfToZero(APosition.X / 100) * 100, FMath::RoundHalfToZero(APosition.Y / 100) * 100, APosition.Z);
-	
-	TArray<AActor*> PlayerPawn;
-	PlayerPawn.Add(Cast<AActor>(GetPawn()));
-	FVector PawnLocation = GetPawn()->GetActorLocation();
+	FBuildingData* Data = nullptr;
+	Data = GameInstance->Buildings.Find(ABuildingEnum);
 
-	FHitResult RoundedHit = DoSingleTrace(FVector(RoundedMouseVector.X, RoundedMouseVector.Y, PawnLocation.Z + 500), FVector(RoundedMouseVector.X, RoundedMouseVector.Y, PawnLocation.Z - 500), PlayerPawn, ECC_Camera);
-
-
-	FBuildingLocationInfo TraceInfo = GetLocationInfo(RoundedHit);
-
-	if (TraceInfo.Buildable && TraceInfo.ClearFromBuildings && TraceInfo.EvenSurface && TraceInfo.Reachable)
+	ABDPlayerState* TempState = nullptr;
+	TempState = Cast<ABDPlayerState>(PlayerState);
+	if (TempState!= nullptr && Data != nullptr && TempState->Money >= Data->Cost)
 	{
-		FRotator Rotation = FRotator(0.0f);
-		ABuilding* Building = nullptr;
-		Building = GetWorld()->SpawnActor<ABuilding>(APosition, Rotation);
-		if (Building)
+
+
+		FVector RoundedMouseVector = FVector(FMath::RoundHalfToZero(APosition.X / 100) * 100, FMath::RoundHalfToZero(APosition.Y / 100) * 100, APosition.Z);
+
+		TArray<AActor*> PlayerPawn;
+		PlayerPawn.Add(Cast<AActor>(GetPawn()));
+		FVector PawnLocation = GetPawn()->GetActorLocation();
+
+		FHitResult RoundedHit = DoSingleTrace(FVector(RoundedMouseVector.X, RoundedMouseVector.Y, PawnLocation.Z + 500), FVector(RoundedMouseVector.X, RoundedMouseVector.Y, PawnLocation.Z - 500), PlayerPawn, ECC_Camera);
+
+
+		FBuildingLocationInfo TraceInfo = GetLocationInfo(RoundedHit);
+
+		if (TraceInfo.Buildable && TraceInfo.ClearFromBuildings && TraceInfo.EvenSurface && TraceInfo.Reachable)
 		{
-			Building->Construct(ABuildingEnum, Cast<APlayerChar>(GetPawn()));
+			FRotator Rotation = FRotator(0.0f);
+			ABuilding* Building = nullptr;
+			Building = GetWorld()->SpawnActor<ABuilding>(APosition, Rotation);
+			if (Building)
+			{
+				TempState->Money -= Data->Cost;
+				TempState->OnRep_Money();
+				Building->Construct(ABuildingEnum, Cast<APlayerChar>(GetPawn()));
+
+			}
 		}
 	}
 }
@@ -517,22 +540,22 @@ void ABDPlayerController::SelectHotbar(int ASlot)
 	}
 }
 
-void ABDPlayerController::TryBuildBuildingFromGhost()
-{
-	if (BuildingGhost && BuildingGhost->Buildable && BuildingGhost->Reachable)
-	{
-		FVector GhostLocation = BuildingGhost->GetActorLocation();
-		FRotator GhostRotation = BuildingGhost->GetActorRotation();
-		ABuilding* Building = nullptr;
-		Building = GetWorld()->SpawnActor<ABuilding>(GhostLocation, GhostRotation);
-		if (Building)
-		{
-			Building->Initialise(BuildingGhost->Building);
-		}
-		BuildingGhost->Destroy();
-		BuildingGhost = nullptr;
-	}
-}
+//void ABDPlayerController::TryBuildBuildingFromGhost()
+//{
+//	if (BuildingGhost && BuildingGhost->Buildable && BuildingGhost->Reachable)
+//	{
+//		FVector GhostLocation = BuildingGhost->GetActorLocation();
+//		FRotator GhostRotation = BuildingGhost->GetActorRotation();
+//		ABuilding* Building = nullptr;
+//		Building = GetWorld()->SpawnActor<ABuilding>(GhostLocation, GhostRotation);
+//		if (Building)
+//		{
+//			Building->Initialise(BuildingGhost->Building);
+//		}
+//		BuildingGhost->Destroy();
+//		BuildingGhost = nullptr;
+//	}
+//}
 
 void ABDPlayerController::ScrollHotbar(bool UpOrDown)
 {

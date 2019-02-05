@@ -14,7 +14,10 @@
 #include "PlayerChar.h"
 #include "BuildingAIAction.h"
 #include "BuildingAttackAIAction.h"
+#include "Engine/World.h"
 #include "UnrealNetwork.h"
+#include "BDGameState.h"
+#include "Public/TimerManager.h"
 
 // Sets default values
 ABuilding::ABuilding()
@@ -36,7 +39,6 @@ ABuilding::ABuilding()
 	//MeshComponent->SetCollisionResponseToChannel(ECC_GameTraceChannel2, ECR_Block);
 	//MeshComponent->SetCollisionResponseToChannel(ECC_Camera, ECR_Ignore);
 	MeshComponent->SetCollisionProfileName("BuildingMesh");
-
 	MeshComponent->OnBeginCursorOver.AddDynamic(this, &ABuilding::OnMouseEnter);
 	MeshComponent->OnEndCursorOver.AddDynamic(this, &ABuilding::OnMouseLeave);
 	MeshComponent->SetupAttachment(RootComponent);
@@ -61,50 +63,54 @@ ABuilding::ABuilding()
 	FloatingWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-void ABuilding::Initialise(EBuilding ABuilding)
-{
-	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
-	Building = ABuilding;
-	if (GameInstance)
-	{
-		BuildingData = *GameInstance->Buildings.Find(ABuilding);
-		if (FloatingWidget)
-		{
-			FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
-		}
-		if (FloatingInfo)
-		{
-			FloatingInfo->SetName(BuildingData.Name);
-			FloatingInfo->SetNameVisibility(false);
-		}
-		HealthComponent->Initialise(BuildingData.MaxHealth);
-		UStaticMesh* Mesh = nullptr;
-		Mesh = GameInstance->Buildings.Find(ABuilding)->Mesh;
-		if (Mesh)
-		{
-			MeshComponent->SetStaticMesh(Mesh);
-			MeshComponent->SetRelativeScale3D(FVector(BuildingData.MeshScale));
-			float MeshHeight = Mesh->GetBounds().BoxExtent.Z;
-			MeshHeight = (MeshHeight * BuildingData.MeshScale) + 75;
-
-			FloatingWidget->SetRelativeLocation(FVector(0, 0, MeshHeight));
-		}
-	}
-
-	UBuildingAIAction* Action = nullptr;
-	if (BuildingData.Attack.AttackType != EAttackType::None)
-	{
-		Action = NewObject<UBuildingAttackAIAction>();
-		Action->Initialise(this);
-		Actions.Add(Action);
-		Action = nullptr;
-	}
-
-	if (Role == ROLE_Authority)
-	{
-		WhatDo();
-	}
-}
+//void ABuilding::Initialise(EBuilding ABuilding)
+//{
+//	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
+//	Building = ABuilding;
+//	if (GameInstance)
+//	{
+//		BuildingData = *GameInstance->Buildings.Find(ABuilding);
+//		if (FloatingWidget)
+//		{
+//			FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
+//		}
+//		if (FloatingInfo)
+//		{
+//			FloatingInfo->SetName(BuildingData.Name);
+//			FloatingInfo->SetNameVisibility(false);
+//		}
+//		HealthComponent->Initialise(BuildingData.MaxHealth);
+//		UStaticMesh* Mesh = nullptr;
+//		Mesh = GameInstance->Buildings.Find(ABuilding)->Mesh;
+//		if (Mesh)
+//		{
+//			MeshComponent->SetStaticMesh(Mesh);
+//			MeshComponent->SetRelativeScale3D(FVector(BuildingData.MeshScale));
+//			float MeshHeight = Mesh->GetBounds().BoxExtent.Z;
+//			MeshHeight = (MeshHeight * BuildingData.MeshScale) + 75;
+//			FloatingHeight = MeshHeight;
+//			OnRep_SetFloatingHeight();
+//			//FloatingWidget->SetRelativeLocation(FVector(0, 0, MeshHeight));
+//		}
+//	}
+//
+//	UBuildingAIAction* Action = nullptr;
+//	if (BuildingData.Attack.AttackType != EAttackType::None)
+//	{
+//		Action = NewObject<UBuildingAttackAIAction>();
+//		Action->Initialise(this);
+//		Actions.Add(Action);
+//		Action = nullptr;
+//	}
+//
+//
+//
+//	if (Role == ROLE_Authority)
+//	{
+//		WhatDo();
+//	}
+//	
+//}
 
 void ABuilding::Tick(float DeltaSeconds)
 {
@@ -119,14 +125,14 @@ void ABuilding::Tick(float DeltaSeconds)
 			Destroy();
 		}
 		CurrentConstructionTime += DeltaSeconds;
-		if (FloatingInfo)
+		if (FloatingInfo->IsValidLowLevelFast())
 		{
 			FloatingInfo->SetConstruction(CurrentConstructionTime);
 		}
 		if (CurrentConstructionTime > ConstructedBuildingData.ConstructionTime)
 		{
 			SetUpBuilding(ConstructedBuildingData.Building);
-			if (FloatingInfo)
+			if (FloatingInfo->IsValidLowLevelFast())
 			{
 				FloatingInfo->SetConstructionVisibility(false);
 			}
@@ -151,9 +157,11 @@ void ABuilding::Construct(EBuilding ABuilding, APlayerChar* AConstructor)
 		SetUpBuilding(EBuilding::Construction);
 		ConstructedBuildingData = *GameInstance->Buildings.Find(ABuilding);
 		FloatingInfo->SetMaxConstruction(ConstructedBuildingData.ConstructionTime);
+		MaxConstructionTime = ConstructedBuildingData.ConstructionTime;
 
 		SetActorTickEnabled(true);
 	}
+	
 }
 
 void ABuilding::SetUpBuilding(EBuilding ABuilding)
@@ -174,7 +182,7 @@ void ABuilding::SetUpBuilding(EBuilding ABuilding)
 		}
 		HealthComponent->Initialise(BuildingData.MaxHealth);
 		UStaticMesh* Mesh = nullptr;
-		Mesh = GameInstance->Buildings.Find(ABuilding)->Mesh;
+		Mesh = BuildingData.Mesh;
 		if (Mesh)
 		{
 			if (MeshComponent)
@@ -184,7 +192,9 @@ void ABuilding::SetUpBuilding(EBuilding ABuilding)
 				float MeshHeight = Mesh->GetBounds().BoxExtent.Z;
 				MeshHeight = (MeshHeight * BuildingData.MeshScale) + 75;
 
-				FloatingWidget->SetRelativeLocation(FVector(0, 0, MeshHeight));
+				//FloatingWidget->SetRelativeLocation(FVector(0, 0, MeshHeight));
+				FloatingHeight = MeshHeight;
+				OnRep_SetFloatingHeight();
 			}
 		}
 	}
@@ -197,6 +207,12 @@ void ABuilding::SetUpBuilding(EBuilding ABuilding)
 		Action->Initialise(this);
 		Action = nullptr;
 	}
+
+	if (ConstructedBuildingData.Properties.Contains(EBuildingProperty::Income))
+	{
+		GenerateIncome();
+	}
+
 	if (Role == ROLE_Authority)
 	{
 		WhatDo();
@@ -227,6 +243,27 @@ void ABuilding::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLife
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABuilding, MaxConstructionTime);
 	DOREPLIFETIME(ABuilding, CurrentConstructionTime);
+	DOREPLIFETIME(ABuilding, FloatingHeight);
+}
+
+void ABuilding::GenerateIncome()
+{
+	if (Role == ROLE_Authority)
+	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &ABuilding::GenerateIncome, BuildingData.Income.Cooldown, false);
+		if (GameState == nullptr)
+		{
+			GameState = GetWorld() != NULL ? GetWorld()->GetGameState<ABDGameState>() : nullptr;
+		}
+		
+		if (GameState != nullptr)
+		{
+			GameState->AddMoney(BuildingData.Income.IncomeAmount);
+		}
+
+	}
+	
 }
 
 void ABuilding::WhatDo()
@@ -256,21 +293,45 @@ void ABuilding::WhatDo()
 
 void ABuilding::OnRep_SetConstruction()
 {
-	if (FloatingInfo)
+	if (FloatingInfo == nullptr && FloatingWidget->IsValidLowLevelFast())
 	{
 		FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
 	}
 
-	if (FloatingWidget != nullptr)
+	if (FloatingInfo != nullptr)
 	{
+		FloatingInfo->SetMaxConstruction(MaxConstructionTime);
+
 		FloatingInfo->SetConstruction(CurrentConstructionTime);
+
 	}
 }
 
 void ABuilding::OnRep_SetMaxConstruction()
 {
-	if (FloatingWidget != nullptr)
+	if (FloatingInfo == nullptr && FloatingWidget->IsValidLowLevelFast())
+	{
+		FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
+	}
+
+	if (FloatingInfo != nullptr)
 	{
 		FloatingInfo->SetMaxConstruction(MaxConstructionTime);
+	}
+}
+
+void ABuilding::OnRep_SetFloatingHeight()
+{
+	if (FloatingWidget != nullptr)
+	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().ClearTimer(FuzeTimerHandle);
+
+		FloatingWidget->SetRelativeLocation(FVector(0, 0, FloatingHeight));
+	}
+	else
+	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &ABuilding::OnRep_SetFloatingHeight, 0.05f, false);
 	}
 }

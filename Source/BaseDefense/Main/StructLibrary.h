@@ -133,9 +133,25 @@ struct FSlow
 };
 
 USTRUCT()
+struct FProjectileData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	float Speed = 1;
+
+	UPROPERTY()
+	class UStaticMesh* Mesh = nullptr;
+
+};
+
+USTRUCT()
 struct FAttack
 {
 	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	FProjectileData Projectile;
 
 	UPROPERTY()
 	TArray<EAttackProperty> AttackProperties;
@@ -203,7 +219,7 @@ struct FBuildingData
 	float MaxHealth = 100;
 
 	UPROPERTY()
-	int Price = 0;
+	int Cost = 0;
 
 	UPROPERTY()
 	float ConstructionTime = 0;
@@ -239,6 +255,9 @@ struct FEnemyData
 
 	UPROPERTY()
 	float MovementSpeed = 0;
+
+	UPROPERTY()
+	float Bounty = 0;
 
 	UPROPERTY()
 	FAttack Attack;

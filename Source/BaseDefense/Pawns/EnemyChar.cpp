@@ -14,11 +14,17 @@
 #include "Components/WidgetComponent.h"
 #include "HealthComponent.h"
 #include "Math/BoxSphereBounds.h"
-#include "Math/Box.h"// Sets default values
+#include "BDGameState.h"
+#include "Math/Box.h"
+#include "Engine/World.h"
+#include "Public/TimerManager.h"
+#include "UnrealNetwork.h"
+
 AEnemyChar::AEnemyChar()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
 
 	//static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMesh(TEXT("/Game/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_Seaman_01_Bare.SK_Character_Pirate_Seaman_01_Bare'"));
@@ -109,9 +115,9 @@ void AEnemyChar::Initialise(EEnemy AnEnemy)
 			FloatingInfo = Cast<UFloatingEnemyInfo>(FloatingWidget->GetUserWidgetObject());
 			HealthComponent->Initialise(EnemyData.MaxHealth);
 			float MeshHeight = GetMesh()->Bounds.BoxExtent.Z;
-			MeshHeight = (MeshHeight)+10;
+			FloatingHeight = MeshHeight + 10;
 
-			FloatingWidget->SetRelativeLocation(FVector(0, 0, MeshHeight));
+			OnRep_SetFloatingHeight();
 
 		}
 		if (FloatingInfo)
@@ -132,6 +138,15 @@ void AEnemyChar::BeginPlay()
 	SpawnDefaultController();
 }
 
+void AEnemyChar::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	if (Role == ROLE_Authority && EndPlayReason == EEndPlayReason::Destroyed)
+	{
+		OnKilled();
+	}
+	Super::EndPlay(EndPlayReason);
+}
+
 // Called every frame
 void AEnemyChar::Tick(float DeltaTime)
 {
@@ -143,23 +158,16 @@ void AEnemyChar::Tick(float DeltaTime)
 void AEnemyChar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
-void AEnemyChar::Damaged(float ADamage)
+void AEnemyChar::OnKilled()
 {
-	Health -= ADamage;
-	if (Health <= 0)
+	ABDGameState* const MyGameState = GetWorld() != NULL ? GetWorld()->GetGameState<ABDGameState>() : NULL;
+
+	if (MyGameState)
 	{
-		Health = 0;
-		Die();
+		MyGameState->AddMoney(EnemyData.Bounty);
 	}
-
-}
-
-void AEnemyChar::Die()
-{
-	Destroy();
 }
 
 void AEnemyChar::OnMouseEnter(UPrimitiveComponent * TouchedComponent)
@@ -189,4 +197,27 @@ void AEnemyChar::OnMouseLeave(UPrimitiveComponent * TouchedComponent)
 	{
 		FloatingInfo->HideName();
 	}*/
+}
+
+void AEnemyChar::OnRep_SetFloatingHeight()
+{
+
+	if (FloatingWidget != nullptr)
+	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().ClearTimer(FuzeTimerHandle);
+
+		FloatingWidget->SetRelativeLocation(FVector(0, 0, FloatingHeight));
+	}
+	else
+	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &AEnemyChar::OnRep_SetFloatingHeight, 0.05f, false);
+	}
+}
+
+void AEnemyChar::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AEnemyChar, FloatingHeight);
 }

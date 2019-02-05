@@ -46,7 +46,7 @@ public:
 	bool IsSelectedValid();
 	void SelectHotbar(int ASlot);
 
-	void TryBuildBuildingFromGhost();
+	//void TryBuildBuildingFromGhost();
 
 
 	template<int32 ASlot>

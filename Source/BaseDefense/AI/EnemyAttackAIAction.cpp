@@ -44,14 +44,14 @@ void UEnemyAttackAIAction::Activate()
 
 	float Distance = 0;
 
-	if (CurrentTarget && !CurrentTarget->IsPendingKill())
+	if (CurrentTarget != nullptr && !CurrentTarget->IsPendingKill())
 	{
 		Distance = FVector::Dist(Char->GetActorLocation(), CurrentTarget->GetActorLocation());
 		Distance -= 50;
 	}
 	
 	//Check if target is still in range and exists
-	if (!(CurrentTarget && !CurrentTarget->IsPendingKill() && Distance <= EnemyData->Attack.Range))
+	if (!(CurrentTarget != nullptr && !CurrentTarget->IsPendingKill() && Distance <= EnemyData->Attack.Range))
 	{
 		CurrentTarget = nullptr;
 		SetCurrentTarget();

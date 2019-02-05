@@ -5,7 +5,10 @@
 #include "FloatingInfo.h"
 #include "Components/WidgetComponent.h"
 #include "UnrealNetwork.h"
-
+#include "Engine/World.h"
+#include "Public/TimerManager.h"
+#include "DamageTextActor.h"
+#include "Engine/World.h"
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
 {
@@ -21,6 +24,24 @@ UHealthComponent::UHealthComponent()
 
 void UHealthComponent::OnRep_SetHealth()
 {
+	if (LastKnownHealth > Health)
+	{
+		ADamageTextActor* DamageTextActor = nullptr;
+		FVector OwnerLoc = GetOwner()->GetActorLocation();
+		UWorld* World = GetWorld();
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.bNoFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
+		if (DamageTextActor != nullptr)
+		{
+			DamageTextActor->Initialise(FString::SanitizeFloat(Health - LastKnownHealth), FColor::Red);
+		}
+
+	}
+	LastKnownHealth = Health;
+
 	if (FloatingWidget == nullptr)
 	{
 		UWidgetComponent* WidgetComponent = Cast<UWidgetComponent>(GetOwner()->FindComponentByClass(UWidgetComponent::StaticClass()));
@@ -32,7 +53,17 @@ void UHealthComponent::OnRep_SetHealth()
 
 	if (FloatingWidget != nullptr)
 	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().ClearTimer(FuzeTimerHandle);
+
+		FloatingWidget->SetMaxHealth(MaxHealth);
 		FloatingWidget->SetHealth(Health);
+	}
+	else
+	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &UHealthComponent::OnRep_SetHealth, 0.05f, false);
+
 	}
 }
 
@@ -49,7 +80,16 @@ void UHealthComponent::OnRep_SetMaxHealth()
 
 	if (FloatingWidget != nullptr)
 	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().ClearTimer(FuzeTimerHandle);
+
 		FloatingWidget->SetMaxHealth(MaxHealth);
+	}
+	else
+	{
+		FTimerHandle FuzeTimerHandle;
+		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &UHealthComponent::OnRep_SetMaxHealth, 0.05f, false);
+
 	}
 }
 
@@ -57,6 +97,7 @@ void UHealthComponent::Initialise(float AMaxHealth)
 {
 	MaxHealth = AMaxHealth;
 	Health = AMaxHealth;
+	LastKnownHealth = MaxHealth;
 	UWidgetComponent* WidgetComponent = Cast<UWidgetComponent>(GetOwner()->FindComponentByClass(UWidgetComponent::StaticClass()));
 	if (WidgetComponent)
 	{
@@ -72,6 +113,9 @@ void UHealthComponent::Initialise(float AMaxHealth)
 
 void UHealthComponent::TakeDamage(float ADamage)
 {
+	
+
+
 	if (Health - ADamage <= 0)
 	{
 		Health = 0;
@@ -85,6 +129,25 @@ void UHealthComponent::TakeDamage(float ADamage)
 			FloatingWidget->SetHealth(Health);
 		}
 	}
+
+	if (LastKnownHealth > Health)
+	{
+		ADamageTextActor* DamageTextActor = nullptr;
+		FVector OwnerLoc = GetOwner()->GetActorLocation();
+		UWorld* World = GetWorld();
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.bNoFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
+		if (DamageTextActor != nullptr)
+		{
+			DamageTextActor->Initialise(FString::SanitizeFloat(Health - LastKnownHealth), FColor::Red);
+		}
+
+	}
+	LastKnownHealth = Health;
+
 }
 
 void UHealthComponent::BeginPlay()

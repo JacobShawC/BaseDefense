@@ -13,6 +13,12 @@ UCLASS()
 class BASEDEFENSE_API ABDGameState : public AGameState
 {
 	GENERATED_BODY()
+
+public:
+
+	void AddMoney(float AMoney);
+
+	virtual void BeginPlay() override;
 public:
 	TArray<class APlayerChar*> GetPlayerPawns();
 };

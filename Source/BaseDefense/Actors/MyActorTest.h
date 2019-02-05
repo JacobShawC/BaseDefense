@@ -4,41 +4,28 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "StructLibrary.h"
-#include "Projectile.generated.h"
+#include "MyActorTest.generated.h"
 
 UCLASS()
-class BASEDEFENSE_API AProjectile : public AActor
+class BASEDEFENSE_API AMyActorTest : public AActor
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	AProjectile();
+	AMyActorTest();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	void ReachedTarget();
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	void Initialise(AActor* AnActor, FAttack AnAttack);
-
 public:
-
-	UPROPERTY(VisibleDefaultsOnly, Category = Projectile)
-	class USphereComponent* CollisionComp = nullptr;
+	UPROPERTY(VisibleAnywhere)
+		class UWidgetComponent* WidgetComponent = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
-	class UStaticMeshComponent* MeshComponent;
-
-	UPROPERTY(VisibleAnywhere)
-	AActor* Target = nullptr;
-
-	UPROPERTY(VisibleAnywhere)
-	FAttack Attack;
-
+		class USceneComponent* SceneComponent = nullptr;
 };

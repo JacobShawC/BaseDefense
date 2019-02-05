@@ -18,9 +18,13 @@ public:
 	void SetUpTestData();
 
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
-
+	UFUNCTION()
+	void OnRep_Money();
 public:
-	UPROPERTY(replicated)
+	UPROPERTY(Replicated)
 	FPlayerData PlayerData;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Money)
+	float Money = 500;
 
 };
