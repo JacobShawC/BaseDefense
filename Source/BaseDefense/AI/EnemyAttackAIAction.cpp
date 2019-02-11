@@ -56,7 +56,7 @@ void UEnemyAttackAIAction::Activate()
 		CurrentTarget = nullptr;
 		SetCurrentTarget();
 	}
-	if (CurrentTarget != nullptr)
+	if (CurrentTarget != nullptr && CurrentTarget->IsValidLowLevelFast())
 	{
 		HealthComponent = Cast<UHealthComponent>(CurrentTarget->GetComponentByClass(UHealthComponent::StaticClass()));
 		if (HealthComponent)

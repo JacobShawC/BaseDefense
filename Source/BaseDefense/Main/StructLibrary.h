@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+	// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -20,6 +20,16 @@ enum class EBuilding : uint8
 	Farm			UMETA(DisplayName = "Farm"),
 	SlowTower		UMETA(DisplayName = "SlowTower")
 };
+
+UENUM()
+enum class EPlayerAction : uint8
+{
+	None 			UMETA(DisplayName = "None"),
+	Constructing	UMETA(DisplayName = "Constructing"),
+	Repairing		UMETA(DisplayName = "Repairing"),
+	Selling 		UMETA(DisplayName = "Selling"),
+};
+
 
 UENUM()
 enum class ETeam : uint8
@@ -282,6 +292,16 @@ struct FPlayerData
 
 	UPROPERTY()
 	float BuildRangeVertical = 100.0f;
+
+	UPROPERTY()
+	float RepairRange = 200.0f;
+
+	//HPPerSecond
+	UPROPERTY()
+	float RepairSpeed = 20.0f;
+
+	UPROPERTY()
+	float RepairCost = 0.2f;
 };
 
 USTRUCT()

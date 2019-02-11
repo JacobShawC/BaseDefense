@@ -41,6 +41,7 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	class UCapsuleComponent* RangeCapsule = nullptr;
 
+	UPROPERTY()
 	class AActor* CurrentTarget = nullptr;
 
 	int Overlapping = 0;

@@ -24,8 +24,8 @@ public:
 	virtual void Tick(float DeltaTime) override;
 public:
 	UPROPERTY(VisibleAnywhere)
-		class UWidgetComponent* WidgetComponent = nullptr;
+	class UWidgetComponent* WidgetComponent = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
-		class USceneComponent* SceneComponent = nullptr;
+	class USceneComponent* SceneComponent = nullptr;
 };

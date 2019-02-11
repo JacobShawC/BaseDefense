@@ -109,7 +109,7 @@ void AEnemyChar::Initialise(EEnemy AnEnemy)
 		Health = EnemyData.MaxHealth;
 		Enemy = EnemyData.Enemy;
 		//GetCharacterMovement()->MaxWalkSpeed = EnemyData.MovementSpeed;
-	
+		int i = 0;
 		if (FloatingWidget)
 		{
 			FloatingInfo = Cast<UFloatingEnemyInfo>(FloatingWidget->GetUserWidgetObject());

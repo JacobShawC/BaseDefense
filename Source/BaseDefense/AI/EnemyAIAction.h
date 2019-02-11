@@ -20,6 +20,7 @@ public:
 
 public:
 
+	UPROPERTY()
 	class AEnemyChar* Char = nullptr;
 	class AEnemyAIController* AIController = nullptr;
 

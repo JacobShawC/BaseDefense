@@ -18,7 +18,7 @@
 #include "UnrealNetwork.h"
 #include "BDGameState.h"
 #include "Public/TimerManager.h"
-
+#include "DamageTextActor.h"
 // Sets default values
 ABuilding::ABuilding()
 {
@@ -121,8 +121,7 @@ void ABuilding::Tick(float DeltaSeconds)
 		float Distance = FVector::Dist(PlayerLocation, BuildingLocation);
 		if (Distance > GameInstance->DefaultPlayerData.BuildRangeHorizontal)
 		{
-			SetActorTickEnabled(false);
-			Destroy();
+			CancelConstruction();
 		}
 		CurrentConstructionTime += DeltaSeconds;
 		if (FloatingInfo->IsValidLowLevelFast())
@@ -141,8 +140,7 @@ void ABuilding::Tick(float DeltaSeconds)
 	}
 	else
 	{
-		SetActorTickEnabled(false);
-		Destroy();
+		CancelConstruction();
 	}
 }
 
@@ -162,6 +160,12 @@ void ABuilding::Construct(EBuilding ABuilding, APlayerChar* AConstructor)
 		SetActorTickEnabled(true);
 	}
 	
+}
+
+void ABuilding::CancelConstruction()
+{
+	SetActorTickEnabled(false);
+	Destroy();
 }
 
 void ABuilding::SetUpBuilding(EBuilding ABuilding)
@@ -266,9 +270,30 @@ void ABuilding::GenerateIncome()
 	
 }
 
+void ABuilding::SpawnIncomeText(FString AText)
+{
+	if (WasRecentlyRendered())
+	{
+		ADamageTextActor* DamageTextActor = nullptr;
+		FVector OwnerLoc = GetOwner()->GetActorLocation();
+		UWorld* World = GetWorld();
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.bNoFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
+		if (DamageTextActor != nullptr)
+		{
+			DamageTextActor->Initialise(AText, FColor::Yellow);
+		}
+
+	}
+
+}
+
 void ABuilding::WhatDo()
 {
-	if (CurrentAction != nullptr && CurrentAction->Executing && !CurrentAction->SafeToAbort)
+	if (IsActorBeingDestroyed() || CurrentAction != nullptr && CurrentAction->Executing && !CurrentAction->SafeToAbort)
 	{
 		return;
 	}

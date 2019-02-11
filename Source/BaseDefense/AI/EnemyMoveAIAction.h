@@ -35,9 +35,12 @@ public:
 
 public:
 
+	UPROPERTY()
 	class AActor* CurrentTarget = nullptr;
+	UPROPERTY()
 	class AActor* DefaultTarget = nullptr;
 
 protected:
+	UPROPERTY()
 	class ABDGameState* GameState = nullptr;
 };

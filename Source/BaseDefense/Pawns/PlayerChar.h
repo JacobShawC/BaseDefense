@@ -24,6 +24,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void Repair();
+
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
@@ -45,6 +47,12 @@ public:
 	class UWidgetComponent* FloatingWidget = nullptr;
 	UPROPERTY(VisibleAnywhere)
 	class UHealthComponent* HealthComponent = nullptr;
+
+	UPROPERTY()
+	class UConstructAction* ConstructAction = nullptr;
+
+	UPROPERTY()
+	class UPlayerAction* CurrentAction = nullptr;
 
 protected:
 	class UBDGameInstance* GameInstance = nullptr;

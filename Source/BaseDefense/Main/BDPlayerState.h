@@ -17,6 +17,8 @@ class BASEDEFENSE_API ABDPlayerState : public APlayerState
 public:
 	void SetUpTestData();
 
+	bool ChangePlayerMoney(float AMoney);
+	bool CanChangePlayerMoney(float AMoney);
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 	UFUNCTION()
 	void OnRep_Money();

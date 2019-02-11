@@ -14,6 +14,7 @@
 #include "BuildingGhost.h"
 #include "Building.h"
 #include "PlayerChar.h"
+#include "ConstructAction.h"
 #include "BDPlayerState.h"
 #define COLLISION_BUILDABLE		ECC_GameTraceChannel1
 #define COLLISION_BUILDING		ECC_GameTraceChannel2
@@ -132,19 +133,37 @@ void ABDPlayerController::MoveRight(float Value)
 
 
 
+bool ABDPlayerController::ChangePlayerMoney(float AMoney)
+{
+	ABDPlayerState* TempState = nullptr;
+	APlayerChar* PlayerChar = Cast<APlayerChar>(GetPawn());
+
+	TempState = Cast<ABDPlayerState>(PlayerState);
+
+	if (TempState != nullptr)
+	{
+		if (TempState->Money + AMoney > 0)
+		{
+			TempState->Money += AMoney;
+			TempState->OnRep_Money();
+			return true;
+		}
+	}
+	return false;
+}
 
 
 void ABDPlayerController::ServerConstructBuilding_Implementation(EBuilding ABuildingEnum, FVector APosition)
 {
-	FBuildingData* Data = nullptr;
-	Data = GameInstance->Buildings.Find(ABuildingEnum);
+	FBuildingData Data;
+	Data = *GameInstance->Buildings.Find(ABuildingEnum);
 
 	ABDPlayerState* TempState = nullptr;
 	TempState = Cast<ABDPlayerState>(PlayerState);
-	if (TempState!= nullptr && Data != nullptr && TempState->Money >= Data->Cost)
+	APlayerChar* PlayerChar = Cast<APlayerChar>(GetPawn());
+
+	if (TempState!= nullptr  && PlayerChar->CurrentAction == nullptr)
 	{
-
-
 		FVector RoundedMouseVector = FVector(FMath::RoundHalfToZero(APosition.X / 100) * 100, FMath::RoundHalfToZero(APosition.Y / 100) * 100, APosition.Z);
 
 		TArray<AActor*> PlayerPawn;
@@ -155,18 +174,11 @@ void ABDPlayerController::ServerConstructBuilding_Implementation(EBuilding ABuil
 
 
 		FBuildingLocationInfo TraceInfo = GetLocationInfo(RoundedHit);
-
 		if (TraceInfo.Buildable && TraceInfo.ClearFromBuildings && TraceInfo.EvenSurface && TraceInfo.Reachable)
-		{
-			FRotator Rotation = FRotator(0.0f);
-			ABuilding* Building = nullptr;
-			Building = GetWorld()->SpawnActor<ABuilding>(APosition, Rotation);
-			if (Building)
+		{	
+			if (PlayerChar->CurrentAction == nullptr)
 			{
-				TempState->Money -= Data->Cost;
-				TempState->OnRep_Money();
-				Building->Construct(ABuildingEnum, Cast<APlayerChar>(GetPawn()));
-
+				PlayerChar->ConstructAction->ConstructBuilding(Data, APosition);
 			}
 		}
 	}
@@ -246,10 +258,11 @@ FBuildingLocationInfo ABDPlayerController::GetLocationInfo(FHitResult ATrace)
 
 void ABDPlayerController::MakeGhost()
 {
+	if (!GetPawn()) return;
 	//if you're currectly selecting something then dont make a ghost;
  	if (CurrentlySelected)
 	{
-		UObject* SelectedObject = Cast<UObject>(CurrentlySelected);
+		UObject* SelectedObject = Cast<UObject>(CurrentlySelected.GetObject());
 		if (SelectedObject && SelectedObject->IsValidLowLevel())
 		{
 			if (BuildingGhost)
@@ -417,12 +430,13 @@ FHitResult ABDPlayerController::DoSingleTrace(FVector Start, FVector End, TArray
 
 
 
+
 bool ABDPlayerController::IsSelectedValid()
 {
 	if (CurrentlySelected != nullptr)
 	{
 		UObject* SelectedObject = nullptr;
-		SelectedObject = Cast<UObject>(CurrentlySelected);
+		SelectedObject = Cast<UObject>(CurrentlySelected.GetObject());
 
 		if (SelectedObject != nullptr && !SelectedObject->IsPendingKill())
 		{
@@ -470,10 +484,22 @@ void ABDPlayerController::SelectReleased()
 
 void ABDPlayerController::SelectAltPressed()
 {
-	if (IsSelectedValid())
+	APlayerChar* PlayerChar = nullptr;
+	PlayerChar = Cast<APlayerChar>(GetPawn());
+	if (PlayerChar != nullptr && PlayerChar->CurrentAction != nullptr)
 	{
-		CurrentlySelected->SelectAltPressed();
+		PlayerChar->CurrentAction->CancelAction();
 	}
+	else
+	{
+		if (IsSelectedValid())
+		{
+			CurrentlySelected->SelectAltPressed();
+		}
+	}
+
+
+	
 }
 
 void ABDPlayerController::SelectAltReleased()

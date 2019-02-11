@@ -4,7 +4,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/Texture2D.h"
-UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer)
+UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FClassFinder<UUserWidget> GUIBP(TEXT("WidgetBlueprint'/Game/UI/GUIWidget.GUIWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> SlotBP(TEXT("WidgetBlueprint'/Game/UI/SlotWidget.SlotWidget_C'"));

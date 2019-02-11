@@ -94,6 +94,6 @@ void UFloatingInfo::SetNameVisibility(bool AVisiblity)
 	}
 	else
 	{
-		NameText->SetVisibility(ESlateVisibility::Collapsed);
+		NameText->SetVisibility(ESlateVisibility::Hidden);
 	}
 }

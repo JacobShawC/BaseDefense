@@ -26,7 +26,7 @@ void UEnemyMoveAIAction::Initialise(AEnemyAIController* AnOwner)
 
 void UEnemyMoveAIAction::Activate()
 {
-	if (CurrentTarget != nullptr || CurrentTarget->IsValidLowLevel() || !CurrentTarget->IsPendingKill())
+	if (CurrentTarget != nullptr && CurrentTarget->IsValidLowLevel() && !CurrentTarget->IsPendingKill())
 	{
 		AIController->MoveToActor(CurrentTarget);
 		Executing = true;

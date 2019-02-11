@@ -40,13 +40,17 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<class UEnemyAIAction*> Actions;
+	UPROPERTY()
 	class UEnemyAIAction* CurrentAction = nullptr;
 
+	UPROPERTY()
 	class AActor* AggroTarget = nullptr;
 
 	bool IsReloading = false;
+	UPROPERTY()
 	class AEnemyChar* MyChar = nullptr;
 protected:
+	UPROPERTY()
 	class UWorld* World;
 	class ABDGameState* GameState;
 };

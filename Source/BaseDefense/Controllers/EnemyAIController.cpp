@@ -86,7 +86,7 @@ void AEnemyAIController::SetAggroTarget()
 
 void AEnemyAIController::WhatDo()
 {
-	if (CurrentAction != nullptr && CurrentAction->Executing && !CurrentAction->SafeToAbort)
+	if (!GetPawn()->IsValidLowLevelFast() || GetPawn()->IsActorBeingDestroyed() || CurrentAction != nullptr && CurrentAction->Executing && !CurrentAction->SafeToAbort)
 	{
 		return;
 	}

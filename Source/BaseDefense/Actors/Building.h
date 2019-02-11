@@ -22,6 +22,7 @@ public:
 
 	//void Initialise(EBuilding ABuilding);
 	void Construct(EBuilding ABuilding, class APlayerChar* AConstructor);
+	void CancelConstruction();
 	void SetUpBuilding(EBuilding ABuilding);
 	UFUNCTION()
 	void OnMouseEnter(UPrimitiveComponent* TouchedComponent);
@@ -32,6 +33,9 @@ public:
 
 	UFUNCTION()
 	void GenerateIncome();
+
+	UFUNCTION()
+	void SpawnIncomeText(FString AText);
 
 	void WhatDo();
 

@@ -42,7 +42,7 @@ protected:
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerConstructBuilding(EBuilding ABuildingEnum, FVector APosition);
-
+	bool ChangePlayerMoney(float AMoney);
 	bool IsSelectedValid();
 	void SelectHotbar(int ASlot);
 
@@ -85,8 +85,13 @@ public:
 	void RepairReleased();
 
 public:
-	class IInteraction* CurrentlySelected = nullptr;
+	UPROPERTY()
+	TScriptInterface<class IInteraction> CurrentlySelected = nullptr;
+	//class IInteraction* CurrentlySelected = nullptr;
+
+	UPROPERTY()
 	class UGUI* GUIWidget = nullptr;
+	UPROPERTY()
 	class ABuildingGhost* BuildingGhost = nullptr;
 
 

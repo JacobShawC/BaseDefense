@@ -24,22 +24,8 @@ UHealthComponent::UHealthComponent()
 
 void UHealthComponent::OnRep_SetHealth()
 {
-	if (LastKnownHealth > Health)
-	{
-		ADamageTextActor* DamageTextActor = nullptr;
-		FVector OwnerLoc = GetOwner()->GetActorLocation();
-		UWorld* World = GetWorld();
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.bNoFail = true;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
-		if (DamageTextActor != nullptr)
-		{
-			DamageTextActor->Initialise(FString::SanitizeFloat(Health - LastKnownHealth), FColor::Red);
-		}
-
-	}
+	//SpawnDamageText();
+	//OnRep_LastDamage();
 	LastKnownHealth = Health;
 
 	if (FloatingWidget == nullptr)
@@ -65,6 +51,24 @@ void UHealthComponent::OnRep_SetHealth()
 		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &UHealthComponent::OnRep_SetHealth, 0.05f, false);
 
 	}
+}
+
+void UHealthComponent::OnRep_LastDamage()
+{
+	if (LastDamage > 0 && GetOwner()->WasRecentlyRendered())
+	{
+		SpawnDamageText(FString::SanitizeFloat(LastDamage), FColor::Red);
+	}
+}
+
+
+
+void UHealthComponent::OnRep_LastHeal()
+{
+	/*if (LastHeal > 0 && GetOwner()->WasRecentlyRendered())
+	{
+		SpawnDamageText(FString::SanitizeFloat(LastHeal), FColor::Green);
+	}*/
 }
 
 void UHealthComponent::OnRep_SetMaxHealth()
@@ -113,8 +117,7 @@ void UHealthComponent::Initialise(float AMaxHealth)
 
 void UHealthComponent::TakeDamage(float ADamage)
 {
-	
-
+	LastDamage = ADamage;
 
 	if (Health - ADamage <= 0)
 	{
@@ -130,30 +133,40 @@ void UHealthComponent::TakeDamage(float ADamage)
 		}
 	}
 
-	if (LastKnownHealth > Health)
-	{
-		ADamageTextActor* DamageTextActor = nullptr;
-		FVector OwnerLoc = GetOwner()->GetActorLocation();
-		UWorld* World = GetWorld();
-		FActorSpawnParameters SpawnParams;
-		SpawnParams.bNoFail = true;
-		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+	//SpawnDamageText();
+	OnRep_LastDamage();
 
-		DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
-		if (DamageTextActor != nullptr)
-		{
-			DamageTextActor->Initialise(FString::SanitizeFloat(Health - LastKnownHealth), FColor::Red);
-		}
-
-	}
 	LastKnownHealth = Health;
 
+}
+
+float UHealthComponent::Heal(float AHeal)
+{
+	float ReturnFloat = 0;
+	if (Health + AHeal > MaxHealth)
+	{
+		ReturnFloat = Health + AHeal - MaxHealth;
+		Health = MaxHealth;
+	}
+	else
+	{
+		Health += AHeal;
+		ReturnFloat = AHeal;
+	}
+	if (FloatingWidget)
+	{
+		FloatingWidget->SetHealth(Health);
+	}
+	OnRep_LastHeal();
+
+	LastHeal = Health;
+
+	return ReturnFloat;
 }
 
 void UHealthComponent::BeginPlay()
 {
 	Super::BeginPlay();
-
 
 	UWidgetComponent* WidgetComponent = Cast<UWidgetComponent>(GetOwner()->FindComponentByClass(UWidgetComponent::StaticClass()));
 	if (WidgetComponent)
@@ -162,9 +175,28 @@ void UHealthComponent::BeginPlay()
 	}
 }
 
+void UHealthComponent::SpawnDamageText(FString AText, FColor AColor)
+{
+	ADamageTextActor* DamageTextActor = nullptr;
+	FVector OwnerLoc = GetOwner()->GetActorLocation();
+	UWorld* World = GetWorld();
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.bNoFail = true;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
+	if (DamageTextActor != nullptr)
+	{
+		DamageTextActor->Initialise(AText, FColor::Red);
+	}
+
+}
+
 void UHealthComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UHealthComponent, MaxHealth);
 	DOREPLIFETIME(UHealthComponent, Health);
+	DOREPLIFETIME(UHealthComponent, LastDamage);
+	DOREPLIFETIME(UHealthComponent, LastHeal);
 }

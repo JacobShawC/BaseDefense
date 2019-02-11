@@ -18,6 +18,11 @@
 #include "HealthComponent.h"
 #include "BDGameInstance.h"
 #include "GameFramework/PlayerState.h"
+#include "PlayerAction.h"
+#include "ConstructAction.h"
+#include "RepairAction.h"
+#include "Animation/AnimBlueprint.h"
+#include "Animation/AnimBlueprintGeneratedClass.h"
 // Sets default values
 APlayerChar::APlayerChar()
 {
@@ -42,9 +47,21 @@ APlayerChar::APlayerChar()
 
 	GetMesh()->SetGenerateOverlapEvents(true);
 	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> AnimObj(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
+	//static ConstructorHelpers::FClassFinder<UAnimBlueprint> AnimBPClass(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
 	GetMesh()->AnimClass = AnimObj.Object;
-
+	//GetMesh()->SetAnimInstanceClass(AnimObj.Object->GetAnimBlueprintGeneratedClass());
+	//GetMesh()->SetAnimInstanceClass(AnimObj.Object->GetClass());
 	// Configure character movement
+	//GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
+	//GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
+	//GetCharacterMovement()->bConstrainToPlane = true;
+	//GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	//GetCharacterMovement()->bUseControllerDesiredRotation = false;
+	////GetCharacterMovement()->bIgnoreBaseRotation = true;
+	////bUseControllerRotationPitch = false;
+	////bUseControllerRotationYaw = true;
+	////bUseControllerRotationRoll = false;
+
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
@@ -53,6 +70,7 @@ APlayerChar::APlayerChar()
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
+
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SpringArm);
@@ -87,8 +105,11 @@ APlayerChar::APlayerChar()
 	FloatingWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("HealthComponent"));
 
+	ConstructAction = CreateDefaultSubobject<UConstructAction>(TEXT("ConstructAction"));
+
 	HealthComponent->SetNetAddressable(); // Make DSO components net addressable
 	HealthComponent->SetIsReplicated(true); // Enable replication by default
+
 }
 
 // Called when the game starts or when spawned

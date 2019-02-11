@@ -31,5 +31,6 @@ public:
 
 	FString String = "";
 	FColor Color = FColor::Black;
+	UPROPERTY()
 	class UDamageText* DamageText = nullptr;
 };
