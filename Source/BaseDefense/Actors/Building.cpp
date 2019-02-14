@@ -19,6 +19,8 @@
 #include "BDGameState.h"
 #include "Public/TimerManager.h"
 #include "DamageTextActor.h"
+#include "RepairAction.h"
+#include "BDPlayerController.h"
 // Sets default values
 ABuilding::ABuilding()
 {
@@ -231,6 +233,15 @@ void ABuilding::OnMouseEnter(UPrimitiveComponent * TouchedComponent)
 		FloatingInfo->SetNameVisibility(true);
 	}
 	MeshComponent->SetRenderCustomDepth(true);
+
+	if (Controller == nullptr)
+	{
+		Controller = Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController());
+	}
+	if (Controller != nullptr)
+	{
+		Controller->SetCurrentlySelected(this);
+	}
 }
 
 void ABuilding::OnMouseLeave(UPrimitiveComponent * TouchedComponent)
@@ -240,7 +251,59 @@ void ABuilding::OnMouseLeave(UPrimitiveComponent * TouchedComponent)
 		FloatingInfo->SetNameVisibility(false);
 	}
 	MeshComponent->SetRenderCustomDepth(false);
+
+	if (Character == nullptr)
+	{
+		Character = Cast<APlayerChar>(GetWorld()->GetFirstLocalPlayerFromController());
+	}
+
+
+	if (Controller == nullptr)
+	{
+		Controller = Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController());
+	}
+	if (Controller != nullptr)
+	{
+		if (Controller->CurrentlySelected == this)
+		{
+			Controller->CurrentlySelected = nullptr;
+		}
+	}
+
 }
+
+bool ABuilding::RepairPressed()
+{
+	if (Controller == nullptr)
+	{
+		Controller = Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController());
+	}
+	if (Controller != nullptr)
+	{
+		Character = Cast<APlayerChar>(Controller->GetPawn());
+	}
+
+	if (Character != nullptr && Character->RepairAction != nullptr)
+	{
+		return (Character->RepairAction->RepairBuilding(this));
+	}
+	return false;
+}
+
+//bool ABuilding::RepairReleased()
+//{
+//	if (Character == nullptr)
+//	{
+//		Character = Cast<APlayerChar>(GetWorld()->GetFirstLocalPlayerFromController());
+//	}
+//
+//	/*if (Character != nullptr && Character->RepairAction != nullptr && Character->RepairAction->Repairing == true && Character->RepairAction->Building == this)
+//	{
+//		Character->RepairAction->CancelRepair(ERepairCancelReason::Cancelled);
+//		return true;
+//	}*/
+//	return false;
+//}
 
 void ABuilding::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {

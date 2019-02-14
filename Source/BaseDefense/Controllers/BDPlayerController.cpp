@@ -16,6 +16,7 @@
 #include "PlayerChar.h"
 #include "ConstructAction.h"
 #include "BDPlayerState.h"
+#include "GameFramework/PlayerInput.h"
 #define COLLISION_BUILDABLE		ECC_GameTraceChannel1
 #define COLLISION_BUILDING		ECC_GameTraceChannel2
 
@@ -271,7 +272,6 @@ void ABDPlayerController::MakeGhost()
 				BuildingGhost = nullptr;
 			}
 			return;
-
 		}
 	}
 
@@ -564,6 +564,31 @@ void ABDPlayerController::SelectHotbar(int ASlot)
 	{
 		GUIWidget->HotBar->Select(ASlot);
 	}
+}
+bool ABDPlayerController::GetActionHeld(FName AText)
+{
+	TArray < FInputActionKeyMapping > KeyMappings = PlayerInput->GetKeysForAction(AText);
+	for (auto Mapping : KeyMappings)
+	{
+		if (IsInputKeyDown(Mapping.Key))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+void ABDPlayerController::SetCurrentlySelected(TScriptInterface<IInteraction> ACurrentlySelected)
+{
+	CurrentlySelected = ACurrentlySelected;
+
+	if (GetActionHeld("Repair"))
+	{
+		CurrentlySelected->RepairPressed();
+	}
+
+
 }
 
 //void ABDPlayerController::TryBuildBuildingFromGhost()

@@ -3,6 +3,11 @@
 #include "DamageText.h"
 #include "Animation/WidgetAnimation.h"
 #include "Components/TextBlock.h"
+//
+//UDamageText::UDamageText(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+//{
+//
+//}
 
 void UDamageText::Initialise(FString AString, FColor AColor)
 {

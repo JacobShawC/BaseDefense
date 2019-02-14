@@ -45,7 +45,9 @@ public:
 	bool ChangePlayerMoney(float AMoney);
 	bool IsSelectedValid();
 	void SelectHotbar(int ASlot);
+	bool GetActionHeld(FName AText);
 
+	void SetCurrentlySelected(TScriptInterface<class IInteraction> ACurrentlySelected);
 	//void TryBuildBuildingFromGhost();
 
 

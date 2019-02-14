@@ -6,6 +6,9 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCheckHealthFull, bool, AHealthFull);
+
+
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class BASEDEFENSE_API UHealthComponent : public UActorComponent
@@ -28,24 +31,35 @@ public:
 	void Initialise(float AMaxHealth);
 	void TakeDamage(float ADamage);
 	float Heal(float AHeal);
+
+	void CheckFull();
+
+
+
 	virtual void BeginPlay() override;
 	void SpawnDamageText(FString AText, FColor AColor);
 
 	void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 
+	UPROPERTY()
+	FCheckHealthFull HealthFullDelegate;
+
+
+	bool LastKnownFull = true;
+
 	UPROPERTY(ReplicatedUsing = OnRep_SetMaxHealth)
-	int MaxHealth = 0;
+	float MaxHealth = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_SetHealth)
-	int Health = 0;
+	float Health = 0;
 	
 	UPROPERTY(ReplicatedUsing = OnRep_LastDamage)
-	int LastDamage = 0;
+	float LastDamage = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_LastHeal)
-	int LastHeal = 0;
+	float LastHeal = 0;
 
-	int LastKnownHealth = 0;
+	float LastKnownHealth = 0;
 
 
 	UPROPERTY()

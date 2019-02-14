@@ -29,6 +29,12 @@ public:
 	UFUNCTION()
 	void OnMouseLeave(UPrimitiveComponent * TouchedComponent);
 
+	UFUNCTION()
+	virtual bool RepairPressed() override;
+
+	/*UFUNCTION()
+	virtual bool RepairReleased() override;*/
+
 	void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 
 	UFUNCTION()
@@ -92,9 +98,11 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_SetFloatingHeight)
 	float FloatingHeight = 0;
 
+	bool BeingRepaired = false;
+
 protected:
 	class UBDGameInstance* GameInstance = nullptr;
 	class ABDGameState* GameState = nullptr;
-	
-
+	class ABDPlayerController* Controller = nullptr;
+	class APlayerChar* Character = nullptr;
 };

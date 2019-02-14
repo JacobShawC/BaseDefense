@@ -50,6 +50,8 @@ public:
 
 	UPROPERTY()
 	class UConstructAction* ConstructAction = nullptr;
+	UPROPERTY()
+	class URepairAction* RepairAction = nullptr;
 
 	UPROPERTY()
 	class UPlayerAction* CurrentAction = nullptr;

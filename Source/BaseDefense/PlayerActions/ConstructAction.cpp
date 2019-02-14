@@ -35,7 +35,7 @@ bool UConstructAction::ConstructBuilding(FBuildingData AData, FVector APosition)
 		ABuilding* Building = nullptr;
 		Building = GetWorld()->SpawnActor<ABuilding>(APosition, Rotation);
 
-		if (Building != nullptr && PlayerChar->CurrentAction != nullptr)
+		if (Building != nullptr)
 		{
 			Building->Construct(AData.Building, PlayerChar);
 

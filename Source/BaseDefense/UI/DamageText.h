@@ -17,6 +17,9 @@ class BASEDEFENSE_API UDamageText : public UBDUserWidget
 	
 
 public:
+	//UDamageText(const FObjectInitializer& ObjectInitializer);
+
+
 	void Initialise(FString AString, FColor AColor);
 	void SetText(FString AString);
 	void SetColor(FColor AColor);

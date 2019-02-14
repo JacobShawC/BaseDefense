@@ -26,6 +26,8 @@ void UHealthComponent::OnRep_SetHealth()
 {
 	//SpawnDamageText();
 	//OnRep_LastDamage();
+	CheckFull();
+
 	LastKnownHealth = Health;
 
 	if (FloatingWidget == nullptr)
@@ -65,10 +67,7 @@ void UHealthComponent::OnRep_LastDamage()
 
 void UHealthComponent::OnRep_LastHeal()
 {
-	/*if (LastHeal > 0 && GetOwner()->WasRecentlyRendered())
-	{
-		SpawnDamageText(FString::SanitizeFloat(LastHeal), FColor::Green);
-	}*/
+	CheckFull();
 }
 
 void UHealthComponent::OnRep_SetMaxHealth()
@@ -135,13 +134,15 @@ void UHealthComponent::TakeDamage(float ADamage)
 
 	//SpawnDamageText();
 	OnRep_LastDamage();
-
 	LastKnownHealth = Health;
+
 
 }
 
 float UHealthComponent::Heal(float AHeal)
 {
+	LastHeal = Health;
+
 	float ReturnFloat = 0;
 	if (Health + AHeal > MaxHealth)
 	{
@@ -158,10 +159,37 @@ float UHealthComponent::Heal(float AHeal)
 		FloatingWidget->SetHealth(Health);
 	}
 	OnRep_LastHeal();
+	LastKnownHealth = Health;
 
-	LastHeal = Health;
 
 	return ReturnFloat;
+}
+
+void UHealthComponent::CheckFull()
+{
+	if (Health == MaxHealth)
+	{
+		if (LastKnownFull == true)
+		{
+
+		}
+		else
+		{
+			HealthFullDelegate.Broadcast(true);
+		}
+	}
+
+	if (Health < MaxHealth)
+	{
+		if (LastKnownFull == false)
+		{
+
+		}
+		else
+		{
+			HealthFullDelegate.Broadcast(false);
+		}
+	}
 }
 
 void UHealthComponent::BeginPlay()

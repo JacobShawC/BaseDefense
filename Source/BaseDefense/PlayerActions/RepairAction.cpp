@@ -47,7 +47,7 @@ bool URepairAction::RepairBuilding(ABuilding* ABuilding)
 	HealthComponent = nullptr;
 	HealthComponent = Cast<UHealthComponent>(Building->GetComponentByClass(UHealthComponent::StaticClass()));
 
-	if (HealthComponent != nullptr && PlayerState != nullptr && PlayerChar->CurrentAction != nullptr && HealthComponent->Health < HealthComponent->MaxHealth && PlayerState->Money > 0)
+	if (HealthComponent != nullptr && PlayerState != nullptr && PlayerChar->CurrentAction == nullptr && HealthComponent->Health < HealthComponent->MaxHealth && PlayerState->Money > 0)
 	{
 		PlayerChar->CurrentAction = this;
 
@@ -121,10 +121,10 @@ void URepairAction::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 	float MaxHealing = 0;
 	float HealthToSpend = PlayerState->Money / PlayerData.RepairCost;
 	float HealthCanHeal = 0;
-	float TickHeal = DeltaTime * PlayerData.RepairCost;
+	float TickHeal = DeltaTime * PlayerData.RepairSpeed;
 	if (HealthComponent)
 	{
-		MaxHealing = HealthComponent->MaxHealth = HealthComponent->Health;
+		MaxHealing = HealthComponent->MaxHealth - HealthComponent->Health;
 		if (TickHeal <= HealthToSpend)
 		{
 			HealthCanHeal = TickHeal;
@@ -138,6 +138,8 @@ void URepairAction::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 		{
 			HealthCanHeal = MaxHealing;
 		}
+
+
 		if (HealthCanHeal > 0)
 		{
 			PlayerState->ChangePlayerMoney(-(HealthCanHeal * PlayerData.RepairCost));
