@@ -43,14 +43,30 @@ void UHotbarSlot::SetBuilding(EBuilding ABuilding)
 	if (GameInstance)
 	{
 		UTexture2D* Texture = nullptr;
-		FBuildingData* Data = GameInstance->Buildings.Find(ABuilding);
-		Texture = Data->Thumbnail;
-		//UTexture2D* Texture = BarrelImage.;
-		if (Texture)
+		FBuildingData* Data = nullptr;
+		Data = GameInstance->Buildings.Find(ABuilding);
+		if (Data != nullptr)
 		{
-			SlotImage->SetBrushFromTexture(Texture, false);
-			SetImageVisiblity(true);
+			Texture = Data->Thumbnail;
+			//UTexture2D* Texture = BarrelImage.;
+			if (Texture)
+			{
+				SlotImage->SetBrushFromTexture(Texture, false);
+				SetImageVisiblity(true);
+			}
+			SetPriceText(FString::FromInt(Data->Cost));
+			if (Data->Cost == 0)
+			{
+				SetPriceVisiblity(false);
+			}
+			else
+			{
+				SetPriceVisiblity(true);
+			}
+			
 		}
+		
+
 	}
 }
 

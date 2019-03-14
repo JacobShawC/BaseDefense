@@ -40,8 +40,9 @@ public:
 	UFUNCTION()
 	void GenerateIncome();
 
-	UFUNCTION()
-	void SpawnIncomeText(FString AText);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastSpawnDamageText(const FString& AText, FColor AColor);
 
 	void WhatDo();
 
@@ -97,6 +98,7 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_SetFloatingHeight)
 	float FloatingHeight = 0;
+
 
 	bool BeingRepaired = false;
 

@@ -7,7 +7,7 @@
 #include "BDPlayerController.h"
 
 
-void ABDGameState::AddMoney(float AMoney)
+float ABDGameState::AddMoney(float AMoney)
 {
 	if (!PlayerArray.Num() == 0)
 	{
@@ -19,12 +19,14 @@ void ABDGameState::AddMoney(float AMoney)
 			{
 				ABDState->Money += DividedMoney;
 				ABDState->OnRep_Money();
+				return DividedMoney;
 			}
 
 
 		}
 
 	}
+	return 0.0f;
 	 
 }
 

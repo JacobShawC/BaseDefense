@@ -9,6 +9,14 @@
 /**
  * 
  */
+UENUM()
+enum class ELevelEvent : uint8
+{
+	None 			UMETA(DisplayName = "None"),
+	Wave		UMETA(DisplayName = "Wave"),
+	Event 			UMETA(DisplayName = "Event"),
+	Boss 		UMETA(DisplayName = "Boss"),
+};
 
 UENUM()
 enum class EBuilding : uint8
@@ -196,7 +204,9 @@ UENUM()
 enum class EEnemy : uint8
 {
 	None 			UMETA(DisplayName = "None"),
-	SmallZombie 	UMETA(DisplayName = "SmallZombie")
+	Seaman 	UMETA(DisplayName = "Seaman"),
+	FirstMate 	UMETA(DisplayName = "FirstMate"),
+	FemalePirate 	UMETA(DisplayName = "FemalePirate")
 };
 
 USTRUCT()
@@ -267,6 +277,12 @@ struct FEnemyData
 	float MovementSpeed = 0;
 
 	UPROPERTY()
+	class USkeletalMesh* Mesh = nullptr;
+	
+	UPROPERTY()
+	class UAnimBlueprintGeneratedClass* Anim = nullptr;
+
+	UPROPERTY()
 	float Bounty = 0;
 
 	UPROPERTY()
@@ -323,3 +339,20 @@ struct FBuildingLocationInfo
 	UPROPERTY()
 	bool RoundedVector = false;
 };
+
+
+USTRUCT()
+struct FLevelEvent
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	ELevelEvent Event = ELevelEvent::None;
+
+	UPROPERTY()
+	float StartTime = 0;
+
+	UPROPERTY()
+	float Duration = 0;
+};
+

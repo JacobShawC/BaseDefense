@@ -22,10 +22,6 @@ public:
 	UFUNCTION()
 	void OnRep_SetHealth();
 	UFUNCTION()
-	void OnRep_LastDamage();
-	UFUNCTION()
-	void OnRep_LastHeal();
-	UFUNCTION()
 	void OnRep_SetMaxHealth();
 
 	void Initialise(float AMaxHealth);
@@ -37,7 +33,9 @@ public:
 
 
 	virtual void BeginPlay() override;
-	void SpawnDamageText(FString AText, FColor AColor);
+
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastSpawnDamageText(const FString& AText, FColor AColor);
 
 	void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 
@@ -52,12 +50,6 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_SetHealth)
 	float Health = 0;
-	
-	UPROPERTY(ReplicatedUsing = OnRep_LastDamage)
-	float LastDamage = 0;
-
-	UPROPERTY(ReplicatedUsing = OnRep_LastHeal)
-	float LastHeal = 0;
 
 	float LastKnownHealth = 0;
 

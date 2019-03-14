@@ -36,7 +36,10 @@ public:
 
 	void OnKilled();
 
-	TArray<AActor*> GetActorsInRange();
+	UFUNCTION(NetMulticast, Unreliable)
+	void MulticastSpawnDamageText(float ABounty);
+
+	void SpawnDamageText(FString AText, FColor AColor);
 	UFUNCTION()
 	void OnMouseEnter(UPrimitiveComponent* TouchedComponent);
 	UFUNCTION()

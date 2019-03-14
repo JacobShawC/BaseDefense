@@ -55,20 +55,16 @@ void UHealthComponent::OnRep_SetHealth()
 	}
 }
 
-void UHealthComponent::OnRep_LastDamage()
-{
-	if (LastDamage > 0 && GetOwner()->WasRecentlyRendered())
-	{
-		SpawnDamageText(FString::SanitizeFloat(LastDamage), FColor::Red);
-	}
-}
+//void UHealthComponent::OnRep_LastDamage()
+//{
+//	if (LastDamage > 0 && GetOwner()->WasRecentlyRendered())
+//	{
+//		SpawnDamageText(FString::SanitizeFloat(LastDamage), FColor::Red);
+//	}
+//}
 
 
 
-void UHealthComponent::OnRep_LastHeal()
-{
-	CheckFull();
-}
 
 void UHealthComponent::OnRep_SetMaxHealth()
 {
@@ -116,11 +112,11 @@ void UHealthComponent::Initialise(float AMaxHealth)
 
 void UHealthComponent::TakeDamage(float ADamage)
 {
-	LastDamage = ADamage;
 
 	if (Health - ADamage <= 0)
 	{
 		Health = 0;
+
 		GetOwner()->Destroy();
 	}
 	else
@@ -133,15 +129,14 @@ void UHealthComponent::TakeDamage(float ADamage)
 	}
 
 	//SpawnDamageText();
-	OnRep_LastDamage();
+	//OnRep_LastDamage();
+	MulticastSpawnDamageText(FString::SanitizeFloat(ADamage), FColor::Red);
+
 	LastKnownHealth = Health;
-
-
 }
 
 float UHealthComponent::Heal(float AHeal)
 {
-	LastHeal = Health;
 
 	float ReturnFloat = 0;
 	if (Health + AHeal > MaxHealth)
@@ -158,7 +153,6 @@ float UHealthComponent::Heal(float AHeal)
 	{
 		FloatingWidget->SetHealth(Health);
 	}
-	OnRep_LastHeal();
 	LastKnownHealth = Health;
 
 
@@ -203,21 +197,24 @@ void UHealthComponent::BeginPlay()
 	}
 }
 
-void UHealthComponent::SpawnDamageText(FString AText, FColor AColor)
+
+void UHealthComponent::MulticastSpawnDamageText_Implementation(const FString& AText, FColor AColor)
 {
-	ADamageTextActor* DamageTextActor = nullptr;
-	FVector OwnerLoc = GetOwner()->GetActorLocation();
-	UWorld* World = GetWorld();
-	FActorSpawnParameters SpawnParams;
-	SpawnParams.bNoFail = true;
-	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
-	if (DamageTextActor != nullptr)
+	if (GetOwner()->WasRecentlyRendered())
 	{
-		DamageTextActor->Initialise(AText, FColor::Red);
-	}
+		ADamageTextActor* DamageTextActor = nullptr;
+		FVector OwnerLoc = GetOwner()->GetActorLocation();
+		UWorld* World = GetWorld();
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.bNoFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
+		DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
+		if (DamageTextActor != nullptr)
+		{
+			DamageTextActor->Initialise(AText, AColor);
+		}
+	}
 }
 
 void UHealthComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
@@ -225,6 +222,4 @@ void UHealthComponent::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & 
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(UHealthComponent, MaxHealth);
 	DOREPLIFETIME(UHealthComponent, Health);
-	DOREPLIFETIME(UHealthComponent, LastDamage);
-	DOREPLIFETIME(UHealthComponent, LastHeal);
 }

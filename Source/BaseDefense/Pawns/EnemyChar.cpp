@@ -19,6 +19,7 @@
 #include "Engine/World.h"
 #include "Public/TimerManager.h"
 #include "UnrealNetwork.h"
+#include "DamageTextActor.h"
 
 AEnemyChar::AEnemyChar()
 {
@@ -27,15 +28,15 @@ AEnemyChar::AEnemyChar()
 	bReplicates = true;
 
 	//static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMesh(TEXT("/Game/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin"));
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_Seaman_01_Bare.SK_Character_Pirate_Seaman_01_Bare'"));
-	GetMesh()->SetSkeletalMesh(PlayerMesh.Object, true);
+	//static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_Seaman_01_Bare.SK_Character_Pirate_Seaman_01_Bare'"));
+	//GetMesh()->SetSkeletalMesh(PlayerMesh.Object, true);
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f), false);
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f), false);
 
 	GetMesh()->SetReceivesDecals(false);
-	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> AnimObj(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
-	GetMesh()->AnimClass = AnimObj.Object;
-	GetMesh()->CastShadow = false;
+	//static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> AnimObj(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
+	//GetMesh()->AnimClass = AnimObj.Object;
+	GetMesh()->CastShadow = true;
 	GetMesh()->SetGenerateOverlapEvents(false);
 	//GetMesh()->SetCollisionProfileName("Enemy");
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
@@ -106,6 +107,10 @@ void AEnemyChar::Initialise(EEnemy AnEnemy)
 	if (GameInstance)
 	{
 		EnemyData = *GameInstance->Enemies.Find(AnEnemy);
+
+		GetMesh()->SetSkeletalMesh(EnemyData.Mesh, true);
+		//GetMesh()->AnimClass = EnemyData.Anim;
+		GetMesh()->SetAnimInstanceClass(EnemyData.Anim);
 		Health = EnemyData.MaxHealth;
 		Enemy = EnemyData.Enemy;
 		//GetCharacterMovement()->MaxWalkSpeed = EnemyData.MovementSpeed;
@@ -134,7 +139,7 @@ void AEnemyChar::Initialise(EEnemy AnEnemy)
 void AEnemyChar::BeginPlay()
 {
 	Super::BeginPlay();
-	Initialise(EEnemy::SmallZombie);
+	Initialise(EEnemy::Seaman);
 	SpawnDefaultController();
 }
 
@@ -166,8 +171,34 @@ void AEnemyChar::OnKilled()
 
 	if (MyGameState)
 	{
-		MyGameState->AddMoney(EnemyData.Bounty);
+		float DividedBounty = MyGameState->AddMoney(EnemyData.Bounty);
+		MulticastSpawnDamageText(DividedBounty);
 	}
+}
+
+void AEnemyChar::MulticastSpawnDamageText_Implementation(float ABounty)
+{
+	SpawnDamageText(FString::SanitizeFloat(ABounty), FColor::Yellow);
+}
+
+void AEnemyChar::SpawnDamageText(FString AText, FColor AColor)
+{
+	if (WasRecentlyRendered())
+	{
+		ADamageTextActor* DamageTextActor = nullptr;
+		FVector OwnerLoc = GetActorLocation();
+		UWorld* World = GetWorld();
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.bNoFail = true;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		DamageTextActor = Cast<ADamageTextActor>(GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
+		if (DamageTextActor != nullptr)
+		{
+			DamageTextActor->Initialise(AText, AColor);
+		}
+	}
+
 }
 
 void AEnemyChar::OnMouseEnter(UPrimitiveComponent * TouchedComponent)

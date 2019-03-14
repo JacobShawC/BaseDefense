@@ -4,6 +4,8 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Blueprint/UserWidget.h"
 #include "Engine/Texture2D.h"
+#include "Engine/SkeletalMesh.h"
+#include "Animation/AnimBlueprintGeneratedClass.h"
 UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
 	static ConstructorHelpers::FClassFinder<UUserWidget> GUIBP(TEXT("WidgetBlueprint'/Game/UI/GUIWidget.GUIWidget_C'"));
@@ -19,7 +21,15 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FObjectFinder<UTexture2D> BarrelImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/BarrelIcon.BarrelIcon'"));
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CannonImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/CannonIcon.CannonIcon'"));
 
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SeamanMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_Seaman_01_Bare.SK_Character_Pirate_Seaman_01_Bare'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FirstMateMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_First_Mate_01_Bare.SK_Character_Pirate_First_Mate_01_Bare'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FemalePirateMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Female_Pirate_01_Bare.SK_Character_Female_Pirate_01_Bare'"));
 	
+	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> PirateSeamanAnimBP(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
+
+
+
+
 	Widgets.Add("GUI", GUIBP.Class);
 	Widgets.Add("Slot", SlotBP.Class);
 	Widgets.Add("HotbarSlot", HotbarSlotBP.Class);
@@ -75,7 +85,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	FarmBuildingData.Building = EBuilding::Farm;
 	FarmBuildingData.MaxHealth = 50;
 	FarmBuildingData.Cost = 100;
-	FarmBuildingData.ConstructionTime = 4.f;
+	FarmBuildingData.ConstructionTime = 1.f;
 
 	FarmBuildingData.Properties.Add(EBuildingProperty::Regen);
 	FarmBuildingData.Regeneration.RegenAmount = 1;
@@ -120,16 +130,54 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	//----------------------------------------------------------------------------------------------------------
 	//Enemies
 	//----------------------------------------------------------------------------------------------------------
-	//Snall Zombie
-	FEnemyData SmallZombieData;
-	SmallZombieData.Name = "Small Zombie";
-	SmallZombieData.Enemy = EEnemy::SmallZombie;
-	SmallZombieData.MaxHealth = 50;
-	SmallZombieData.MovementSpeed = 5;
-	SmallZombieData.Attack.Damage = 10;
-	SmallZombieData.Attack.ReloadTime = 2;
-	SmallZombieData.Attack.Range = 50;
-	SmallZombieData.Bounty = 50;
-	SmallZombieData.Attack.AttackRule = EAttackRule::Closest;
-	Enemies.Add(EEnemy::SmallZombie, SmallZombieData);
+	//Seaman
+	FEnemyData SeamanData;
+	SeamanData.Name = "Small Zombie";
+	SeamanData.Enemy = EEnemy::Seaman;
+	SeamanData.MaxHealth = 50;
+	SeamanData.MovementSpeed = 5;
+	SeamanData.Attack.Damage = 10;
+	SeamanData.Attack.ReloadTime = 2;
+	SeamanData.Attack.Range = 50;
+	SeamanData.Bounty = 50;
+	SeamanData.Mesh = SeamanMesh.Object;
+	SeamanData.Anim = PirateSeamanAnimBP.Object;
+
+	SeamanData.Attack.AttackRule = EAttackRule::Closest;
+	Enemies.Add(EEnemy::Seaman, SeamanData);
+
+	//First Mate
+	FEnemyData FirstMateData;
+	FirstMateData.Name = "Big Zombie";
+	FirstMateData.Enemy = EEnemy::FirstMate;
+	FirstMateData.MaxHealth = 200;
+	FirstMateData.MovementSpeed = 5;
+	FirstMateData.Attack.Damage = 20;
+	FirstMateData.Attack.ReloadTime = 2;
+	FirstMateData.Attack.Range = 50;
+	FirstMateData.Bounty = 100;
+	FirstMateData.Mesh = FirstMateMesh.Object;
+	FirstMateData.Anim = PirateSeamanAnimBP.Object;
+
+	FirstMateData.Attack.AttackRule = EAttackRule::Closest;
+	Enemies.Add(EEnemy::FirstMate, FirstMateData);
+
+	//Female Pirate
+	FEnemyData FemalePirateData;
+	FemalePirateData.Name = "Female Pirate";
+	FemalePirateData.Enemy = EEnemy::FemalePirate;
+	FemalePirateData.MaxHealth = 500;
+	FemalePirateData.MovementSpeed = 5;
+	FemalePirateData.Attack.Damage = 50;
+	FemalePirateData.Attack.ReloadTime = 2;
+	FemalePirateData.Attack.Range = 50;
+	FemalePirateData.Bounty = 150;
+	FemalePirateData.Mesh = FemalePirateMesh.Object;
+	FemalePirateData.Anim = PirateSeamanAnimBP.Object;
+
+	FemalePirateData.Attack.AttackRule = EAttackRule::Closest;
+	Enemies.Add(EEnemy::FemalePirate, FemalePirateData);
+
+
+
 }

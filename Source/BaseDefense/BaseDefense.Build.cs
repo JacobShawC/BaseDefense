@@ -27,6 +27,7 @@ public class BaseDefense : ModuleRules
                 "BaseDefense/UI",
                 "BaseDefense/AI",
                 "BaseDefense/PlayerActions",
+                "BaseDefense/Levels",
             }
         );
 

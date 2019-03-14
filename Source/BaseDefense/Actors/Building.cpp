@@ -311,6 +311,8 @@ void ABuilding::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLife
 	DOREPLIFETIME(ABuilding, MaxConstructionTime);
 	DOREPLIFETIME(ABuilding, CurrentConstructionTime);
 	DOREPLIFETIME(ABuilding, FloatingHeight);
+
+
 }
 
 void ABuilding::GenerateIncome()
@@ -326,33 +328,35 @@ void ABuilding::GenerateIncome()
 		
 		if (GameState != nullptr)
 		{
-			GameState->AddMoney(BuildingData.Income.IncomeAmount);
+			
+
+			float DividedIncome = GameState->AddMoney(BuildingData.Income.IncomeAmount);
+			MulticastSpawnDamageText(FString::SanitizeFloat(DividedIncome), FColor::Yellow);
 		}
 
 	}
 	
 }
 
-void ABuilding::SpawnIncomeText(FString AText)
+void ABuilding::MulticastSpawnDamageText_Implementation(const FString& AText, FColor AColor)
 {
 	if (WasRecentlyRendered())
 	{
 		ADamageTextActor* DamageTextActor = nullptr;
-		FVector OwnerLoc = GetOwner()->GetActorLocation();
+		FVector OwnerLoc = GetActorLocation();
 		UWorld* World = GetWorld();
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.bNoFail = true;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		DamageTextActor = Cast<ADamageTextActor>(GetOwner()->GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
+		DamageTextActor = Cast<ADamageTextActor>(GetWorld()->SpawnActor<ADamageTextActor>(ADamageTextActor::StaticClass(), OwnerLoc, FRotator(0.0f), SpawnParams));
 		if (DamageTextActor != nullptr)
 		{
-			DamageTextActor->Initialise(AText, FColor::Yellow);
+			DamageTextActor->Initialise(AText, AColor);
 		}
-
 	}
-
 }
+
 
 void ABuilding::WhatDo()
 {

@@ -16,7 +16,7 @@ class BASEDEFENSE_API ABDGameState : public AGameState
 
 public:
 
-	void AddMoney(float AMoney);
+	float AddMoney(float AMoney);
 
 	virtual void BeginPlay() override;
 public:
