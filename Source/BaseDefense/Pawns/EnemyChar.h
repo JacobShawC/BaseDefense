@@ -12,6 +12,7 @@ class BASEDEFENSE_API AEnemyChar : public ACharacter
 {
 	GENERATED_BODY()
 
+
 public:
 	// Sets default values for this character's properties
 	AEnemyChar();
@@ -66,6 +67,7 @@ public:
 	class UHealthComponent* HealthComponent = nullptr;
 	EEnemy Enemy = EEnemy::None;
 	float Health = 100;
+
 
 	UPROPERTY(ReplicatedUsing = OnRep_SetFloatingHeight)
 	float FloatingHeight = 0;

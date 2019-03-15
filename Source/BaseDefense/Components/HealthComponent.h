@@ -8,6 +8,9 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FCheckHealthFull, bool, AHealthFull);
 
+//DECLARE_MULTICAST_DELEGATE_TwoParams(FBeingAttacked, AActor*, AnAttackingActor, float, ADamage);
+DECLARE_MULTICAST_DELEGATE_TwoParams(FBeingAttacked, AActor*, float);
+
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -25,12 +28,12 @@ public:
 	void OnRep_SetMaxHealth();
 
 	void Initialise(float AMaxHealth);
-	void TakeDamage(float ADamage);
+	void TakeDamage(AActor* AnActor, float ADamage);
 	float Heal(float AHeal);
 
 	void CheckFull();
 
-
+	FBeingAttacked OnAttacked;
 
 	virtual void BeginPlay() override;
 

@@ -32,6 +32,12 @@ public:
 
 	UFUNCTION()
 	void SetTarget();
+	
+	UFUNCTION()
+	void CurrentTargetDestroyed();
+
+	UFUNCTION()
+	void OnAttacked(AActor* AttackingTarget, float ADamage);
 
 public:
 
@@ -40,7 +46,13 @@ public:
 	UPROPERTY()
 	class AActor* DefaultTarget = nullptr;
 
+	TArray<AActor*> TargetsChecked;
+
+	float ShortestTarget = 0;
+
 protected:
 	UPROPERTY()
 	class ABDGameState* GameState = nullptr;
+
+	class UNavigationSystemV1* NavSys;
 };

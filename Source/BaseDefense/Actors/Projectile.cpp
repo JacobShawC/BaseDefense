@@ -26,15 +26,18 @@ void AProjectile::BeginPlay()
 	Super::BeginPlay();
 }
 
-void AProjectile::Initialise(AActor* AnActor, FAttack AnAttack)
+void AProjectile::Initialise(AActor* AnOwner, AActor* ATarget, FAttack AnAttack)
 {
-	if (!AnActor)
+	if (!ATarget)
 	{
 		Destroy();
 	}
-	Target = AnActor;
+
+
+	Target = ATarget;
+	OwningActor = AnOwner;
 	Attack = AnAttack;
-	FRotator LookAtRotat = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), AnActor->GetActorLocation());
+	FRotator LookAtRotat = UKismetMathLibrary::FindLookAtRotation(this->GetActorLocation(), ATarget->GetActorLocation());
 	MeshComponent->SetStaticMesh(AnAttack.Projectile.Mesh);
 
 }
@@ -50,7 +53,7 @@ void AProjectile::ReachedTarget()
 			HealthComponent = Cast<UHealthComponent>(Target->GetComponentByClass(UHealthComponent::StaticClass()));
 			if (HealthComponent)
 			{
-				HealthComponent->TakeDamage(Attack.Damage);
+				HealthComponent->TakeDamage(OwningActor, Attack.Damage);
 			}
 		}
 	}

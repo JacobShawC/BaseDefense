@@ -110,7 +110,7 @@ void UHealthComponent::Initialise(float AMaxHealth)
 	}
 }
 
-void UHealthComponent::TakeDamage(float ADamage)
+void UHealthComponent::TakeDamage(AActor* AnActor, float ADamage)
 {
 
 	if (Health - ADamage <= 0)
@@ -133,6 +133,9 @@ void UHealthComponent::TakeDamage(float ADamage)
 	MulticastSpawnDamageText(FString::SanitizeFloat(ADamage), FColor::Red);
 
 	LastKnownHealth = Health;
+
+
+	OnAttacked.Broadcast(AnActor, ADamage);
 }
 
 float UHealthComponent::Heal(float AHeal)

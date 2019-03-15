@@ -7,7 +7,7 @@ void ALevel1::RunLevel()
 {
 
 
-	SpawnWave(EEnemy::Seaman, 1, 3, 2, 3);
+	SpawnWave(EEnemy::Seaman, 1, 1, 2, 3);
 	SpawnWave(EEnemy::FirstMate, 2, 3, 2, 3);
 
 	SpawnWave(EEnemy::Seaman, 2, 3, 2, 10);

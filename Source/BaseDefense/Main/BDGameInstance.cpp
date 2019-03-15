@@ -78,6 +78,18 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 
 	Buildings.Add(EBuilding::Wall, WallBuildingData);
 
+	//Wall Levels
+	TArray<FBuildingBuffStruct> WallLevels;
+	//Level 1
+	WallLevels.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 1.5));
+
+	//Level 2
+	WallLevels.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 1.5));
+
+	BuildingsLevels.Add(EBuilding::Wall, WallLevels);
+
+
+
 	//Farm
 	FBuildingData FarmBuildingData = BaseBuildingData;
 	FarmBuildingData.Name = "Farm";
@@ -121,11 +133,9 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	ArrowTowerBuildingData.Attack.ReloadTime = 1;
 	ArrowTowerBuildingData.Attack.Range = 200;
 	ArrowTowerBuildingData.Attack.Projectile.Mesh = CannonBall.Object;
-	ArrowTowerBuildingData.Attack.Projectile.Speed = 100;
+	ArrowTowerBuildingData.Attack.Projectile.Speed = 300;
 
 	Buildings.Add(EBuilding::ArrowTower, ArrowTowerBuildingData);
-
-
 
 	//----------------------------------------------------------------------------------------------------------
 	//Enemies

@@ -82,7 +82,8 @@ AEnemyChar::AEnemyChar()
 		GetCharacterMovement()->bAlwaysCheckFloor = false;
 	}
 
-
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
+	HealthComponent->SetIsReplicated(true);
 	AIControllerClass = AEnemyAIController::StaticClass();
 	
 	FloatingWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("FloatingInfo"));
@@ -94,8 +95,7 @@ AEnemyChar::AEnemyChar()
 	FloatingWidget->SetRelativeLocation(FVector(0, 0, 130));
 	FloatingWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-	HealthComponent = CreateDefaultSubobject<UHealthComponent>(TEXT("Health"));
-	HealthComponent->SetIsReplicated(true);
+	
 
 	AutoPossessAI = EAutoPossessAI::Disabled;
 }

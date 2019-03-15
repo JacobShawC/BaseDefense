@@ -12,11 +12,125 @@
 UENUM()
 enum class ELevelEvent : uint8
 {
-	None 			UMETA(DisplayName = "None"),
+	None 		UMETA(DisplayName = "None"),
 	Wave		UMETA(DisplayName = "Wave"),
-	Event 			UMETA(DisplayName = "Event"),
+	Event 		UMETA(DisplayName = "Event"),
 	Boss 		UMETA(DisplayName = "Boss"),
 };
+
+UENUM()
+enum class EBuffOperator : uint8
+{
+	None 		UMETA(DisplayName = "None"),
+	Add			UMETA(DisplayName = "Add"),
+	Multiply 	UMETA(DisplayName = "Multiply"),
+};
+
+UENUM()
+enum class EBuildingBuffType : uint8
+{
+	None 				UMETA(DisplayName = "None"),
+	Health				UMETA(DisplayName = "Health"),
+	Damage 				UMETA(DisplayName = "Damage"),
+	Cooldown 			UMETA(DisplayName = "Cooldown"),
+	AttackSpeed 		UMETA(DisplayName = "AttackSpeed"),
+	SlowPercent		 	UMETA(DisplayName = "SlowPercent"),
+	SplashSize		 	UMETA(DisplayName = "SplashSize"),
+	DotMagnitude		UMETA(DisplayName = "DotMagnitude"),
+	DotLength		 	UMETA(DisplayName = "DotLength"),
+	CritMultiplier		UMETA(DisplayName = "CritMultiplier"),
+	Range			 	UMETA(DisplayName = "Range"),
+	ConstructionSpeed 	UMETA(DisplayName = "ConstructionSpeed"),
+	Income 				UMETA(DisplayName = "Income"),
+	Cost 				UMETA(DisplayName = "Cost"),
+	UpgradeCost 		UMETA(DisplayName = "UpgradeCost"),
+	Regeneration 		UMETA(DisplayName = "Regeneration"),
+	UpgradeSpeed 		UMETA(DisplayName = "UpgradeSpeed"),
+	Bounty 				UMETA(DisplayName = "Bounty"),
+};
+
+UENUM()
+enum class EPlayerBuffType : uint8
+{
+	None 				UMETA(DisplayName = "None"),
+	Health				UMETA(DisplayName = "Health"),
+	Cooldown 			UMETA(DisplayName = "Cooldown"),
+	Damage 				UMETA(DisplayName = "Damage"),
+	AttackSpeed 		UMETA(DisplayName = "AttackSpeed"),
+	MovementSpeed		UMETA(DisplayName = "MovementSpeed"),
+	ConstructionSpeed 	UMETA(DisplayName = "ConstructionSpeed"),
+	Cost 				UMETA(DisplayName = "Cost"),
+	UpgradeCost 		UMETA(DisplayName = "UpgradeCost"),
+	Regeneration 		UMETA(DisplayName = "Regeneration"),
+	UpgradeSpeed 		UMETA(DisplayName = "UpgradeSpeed"),
+	SellSpeed 			UMETA(DisplayName = "SellSpeed"),
+};
+
+UENUM()
+enum class EPlayerWeaponBuffType : uint8
+{
+	None 				UMETA(DisplayName = "None"),
+	Damage 				UMETA(DisplayName = "Damage"),
+	AttackSpeed 		UMETA(DisplayName = "AttackSpeed"),
+	Cost 				UMETA(DisplayName = "Cost"),
+
+};
+
+UENUM()
+enum class EEnemyBuffType : uint8
+{
+	None 				UMETA(DisplayName = "None"),
+	Health				UMETA(DisplayName = "Health"),
+	Damage 				UMETA(DisplayName = "Damage"),
+	AttackSpeed 		UMETA(DisplayName = "AttackSpeed"),
+	MovementSpeed		UMETA(DisplayName = "MovementSpeed"),
+	Regeneration 		UMETA(DisplayName = "Regeneration"),
+};
+
+USTRUCT()
+struct FBuildingBuffStruct
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	EBuildingBuffType Type = EBuildingBuffType::None;
+	
+	UPROPERTY()
+	EBuffOperator Operator = EBuffOperator::None;
+
+	UPROPERTY()
+	float Magnitude = 0.0f;
+
+	UPROPERTY()
+	float LifeSpan = 0.0f;
+	
+	UPROPERTY()
+	class AActor* EffectHelper = nullptr;
+
+	UPROPERTY()
+	float Duration = 0;
+
+	FBuildingBuffStruct();
+
+
+	FBuildingBuffStruct(EBuildingBuffType AType, EBuffOperator AOperator, float AMagnitude, float ALifeSpan, class AActor* AEffectHelper, float ADuration)
+	{
+		Type = AType;
+		Operator = AOperator;
+		Magnitude = AMagnitude;
+		LifeSpan = ALifeSpan;
+		EffectHelper = AEffectHelper;
+		Duration = ADuration;
+	}
+
+	FBuildingBuffStruct(EBuildingBuffType AType, EBuffOperator AOperator, float AMagnitude)
+	{
+		Type = AType;
+		Operator = AOperator;
+		Magnitude = AMagnitude;
+	}
+};
+
 
 UENUM()
 enum class EBuilding : uint8
@@ -101,7 +215,7 @@ struct FIncome
 	bool RequiresSource = false;
 
 	UPROPERTY()
-	int IncomeAmount = 0;
+	float IncomeAmount = 0;
 
 	UPROPERTY()
 		float Cooldown = 1;
@@ -178,7 +292,7 @@ struct FAttack
 	EAttackRule AttackRule = EAttackRule::Closest;
 
 	UPROPERTY()
-	int Damage = 0;
+	float Damage = 0;
 
 	UPROPERTY()
 	float AnimationTime = 0;
@@ -190,7 +304,7 @@ struct FAttack
 	EAttackType AttackType = EAttackType::None;
 
 	UPROPERTY()
-	int Range = 100;
+	float Range = 100;
 
 	UPROPERTY()
 	FDOT Dot;
@@ -239,7 +353,7 @@ struct FBuildingData
 	float MaxHealth = 100;
 
 	UPROPERTY()
-	int Cost = 0;
+	float Cost = 0;
 
 	UPROPERTY()
 	float ConstructionTime = 0;
@@ -255,6 +369,11 @@ struct FBuildingData
 
 	UPROPERTY()
 	FRegen Regeneration;
+
+	FBuildingData ReturnWithBuffs(TArray<FBuildingBuffStruct> Buffs);
+
+
+	
 };
 
 

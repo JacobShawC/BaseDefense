@@ -63,7 +63,7 @@ void UBuildingAttackAIAction::Activate()
 			//HealthComponent->TakeDamage(BuildingData->Attack.Damage);
 			DrawDebugLine(Building->GetWorld(), Building->GetActorLocation(), CurrentTarget->GetActorLocation(), FColor::Green, true, 0.5f);
 			AProjectile* Projectile = Building->GetWorld()->SpawnActor<AProjectile>(Building->GetActorLocation(), FRotator(0.0f));
-			Projectile->Initialise(CurrentTarget, BuildingData->Attack);
+			Projectile->Initialise(Building, CurrentTarget, BuildingData->Attack);
 			// attack target
 			FTimerHandle FuzeTimerHandle;
 			Building->GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &UBuildingAttackAIAction::FinishedAttack, BuildingData->Attack.ReloadTime, false);

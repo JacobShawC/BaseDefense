@@ -44,13 +44,13 @@ void AEnemyAIController::Possess(class APawn* inPawn)
 		Action->Initialise(this);
 		Actions.Add(Action);
 	}
-	Action = nullptr;
-	Action = nullptr;
-	Action = NewObject<UEnemyMoveAIAction>();
+
+	UEnemyAIAction* Action2 = nullptr;
+	Action2 = NewObject<UEnemyMoveAIAction>();
 	if (Action != nullptr)
 	{
-		Action->Initialise(this);
-		Actions.Add(Action);
+		Action2->Initialise(this);
+		Actions.Add(Action2);
 	}
 
 

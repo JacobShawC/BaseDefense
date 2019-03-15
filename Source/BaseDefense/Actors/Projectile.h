@@ -25,7 +25,7 @@ protected:
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-	void Initialise(AActor* AnActor, FAttack AnAttack);
+	void Initialise(AActor* AnOwner, AActor* ATarget, FAttack AnAttack);
 
 public:
 
@@ -34,6 +34,9 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* MeshComponent;
+
+	UPROPERTY(VisibleAnywhere)
+	AActor* OwningActor = nullptr;
 
 	UPROPERTY(VisibleAnywhere)
 	AActor* Target = nullptr;

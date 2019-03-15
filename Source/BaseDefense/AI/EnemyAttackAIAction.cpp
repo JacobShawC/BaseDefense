@@ -62,7 +62,7 @@ void UEnemyAttackAIAction::Activate()
 		if (HealthComponent)
 		{
 			AIController->StopMovement();
-			HealthComponent->TakeDamage(EnemyData->Attack.Damage);
+			HealthComponent->TakeDamage(AIController->GetOwner(), EnemyData->Attack.Damage);
 
 			DrawDebugLine(Char->GetWorld(), Char->GetActorLocation(), CurrentTarget->GetActorLocation(), FColor::Red, true, 0.5f);
 

@@ -6,5 +6,5 @@
 void UBuildingAIAction::Initialise(ABuilding* ABuilding)
 {
 	Building = ABuilding;
-	BuildingData = &Building->BuildingData;
+	BuildingData = &Building->BaseBuildingData;
 }

@@ -54,13 +54,28 @@ public:
 	UFUNCTION()
 	void OnRep_SetFloatingHeight();
 
+	void ApplyBuffs();
+
 public:
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 	UPROPERTY(VisibleAnywhere)
 	EBuilding Building = EBuilding::None;
+
 	UPROPERTY(VisibleAnywhere)
-	FBuildingData BuildingData;
+	FBuildingData BaseBuildingData;
+
+	TArray<FBuildingBuffStruct> Buffs;
+
+	UPROPERTY(VisibleAnywhere)
+	FBuildingData BuffedBuildingData;
+
+	UPROPERTY(VisibleAnywhere)
+	FBuildingData ConstructionBuildingData;
+
+	UPROPERTY(VisibleAnywhere)
+	FBuildingData CurrentBuildingData;
+
 	UPROPERTY(VisibleAnywhere)
 	class UHealthComponent* HealthComponent = nullptr;
 	UPROPERTY(VisibleAnywhere)
@@ -85,8 +100,7 @@ public:
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_SetMaxConstruction)
 	float MaxConstructionTime = 0;
 
-	UPROPERTY(VisibleAnywhere)
-	FBuildingData ConstructedBuildingData;
+	
 
 	UPROPERTY(VisibleAnywhere)
 	class APlayerChar* Constructor = nullptr;

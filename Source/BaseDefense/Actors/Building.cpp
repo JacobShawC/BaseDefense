@@ -63,56 +63,23 @@ ABuilding::ABuilding()
 	FloatingWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	FloatingWidget->SetupAttachment(RootComponent);
 	FloatingWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+
+
+	//Test half build speed buff
+	FBuildingBuffStruct Test;
+	Test.Type = EBuildingBuffType::ConstructionSpeed;
+	Test.Operator = EBuffOperator::Multiply;
+
+	FBuildingBuffStruct Test2 = Test;
+
+	Test.Magnitude = 0.5f;
+	Test2.Magnitude = 20.0f;
+
+	Buffs.Add(Test);
+	Buffs.Add(Test2);
 }
 
-//void ABuilding::Initialise(EBuilding ABuilding)
-//{
-//	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
-//	Building = ABuilding;
-//	if (GameInstance)
-//	{
-//		BuildingData = *GameInstance->Buildings.Find(ABuilding);
-//		if (FloatingWidget)
-//		{
-//			FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
-//		}
-//		if (FloatingInfo)
-//		{
-//			FloatingInfo->SetName(BuildingData.Name);
-//			FloatingInfo->SetNameVisibility(false);
-//		}
-//		HealthComponent->Initialise(BuildingData.MaxHealth);
-//		UStaticMesh* Mesh = nullptr;
-//		Mesh = GameInstance->Buildings.Find(ABuilding)->Mesh;
-//		if (Mesh)
-//		{
-//			MeshComponent->SetStaticMesh(Mesh);
-//			MeshComponent->SetRelativeScale3D(FVector(BuildingData.MeshScale));
-//			float MeshHeight = Mesh->GetBounds().BoxExtent.Z;
-//			MeshHeight = (MeshHeight * BuildingData.MeshScale) + 75;
-//			FloatingHeight = MeshHeight;
-//			OnRep_SetFloatingHeight();
-//			//FloatingWidget->SetRelativeLocation(FVector(0, 0, MeshHeight));
-//		}
-//	}
-//
-//	UBuildingAIAction* Action = nullptr;
-//	if (BuildingData.Attack.AttackType != EAttackType::None)
-//	{
-//		Action = NewObject<UBuildingAttackAIAction>();
-//		Action->Initialise(this);
-//		Actions.Add(Action);
-//		Action = nullptr;
-//	}
-//
-//
-//
-//	if (Role == ROLE_Authority)
-//	{
-//		WhatDo();
-//	}
-//	
-//}
 
 void ABuilding::Tick(float DeltaSeconds)
 {
@@ -130,9 +97,9 @@ void ABuilding::Tick(float DeltaSeconds)
 		{
 			FloatingInfo->SetConstruction(CurrentConstructionTime);
 		}
-		if (CurrentConstructionTime > ConstructedBuildingData.ConstructionTime)
+		if (CurrentConstructionTime > BuffedBuildingData.ConstructionTime)
 		{
-			SetUpBuilding(ConstructedBuildingData.Building);
+			SetUpBuilding(BuffedBuildingData.Building);
 			if (FloatingInfo->IsValidLowLevelFast())
 			{
 				FloatingInfo->SetConstructionVisibility(false);
@@ -145,7 +112,6 @@ void ABuilding::Tick(float DeltaSeconds)
 		CancelConstruction();
 	}
 }
-
 void ABuilding::Construct(EBuilding ABuilding, APlayerChar* AConstructor)
 {
 	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
@@ -154,10 +120,15 @@ void ABuilding::Construct(EBuilding ABuilding, APlayerChar* AConstructor)
 	Building = ABuilding;
 	if (GameInstance)
 	{
+		BaseBuildingData = *GameInstance->Buildings.Find(ABuilding);
+		ApplyBuffs();
+
 		SetUpBuilding(EBuilding::Construction);
-		ConstructedBuildingData = *GameInstance->Buildings.Find(ABuilding);
-		FloatingInfo->SetMaxConstruction(ConstructedBuildingData.ConstructionTime);
-		MaxConstructionTime = ConstructedBuildingData.ConstructionTime;
+		
+
+
+		FloatingInfo->SetMaxConstruction(BuffedBuildingData.ConstructionTime);
+		MaxConstructionTime = BuffedBuildingData.ConstructionTime;
 
 		SetActorTickEnabled(true);
 	}
@@ -174,29 +145,30 @@ void ABuilding::SetUpBuilding(EBuilding ABuilding)
 {
 	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
 	Building = ABuilding;
+	FBuildingData TempBuildingData;
 	if (GameInstance)
 	{
-		BuildingData = *GameInstance->Buildings.Find(ABuilding);
+		TempBuildingData = *GameInstance->Buildings.Find(ABuilding);
 		if (FloatingWidget)
 		{
 			FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
 		}
 		if (FloatingInfo)
 		{
-			FloatingInfo->SetName(BuildingData.Name);
+			FloatingInfo->SetName(TempBuildingData.Name);
 			FloatingInfo->SetNameVisibility(false);
 		}
-		HealthComponent->Initialise(BuildingData.MaxHealth);
+		HealthComponent->Initialise(TempBuildingData.MaxHealth);
 		UStaticMesh* Mesh = nullptr;
-		Mesh = BuildingData.Mesh;
+		Mesh = TempBuildingData.Mesh;
 		if (Mesh)
 		{
 			if (MeshComponent)
 			{
 				MeshComponent->SetStaticMesh(Mesh);
-				MeshComponent->SetRelativeScale3D(FVector(BuildingData.MeshScale));
+				MeshComponent->SetRelativeScale3D(FVector(TempBuildingData.MeshScale));
 				float MeshHeight = Mesh->GetBounds().BoxExtent.Z;
-				MeshHeight = (MeshHeight * BuildingData.MeshScale) + 75;
+				MeshHeight = (MeshHeight * TempBuildingData.MeshScale) + 75;
 
 				//FloatingWidget->SetRelativeLocation(FVector(0, 0, MeshHeight));
 				FloatingHeight = MeshHeight;
@@ -206,7 +178,7 @@ void ABuilding::SetUpBuilding(EBuilding ABuilding)
 	}
 
 	UBuildingAIAction* Action = nullptr;
-	if (BuildingData.Attack.AttackType != EAttackType::None)
+	if (TempBuildingData.Attack.AttackType != EAttackType::None)
 	{
 		Action = NewObject<UBuildingAttackAIAction>();
 		Actions.Add(Action);
@@ -214,7 +186,7 @@ void ABuilding::SetUpBuilding(EBuilding ABuilding)
 		Action = nullptr;
 	}
 
-	if (ConstructedBuildingData.Properties.Contains(EBuildingProperty::Income))
+	if (TempBuildingData.Properties.Contains(EBuildingProperty::Income))
 	{
 		GenerateIncome();
 	}
@@ -320,7 +292,7 @@ void ABuilding::GenerateIncome()
 	if (Role == ROLE_Authority)
 	{
 		FTimerHandle FuzeTimerHandle;
-		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &ABuilding::GenerateIncome, BuildingData.Income.Cooldown, false);
+		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &ABuilding::GenerateIncome, BuffedBuildingData.Income.Cooldown, false);
 		if (GameState == nullptr)
 		{
 			GameState = GetWorld() != NULL ? GetWorld()->GetGameState<ABDGameState>() : nullptr;
@@ -330,7 +302,7 @@ void ABuilding::GenerateIncome()
 		{
 			
 
-			float DividedIncome = GameState->AddMoney(BuildingData.Income.IncomeAmount);
+			float DividedIncome = GameState->AddMoney(BuffedBuildingData.Income.IncomeAmount);
 			MulticastSpawnDamageText(FString::SanitizeFloat(DividedIncome), FColor::Yellow);
 		}
 
@@ -426,4 +398,10 @@ void ABuilding::OnRep_SetFloatingHeight()
 		FTimerHandle FuzeTimerHandle;
 		GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &ABuilding::OnRep_SetFloatingHeight, 0.05f, false);
 	}
+}
+
+
+void ABuilding::ApplyBuffs()
+{
+	BuffedBuildingData = BaseBuildingData.ReturnWithBuffs(Buffs);
 }
