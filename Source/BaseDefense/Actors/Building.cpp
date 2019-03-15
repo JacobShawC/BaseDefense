@@ -63,21 +63,6 @@ ABuilding::ABuilding()
 	FloatingWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	FloatingWidget->SetupAttachment(RootComponent);
 	FloatingWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-
-
-	//Test half build speed buff
-	FBuildingBuffStruct Test;
-	Test.Type = EBuildingBuffType::ConstructionSpeed;
-	Test.Operator = EBuffOperator::Multiply;
-
-	FBuildingBuffStruct Test2 = Test;
-
-	Test.Magnitude = 0.5f;
-	Test2.Magnitude = 20.0f;
-
-	Buffs.Add(Test);
-	Buffs.Add(Test2);
 }
 
 

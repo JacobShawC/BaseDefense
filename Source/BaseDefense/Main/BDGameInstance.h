@@ -23,7 +23,6 @@ public:
 	TMap<EBuilding, class UTexture2D*> Images;
 	TMap<EBuilding, FBuildingData> Buildings;
 	TMap<EBuilding, TArray<FBuildingBuffStruct>> BuildingsLevels;
-	TMap<EBuilding, TArray<FBuildingBuffStruct>> BuildingUpgrades;
 	TMap<EEnemy, FEnemyData> Enemies;
 	FPlayerData DefaultPlayerData;
 };
