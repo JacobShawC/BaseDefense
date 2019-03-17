@@ -102,15 +102,24 @@ struct FBuildingBuffStruct
 	float Magnitude = 0.0f;
 
 	UPROPERTY()
-	float LifeSpan = 0.0f;
-	
+	float StartTime = 0.0f;
+
+	UPROPERTY()
+	float Duration = 0.0f;
+
 	UPROPERTY()
 	class AActor* EffectHelper = nullptr;
 
-	UPROPERTY()
-	float Duration = 0;
+	
 
-	FBuildingBuffStruct();
+	FBuildingBuffStruct()
+	{
+	}
+
+	FORCEINLINE bool operator==(const FBuildingBuffStruct &Other) const
+	{
+		return (Type == Other.Type && Operator == Other.Operator && Magnitude == Other.Magnitude && StartTime == Other.StartTime && EffectHelper == Other.EffectHelper && Duration == Other.Duration);
+	}
 
 
 	FBuildingBuffStruct(EBuildingBuffType AType, EBuffOperator AOperator, float AMagnitude, float ALifeSpan, class AActor* AEffectHelper, float ADuration)
@@ -118,7 +127,6 @@ struct FBuildingBuffStruct
 		Type = AType;
 		Operator = AOperator;
 		Magnitude = AMagnitude;
-		LifeSpan = ALifeSpan;
 		EffectHelper = AEffectHelper;
 		Duration = ADuration;
 	}

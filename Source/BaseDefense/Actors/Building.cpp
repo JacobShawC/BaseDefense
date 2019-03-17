@@ -106,7 +106,17 @@ void ABuilding::Construct(EBuilding ABuilding, APlayerChar* AConstructor)
 	if (GameInstance)
 	{
 		BaseBuildingData = *GameInstance->Buildings.Find(ABuilding);
-		ApplyBuffs();
+
+
+		//TODO: get initial buffs here
+		FBuildingBuffStruct Test1(EBuildingBuffType::ConstructionSpeed, EBuffOperator::Add, 4);
+		FBuildingBuffStruct Test2 = Test1;
+		Test2.Duration = 5.0f;
+
+		AddBuff(Test1);
+		AddBuff(Test2);
+
+
 
 		SetUpBuilding(EBuilding::Construction);
 		
@@ -390,3 +400,50 @@ void ABuilding::ApplyBuffs()
 {
 	BuffedBuildingData = BaseBuildingData.ReturnWithBuffs(Buffs);
 }
+
+void ABuilding::AddBuff(FBuildingBuffStruct ABuff)
+{
+	ABuff.StartTime = GetWorld()->TimeSeconds;
+	Buffs.Add(ABuff);
+	FBuildingBuffStruct test;
+	if (ABuff.Duration > 0.0f)
+	{
+		FTimerHandle UniqueHandle;
+		FTimerDelegate RespawnDelegate = FTimerDelegate::CreateUObject(this, &ABuilding::RemoveExpiredBuffs);
+		GetWorldTimerManager().SetTimer(UniqueHandle, RespawnDelegate, ABuff.Duration, false);
+	}
+}
+
+
+
+void ABuilding::AddBuffs(TArray<FBuildingBuffStruct> ABuffs)
+{
+	for (FBuildingBuffStruct ABuff : ABuffs)
+	{
+		AddBuff(ABuff);
+	}
+
+	
+}
+
+void ABuilding::RemoveExpiredBuffs()
+{
+	float CurrentTime = GetWorld()->TimeSeconds;
+	bool Removed = false;
+	for (int i = Buffs.Num() - 1; i >= 0; i--)
+	{
+
+		if (Buffs[i].Duration > 0.0f && Buffs[i].StartTime + Buffs[i].Duration < CurrentTime)
+		{
+			Removed = true;
+
+			Buffs.RemoveAt(i);
+		}
+	}
+
+	if (Removed)
+	{
+		ApplyBuffs();
+	}
+}
+

@@ -56,6 +56,15 @@ public:
 
 	void ApplyBuffs();
 
+	void AddBuff(FBuildingBuffStruct ABuff);
+
+	void AddBuffs(TArray<FBuildingBuffStruct> ABuffs);
+
+	UFUNCTION()
+	void RemoveExpiredBuffs();
+
+
+
 public:
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* MeshComponent;
@@ -73,8 +82,6 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	FBuildingData ConstructionBuildingData;
 
-	UPROPERTY(VisibleAnywhere)
-	FBuildingData CurrentBuildingData;
 
 	UPROPERTY(VisibleAnywhere)
 	class UHealthComponent* HealthComponent = nullptr;
