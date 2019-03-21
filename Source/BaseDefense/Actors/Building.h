@@ -8,6 +8,57 @@
 #include "StructLibrary.h"
 #include "Building.generated.h"
 
+
+
+UENUM()
+enum class EBuildingInteractionType : uint8
+{
+	None 			UMETA(DisplayName = "None"),
+	Construct		UMETA(DisplayName = "Construct"),
+	Upgrade 		UMETA(DisplayName = "Upgrade"),
+	Destroy 		UMETA(DisplayName = "Destroy"),
+	Sell 			UMETA(DisplayName = "Destroy"),
+};
+
+USTRUCT()
+struct FBuildingInteraction
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY(VisibleAnywhere)
+	class APlayerChar* Interactor = nullptr;
+
+	UPROPERTY()
+	EBuildingInteractionType Type = EBuildingInteractionType::None;
+
+	UPROPERTY()
+	EBuilding Building = EBuilding::None;
+
+	UPROPERTY()
+	float Duration = 1.0f;
+
+	UPROPERTY()
+	bool RequiresPlayer = true;
+
+	UPROPERTY()
+	float Range = 400.0f;
+
+	UPROPERTY()
+	float Cost = 0.0f;
+
+	UPROPERTY()
+	bool UsesConstructionBuilding = false;
+
+	UPROPERTY()
+	bool CancelOnDamage = true;
+
+	UPROPERTY()
+	bool DestroyOnFail = false;
+
+	UPROPERTY()
+	bool RefundOnFail = true;
+};
+
 UCLASS()
 class BASEDEFENSE_API ABuilding : public AActor, public IInteraction
 {
@@ -17,17 +68,33 @@ public:
 	// Sets default values for this actor's properties
 	ABuilding();
 
+	void GiveMoney(float AnAmount, bool AToOwningPlayer, bool APenalty);
 	virtual void Tick(float DeltaSeconds) override;
 public:
 
 	//void Initialise(EBuilding ABuilding);
+
+	void Interact(FBuildingInteraction AnInteraction);
+
+	void TickInteraction(float DeltaSeconds);
+
+
 	void Construct(EBuilding ABuilding, class APlayerChar* AConstructor);
-	void CancelConstruction();
+
+	void Upgrade(EBuildingUpgrade AnUpgrade, class APlayerChar* AnUpgrader);
+	
+	void CancelInteraction();
+	void CompleteInteraction();
+
+
 	void SetUpBuilding(EBuilding ABuilding);
 	UFUNCTION()
 	void OnMouseEnter(UPrimitiveComponent* TouchedComponent);
 	UFUNCTION()
 	void OnMouseLeave(UPrimitiveComponent * TouchedComponent);
+
+	UFUNCTION()
+	void OnAttacked(AActor* AttackingTarget, float ADamage);
 
 	UFUNCTION()
 	virtual bool RepairPressed() override;
@@ -47,9 +114,9 @@ public:
 	void WhatDo();
 
 	UFUNCTION()
-	void OnRep_SetConstruction();
+	void OnRep_SetInteraction();
 	UFUNCTION()
-	void OnRep_SetMaxConstruction();
+	void OnRep_SetMaxInteraction();
 
 	UFUNCTION()
 	void OnRep_SetFloatingHeight();
@@ -63,9 +130,12 @@ public:
 	UFUNCTION()
 	void RemoveExpiredBuffs();
 
+	bool UpdateUpgradable();
 
 
 public:
+	EBuildingUpgrade CurrentUpgrade = EBuildingUpgrade::None;
+
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* MeshComponent;
 	UPROPERTY(VisibleAnywhere)
@@ -79,8 +149,9 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	FBuildingData BuffedBuildingData;
 
-	UPROPERTY(VisibleAnywhere)
-	FBuildingData ConstructionBuildingData;
+
+	UPROPERTY(Replicated)
+	bool Upgradable = false;
 
 
 	UPROPERTY(VisibleAnywhere)
@@ -101,16 +172,15 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	bool Constructing = false;
 
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_SetConstruction)
-	float CurrentConstructionTime = 0;
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_SetInteraction)
+	float CurrentInteractionTime = 0;
 
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_SetMaxConstruction)
-	float MaxConstructionTime = 0;
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing = OnRep_SetMaxInteraction)
+	float MaxInteractionTime = 0;
 
 	
-
-	UPROPERTY(VisibleAnywhere)
-	class APlayerChar* Constructor = nullptr;
+	FBuildingInteraction CurrentInteraction;
+	bool Interacting = false;
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<class UBuildingAIAction*> Actions;
@@ -120,12 +190,16 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_SetFloatingHeight)
 	float FloatingHeight = 0;
 
-
 	bool BeingRepaired = false;
+
+	TArray<EBuildingUpgrade> LevelUpgrades;
+	TArray<EBuildingUpgrade> PregameUpgrades;
 
 protected:
 	class UBDGameInstance* GameInstance = nullptr;
 	class ABDGameState* GameState = nullptr;
 	class ABDPlayerController* Controller = nullptr;
 	class APlayerChar* Character = nullptr;
+	class APlayerChar* OwningCharacter = nullptr;
+
 };

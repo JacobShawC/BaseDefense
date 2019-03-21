@@ -264,7 +264,7 @@ void ABDPlayerController::MakeGhost()
  	if (CurrentlySelected)
 	{
 		UObject* SelectedObject = Cast<UObject>(CurrentlySelected.GetObject());
-		if (SelectedObject && SelectedObject->IsValidLowLevel())
+		if (SelectedObject && SelectedObject->IsValidLowLevel() && IsSelectedValid())
 		{
 			if (BuildingGhost)
 			{

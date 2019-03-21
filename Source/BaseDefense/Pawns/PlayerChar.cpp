@@ -137,6 +137,11 @@ void APlayerChar::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+bool APlayerChar::Kill()
+{
+	return true;
+}
+
 // Called to bind functionality to input
 void APlayerChar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {

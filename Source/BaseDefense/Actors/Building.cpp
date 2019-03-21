@@ -20,6 +20,7 @@
 #include "Public/TimerManager.h"
 #include "DamageTextActor.h"
 #include "RepairAction.h"
+#include "BDPlayerState.h"
 #include "BDPlayerController.h"
 // Sets default values
 ABuilding::ABuilding()
@@ -65,76 +66,233 @@ ABuilding::ABuilding()
 	FloatingWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
-
-void ABuilding::Tick(float DeltaSeconds)
+void ABuilding::GiveMoney(float AnAmount, bool AToOwningPlayer, bool APenalty)
 {
-	if (Constructor && !Constructor->IsActorBeingDestroyed())
+	float UpdatedAmount = AnAmount;
+
+	//if we need to apply a penalty
+	if (APenalty)
 	{
-		FVector PlayerLocation = Constructor->GetActorLocation();
-		FVector BuildingLocation = GetActorLocation();
-		float Distance = FVector::Dist(PlayerLocation, BuildingLocation);
-		if (Distance > GameInstance->DefaultPlayerData.BuildRangeHorizontal)
-		{
-			CancelConstruction();
-		}
-		CurrentConstructionTime += DeltaSeconds;
-		if (FloatingInfo->IsValidLowLevelFast())
-		{
-			FloatingInfo->SetConstruction(CurrentConstructionTime);
-		}
-		if (CurrentConstructionTime > BuffedBuildingData.ConstructionTime)
-		{
-			SetUpBuilding(BuffedBuildingData.Building);
-			if (FloatingInfo->IsValidLowLevelFast())
-			{
-				FloatingInfo->SetConstructionVisibility(false);
-			}
-			SetActorTickEnabled(false);
-		}
+		UpdatedAmount = AnAmount * BuffedBuildingData.CostPenalty;
+	}
+
+	if (AToOwningPlayer && OwningCharacter != nullptr && OwningCharacter->IsValidLowLevelFast())
+	{
+		//give to owning player
+		ABDPlayerState* OwningPlayerState = OwningCharacter->GetPlayerState<ABDPlayerState>();
+		OwningPlayerState->ChangePlayerMoney(UpdatedAmount);
 	}
 	else
 	{
-		CancelConstruction();
+		//divide up
+		
+		if (GameState == nullptr)
+		{
+			GameState = GetWorld() != NULL ? GetWorld()->GetGameState<ABDGameState>() : nullptr;
+		}
+
+		if (GameState != nullptr)
+		{
+			float DividedIncome = GameState->AddMoney(UpdatedAmount);
+		}
+	}
+	MulticastSpawnDamageText(FString::SanitizeFloat(UpdatedAmount), FColor::Yellow);
+}
+
+void ABuilding::CancelInteraction()
+{
+	if (Interacting)
+	{
+		Interacting = false;
+
+		if (CurrentInteraction.RefundOnFail)
+		{
+			GiveMoney(CurrentInteraction.Cost, true, false);
+		}
+		if (CurrentInteraction.DestroyOnFail)
+		{
+			Destroy();
+			return;
+		}
+		else if (CurrentInteraction.UsesConstructionBuilding)
+		{
+			SetUpBuilding(BuffedBuildingData.Building);
+		}
 	}
 }
+
+void ABuilding::CompleteInteraction()
+{
+
+	if (Interacting)
+	{
+		Interacting = false;
+
+		if (CurrentInteraction.UsesConstructionBuilding)
+		{
+			SetUpBuilding(BuffedBuildingData.Building);
+		}
+
+		if (FloatingInfo->IsValidLowLevelFast())
+		{
+			FloatingInfo->SetConstructionVisibility(false);
+		}
+
+		if (CurrentInteraction.Type == EBuildingInteractionType::Construct && CurrentInteraction.Building != EBuilding::None)
+		{
+			Constructing = false;
+			SetUpBuilding(CurrentInteraction.Building);
+		}
+
+		if (CurrentInteraction.Type == EBuildingInteractionType::Destroy)
+		{
+			Destroy();
+		}
+
+		if (CurrentInteraction.Type == EBuildingInteractionType::Sell)
+		{
+			GiveMoney(CurrentInteraction.Cost, true, true);
+
+			Destroy();
+		}
+
+		if (CurrentInteraction.Type == EBuildingInteractionType::Upgrade)
+		{
+			switch (CurrentUpgrade)
+			{
+			case EBuildingUpgrade::None: CurrentUpgrade = EBuildingUpgrade::Level2;
+			case EBuildingUpgrade::Level2: CurrentUpgrade = EBuildingUpgrade::Level3;
+			case EBuildingUpgrade::Level3: CurrentUpgrade = EBuildingUpgrade::Level4;
+			}
+
+			ApplyBuffs();
+		}
+	}
+}
+
+void ABuilding::TickInteraction(float DeltaSeconds)
+{
+	if (Interacting)
+	{
+		CurrentInteractionTime += DeltaSeconds;
+		if (FloatingInfo->IsValidLowLevelFast())
+		{
+			FloatingInfo->SetConstruction(CurrentInteractionTime);
+		}
+
+		if (CurrentInteraction.RequiresPlayer)
+		{
+			FVector PlayerLocation = CurrentInteraction.Interactor->GetActorLocation();
+			FVector BuildingLocation = GetActorLocation();
+			float Distance = FVector::Dist(PlayerLocation, BuildingLocation);
+			if (Distance > CurrentInteraction.Range)
+			{
+				CancelInteraction();
+				return;
+			}
+		}
+
+		if (CurrentInteractionTime > BuffedBuildingData.ConstructionTime)
+		{
+			CompleteInteraction();
+			return;
+		}
+	}
+}
+
+
+void ABuilding::Tick(float DeltaSeconds)
+{
+	if (Interacting)
+	{
+		TickInteraction(DeltaSeconds);
+	}
+
+	if (!Interacting)
+	{
+		SetActorTickEnabled(false);
+	}
+}
+
+void ABuilding::Interact(FBuildingInteraction AnInteraction)
+{
+	if (!Interacting && AnInteraction.Interactor->IsValidLowLevel() && !AnInteraction.Interactor->IsPendingKill())
+	{
+		CurrentInteractionTime = 0.0f;
+		CurrentInteraction = AnInteraction;
+		Interacting = true;
+		SetActorTickEnabled(true);
+	}
+}
+
+
 void ABuilding::Construct(EBuilding ABuilding, APlayerChar* AConstructor)
 {
 	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
-	Constructor = AConstructor;
-
+	OwningCharacter = AConstructor;
 	Building = ABuilding;
 	if (GameInstance)
 	{
 		BaseBuildingData = *GameInstance->Buildings.Find(ABuilding);
 
-
+		ApplyBuffs();
+		
 		//TODO: get initial buffs here
 		FBuildingBuffStruct Test1(EBuildingBuffType::ConstructionSpeed, EBuffOperator::Add, 4);
 		FBuildingBuffStruct Test2 = Test1;
 		Test2.Duration = 5.0f;
 
-		AddBuff(Test1);
-		AddBuff(Test2);
+		//AddBuff(Test1);
+		//AddBuff(Test2);
+		ApplyBuffs();
 
-
-
-		SetUpBuilding(EBuilding::Construction);
 		
 
+		SetUpBuilding(EBuilding::Construction);
 
 		FloatingInfo->SetMaxConstruction(BuffedBuildingData.ConstructionTime);
-		MaxConstructionTime = BuffedBuildingData.ConstructionTime;
+		MaxInteractionTime = BuffedBuildingData.ConstructionTime;
 
-		SetActorTickEnabled(true);
+		Constructing = true;
+
+		FBuildingInteraction ConstructInteraction;
+		ConstructInteraction.Type = EBuildingInteractionType::Construct;
+		ConstructInteraction.Interactor = AConstructor;
+		ConstructInteraction.Cost = BuffedBuildingData.Cost;
+		ConstructInteraction.Building = BuffedBuildingData.Building;
+		ConstructInteraction.Duration = BuffedBuildingData.ConstructionTime;
+		ConstructInteraction.DestroyOnFail = true;
+		ConstructInteraction.RefundOnFail = true;
+		ConstructInteraction.Range = AConstructor->PlayerData.BuildRangeHorizontal; 
+		Interact(ConstructInteraction);
 	}
 	
 }
 
-void ABuilding::CancelConstruction()
+
+
+
+void ABuilding::Upgrade(EBuildingUpgrade AnUpgrade, APlayerChar * AnUpgrader)
 {
-	SetActorTickEnabled(false);
-	Destroy();
+	UpdateUpgradable();
+
+
+	if (!Interacting && Upgradable)
+	{
+		FBuildingInteraction Interaction;
+		Interaction.Type = EBuildingInteractionType::Upgrade;
+		Interaction.Interactor = AnUpgrader;
+		Interaction.Building = BuffedBuildingData.Building;
+		Interaction.Duration = BuffedBuildingData.ConstructionTime;
+		Interaction.Cost = BuffedBuildingData.Upgrades.Find(AnUpgrade)->Cost;
+		Interaction.DestroyOnFail = false;
+		Interaction.RefundOnFail = true;
+		Interaction.Range = AnUpgrader->PlayerData.BuildRangeHorizontal;
+		Interact(Interaction);
+	}
 }
+
+
 
 void ABuilding::SetUpBuilding(EBuilding ABuilding)
 {
@@ -239,6 +397,14 @@ void ABuilding::OnMouseLeave(UPrimitiveComponent * TouchedComponent)
 
 }
 
+void ABuilding::OnAttacked(AActor* AttackingTarget, float ADamage)
+{
+	if (Interacting && CurrentInteraction.CancelOnDamage)
+	{
+		CancelInteraction();
+	}
+}
+
 bool ABuilding::RepairPressed()
 {
 	if (Controller == nullptr)
@@ -275,9 +441,10 @@ bool ABuilding::RepairPressed()
 void ABuilding::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ABuilding, MaxConstructionTime);
-	DOREPLIFETIME(ABuilding, CurrentConstructionTime);
+	DOREPLIFETIME(ABuilding, MaxInteractionTime);
+	DOREPLIFETIME(ABuilding, CurrentInteractionTime);
 	DOREPLIFETIME(ABuilding, FloatingHeight);
+	DOREPLIFETIME(ABuilding, Upgradable);
 
 
 }
@@ -350,7 +517,7 @@ void ABuilding::WhatDo()
 	}
 }
 
-void ABuilding::OnRep_SetConstruction()
+void ABuilding::OnRep_SetInteraction()
 {
 	if (FloatingInfo == nullptr && FloatingWidget->IsValidLowLevelFast())
 	{
@@ -359,14 +526,14 @@ void ABuilding::OnRep_SetConstruction()
 
 	if (FloatingInfo != nullptr)
 	{
-		FloatingInfo->SetMaxConstruction(MaxConstructionTime);
+		FloatingInfo->SetMaxConstruction(MaxInteractionTime);
 
-		FloatingInfo->SetConstruction(CurrentConstructionTime);
+		FloatingInfo->SetConstruction(CurrentInteractionTime);
 
 	}
 }
 
-void ABuilding::OnRep_SetMaxConstruction()
+void ABuilding::OnRep_SetMaxInteraction()
 {
 	if (FloatingInfo == nullptr && FloatingWidget->IsValidLowLevelFast())
 	{
@@ -375,7 +542,7 @@ void ABuilding::OnRep_SetMaxConstruction()
 
 	if (FloatingInfo != nullptr)
 	{
-		FloatingInfo->SetMaxConstruction(MaxConstructionTime);
+		FloatingInfo->SetMaxConstruction(MaxInteractionTime);
 	}
 }
 
@@ -398,7 +565,9 @@ void ABuilding::OnRep_SetFloatingHeight()
 
 void ABuilding::ApplyBuffs()
 {
-	BuffedBuildingData = BaseBuildingData.ReturnWithBuffs(Buffs);
+	TArray<EBuildingUpgrade> CurrentUpgradeArr;
+	CurrentUpgradeArr.Add(CurrentUpgrade);
+	BuffedBuildingData = BaseBuildingData.ReturnWithBuffs(Buffs, CurrentUpgradeArr);
 }
 
 void ABuilding::AddBuff(FBuildingBuffStruct ABuff)
@@ -445,5 +614,21 @@ void ABuilding::RemoveExpiredBuffs()
 	{
 		ApplyBuffs();
 	}
+}
+
+bool ABuilding::UpdateUpgradable()
+{
+	bool ReturnBool = false;
+
+
+	switch (CurrentUpgrade)
+	{
+		case EBuildingUpgrade::None: ReturnBool = BuffedBuildingData.Upgrades.Contains(EBuildingUpgrade::Level2); break;
+		case EBuildingUpgrade::Level2: ReturnBool = BuffedBuildingData.Upgrades.Contains(EBuildingUpgrade::Level3); break;
+		case EBuildingUpgrade::Level3: ReturnBool = BuffedBuildingData.Upgrades.Contains(EBuildingUpgrade::Level4); break;
+	}
+
+	Upgradable = ReturnBool;
+	return ReturnBool;
 }
 

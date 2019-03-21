@@ -22,7 +22,6 @@ public:
 	TMap<FString, TSubclassOf<class UUserWidget>> Widgets;
 	TMap<EBuilding, class UTexture2D*> Images;
 	TMap<EBuilding, FBuildingData> Buildings;
-	TMap<EBuilding, TArray<FBuildingBuffStruct>> BuildingsLevels;
 	TMap<EEnemy, FEnemyData> Enemies;
 	FPlayerData DefaultPlayerData;
 };

@@ -54,10 +54,7 @@ bool UConstructAction::ConstructBuilding(FBuildingData AData, FVector APosition)
 	
 
 }
-
-
-
-void UConstructAction::CancelConstruction(EConstructionCancelReason AReason)
+void UConstructAction::CancelConstruction()
 {
 	SetComponentTickEnabled(false);
 	Constructing = false;
@@ -66,33 +63,15 @@ void UConstructAction::CancelConstruction(EConstructionCancelReason AReason)
 		PlayerChar->CurrentAction = nullptr;
 	}
 
-	if (AReason == EConstructionCancelReason::Cancelled || AReason == EConstructionCancelReason::Distance)
+	if (CurrentBuilding != nullptr && !CurrentBuilding->IsPendingKill() && CurrentBuilding->Interacting && CurrentBuilding->CurrentInteraction.Type == EBuildingInteractionType::Construct)
 	{
-		if (CurrentBuilding != nullptr && !CurrentBuilding->IsPendingKill())
-		{
-			CurrentBuilding->CancelConstruction();
-			if (PlayerState == nullptr)
-			{
-				ABDPlayerState* PlayerState = nullptr;
-				if (Controller == nullptr)
-				{
-					Controller = Cast<APlayerController>(Cast<APawn>(GetOwner())->GetController());
-				}
-				PlayerState = Cast<ABDPlayerState>(Controller->PlayerState);
-			}
-			if (PlayerState->IsValidLowLevelFast())
-			{
-				PlayerState->ChangePlayerMoney(Data.Cost);
-			}
-
-
-		}
+		CurrentBuilding->CancelInteraction();
 	}
 }
 
 void UConstructAction::CancelAction()
 {
-	CancelConstruction(EConstructionCancelReason::Cancelled);
+	CancelConstruction();
 }
 
 void UConstructAction::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
@@ -101,33 +80,15 @@ void UConstructAction::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 
 	if (CurrentBuilding == nullptr || CurrentBuilding->IsPendingKill())
 	{
-		CancelConstruction(EConstructionCancelReason::Killed);
+		CancelConstruction();
 		return;
 	}
 
-	if (CurrentBuilding->Building != EBuilding::Construction)
+	if (CurrentBuilding->CurrentInteraction.Type != EBuildingInteractionType::Construct || CurrentBuilding->Interacting == false)
 	{
-		CancelConstruction(EConstructionCancelReason::Finished);
+		CancelConstruction();
 		return;
 	}
-
-
-
-	if (GameInstance == nullptr)
-	{
-		GameInstance = Cast<UBDGameInstance>(GetWorld()->GetGameInstance());
-	}
-	if (GameInstance)
-	{
-		float Distance = FVector::Dist(GetOwner()->GetActorLocation(), CurrentBuilding->GetActorLocation());
-
-		if (Distance > GameInstance->DefaultPlayerData.BuildRangeHorizontal)
-		{
-			CancelConstruction(EConstructionCancelReason::Distance);
-			return;
-		}
-	}
-	Constructing = true;
 	FRotator LookAtRotat = UKismetMathLibrary::FindLookAtRotation(GetOwner()->GetActorLocation(), CurrentBuilding->GetActorLocation());
 	if (Controller == nullptr)
 	{

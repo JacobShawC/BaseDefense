@@ -19,11 +19,28 @@ enum class ELevelEvent : uint8
 };
 
 UENUM()
+enum class EBuildingUpgrade : uint8
+{
+	None 		UMETA(DisplayName = "None"),
+	Level2		UMETA(DisplayName = "Level2"),
+	Level3 		UMETA(DisplayName = "Level3"),
+	Level4 		UMETA(DisplayName = "Level4"),
+	Level5 		UMETA(DisplayName = "Level5"),
+	PreGame1		UMETA(DisplayName = "PreGame1"),
+	PreGame2 		UMETA(DisplayName = "PreGame2"),
+	PreGame3 		UMETA(DisplayName = "PreGame3"),
+	PreGame4 		UMETA(DisplayName = "PreGame4"),
+	PreGame5 		UMETA(DisplayName = "PreGame5"),
+	PreGame6 		UMETA(DisplayName = "PreGame6"),
+};
+
+UENUM()
 enum class EBuffOperator : uint8
 {
 	None 		UMETA(DisplayName = "None"),
 	Add			UMETA(DisplayName = "Add"),
 	Multiply 	UMETA(DisplayName = "Multiply"),
+	Replace 	UMETA(DisplayName = "Replace"),
 };
 
 UENUM()
@@ -331,6 +348,23 @@ enum class EEnemy : uint8
 	FemalePirate 	UMETA(DisplayName = "FemalePirate")
 };
 
+
+
+USTRUCT()
+struct FBuildingUpgrade
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	TArray<FBuildingBuffStruct> Upgrades;
+
+	UPROPERTY()
+	float UpgradeTime = 0.0f;
+
+	UPROPERTY()
+	float Cost = 0.0f;
+};
+
 USTRUCT()
 struct FBuildingData
 {
@@ -352,6 +386,9 @@ struct FBuildingData
 	float MeshScale = 1;
 
 	UPROPERTY()
+	float CostPenalty = 0.9f;
+
+	UPROPERTY()
 	UTexture2D* Thumbnail = nullptr;
 
 	UPROPERTY()
@@ -362,6 +399,12 @@ struct FBuildingData
 
 	UPROPERTY()
 	float Cost = 0;
+
+	UPROPERTY()
+	bool CanBeBuffed = true;
+
+	UPROPERTY()
+	TMap<EBuildingUpgrade, FBuildingUpgrade> Upgrades;
 
 	UPROPERTY()
 	float ConstructionTime = 0;
@@ -378,9 +421,12 @@ struct FBuildingData
 	UPROPERTY()
 	FRegen Regeneration;
 
-	FBuildingData ReturnWithBuffs(TArray<FBuildingBuffStruct> Buffs);
+	FBuildingData ReturnWithBuffs(TArray<FBuildingBuffStruct> ABuffs);
+
+	FBuildingData ReturnWithBuffs(TArray<FBuildingBuffStruct> ABuffs, TArray<EBuildingUpgrade> AnUpgrades);
 
 
+	TArray<FBuildingBuffStruct> GetBuffsFromUpgrades(TArray<EBuildingUpgrade> Buffs);
 	
 };
 

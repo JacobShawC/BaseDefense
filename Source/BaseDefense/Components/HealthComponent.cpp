@@ -9,6 +9,8 @@
 #include "Public/TimerManager.h"
 #include "DamageTextActor.h"
 #include "Engine/World.h"
+#include "Kismet/KismetSystemLibrary.h"
+#include "Death.h"
 // Sets default values for this component's properties
 UHealthComponent::UHealthComponent()
 {
@@ -116,8 +118,24 @@ void UHealthComponent::TakeDamage(AActor* AnActor, float ADamage)
 	if (Health - ADamage <= 0)
 	{
 		Health = 0;
+		AActor* Owner = nullptr;
+		Owner = GetOwner();
+		if (Owner != nullptr)
+		{
+			// if health is 0 kill using interface or just destroy object
+			if (UKismetSystemLibrary::DoesImplementInterface(Owner, UDeath::StaticClass()))
+			{
+				IDeath* Interface = Cast<IDeath>(Owner);
+				Interface->Kill();
+			}
+			else
+			{
+				Owner->Destroy();
+			}
 
-		GetOwner()->Destroy();
+		}
+
+
 	}
 	else
 	{

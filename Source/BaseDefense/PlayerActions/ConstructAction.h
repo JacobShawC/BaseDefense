@@ -27,7 +27,7 @@ public:
 	UConstructAction(const FObjectInitializer& ObjectInitializer);
 	bool CanConstructBuilding();
 	bool ConstructBuilding(FBuildingData AData, FVector APosition);
-	void CancelConstruction(EConstructionCancelReason AReason);
+	void CancelConstruction();
 	void CancelAction() override;
 	class ABuilding* CurrentBuilding = nullptr;
 	FBuildingData Data;

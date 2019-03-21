@@ -57,6 +57,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	ConstructionData.Building = EBuilding::Construction;
 	ConstructionData.MaxHealth = 1;
 	ConstructionData.Cost = 0;
+	ConstructionData.CanBeBuffed = false;
 	ConstructionData.ConstructionTime = 0.0f;
 
 	
@@ -79,14 +80,20 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Buildings.Add(EBuilding::Wall, WallBuildingData);
 
 	//Wall Levels
-	TArray<FBuildingBuffStruct> WallLevels;
-	//Level 1
-	WallLevels.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 1.5));
+	FBuildingUpgrade WallLevel2;
+	FBuildingUpgrade WallLevel3;
 
 	//Level 2
-	WallLevels.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 1.5));
+	WallLevel2.Upgrades.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 1.5));
+	WallLevel2.UpgradeTime = 3.0f;
+	WallBuildingData.Upgrades.Add(EBuildingUpgrade::Level2, WallLevel2);
 
-	BuildingsLevels.Add(EBuilding::Wall, WallLevels);
+	//Level 3
+	WallLevel3.Upgrades.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 2));
+	WallLevel3.UpgradeTime = 6.0f;
+
+	WallBuildingData.Upgrades.Add(EBuildingUpgrade::Level3, WallLevel3);
+
 
 
 
