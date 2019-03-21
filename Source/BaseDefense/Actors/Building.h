@@ -99,6 +99,9 @@ public:
 	UFUNCTION()
 	virtual bool RepairPressed() override;
 
+	UFUNCTION()
+	virtual bool UsePressed() override;
+
 	/*UFUNCTION()
 	virtual bool RepairReleased() override;*/
 

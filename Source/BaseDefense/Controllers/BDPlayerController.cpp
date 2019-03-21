@@ -496,10 +496,7 @@ void ABDPlayerController::SelectAltPressed()
 		{
 			CurrentlySelected->SelectAltPressed();
 		}
-	}
-
-
-	
+	}	
 }
 
 void ABDPlayerController::SelectAltReleased()

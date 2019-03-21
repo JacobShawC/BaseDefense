@@ -5,6 +5,7 @@
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Components/SizeBox.h"
+#include "Math/UnrealMathUtility.h"
 
 void UFloatingInfo::Initialise(FString AName, float AMaxHealth)
 {
@@ -30,7 +31,7 @@ void UFloatingInfo::SetHealthText(float AHealth)
 {
 	Health = AHealth;
 	//FString HealthString = FString::FromInt(FMath::RoundFromZero(Health)) + "/" + FString::FromInt(MaxHealth);
-	FString HealthString = FString::SanitizeFloat(Health) + "/" + FString::FromInt(MaxHealth);
+	FString HealthString = FString::SanitizeFloat(FMath::RoundHalfToZero((10.0 * Health) / 10.0), 0) + "/" + FString::FromInt(MaxHealth);
 
 	HealthText->SetText(FText::FromString(HealthString));
 }

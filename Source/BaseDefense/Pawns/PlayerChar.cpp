@@ -24,6 +24,7 @@
 #include "Animation/AnimBlueprint.h"
 #include "Animation/AnimBlueprintGeneratedClass.h"
 #include "RepairAction.h"
+#include "UpgradeAction.h"
 // Sets default values
 APlayerChar::APlayerChar()
 {
@@ -108,6 +109,7 @@ APlayerChar::APlayerChar()
 
 	ConstructAction = CreateDefaultSubobject<UConstructAction>(TEXT("ConstructAction"));
 	RepairAction = CreateDefaultSubobject<URepairAction>(TEXT("RepairAction"));
+	UpgradeAction = CreateDefaultSubobject<UUpgradeAction>(TEXT("UpgradeAction"));
 
 	HealthComponent->SetNetAddressable(); // Make DSO components net addressable
 	HealthComponent->SetIsReplicated(true); // Enable replication by default

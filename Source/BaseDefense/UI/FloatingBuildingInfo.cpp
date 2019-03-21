@@ -4,6 +4,7 @@
 #include "Components/TextBlock.h"
 #include "Components/ProgressBar.h"
 #include "Components/SizeBox.h"
+#include "Math/UnrealMathUtility.h"
 
 void UFloatingBuildingInfo::SetMaxConstruction(float AMaxConstruction)
 {
@@ -21,7 +22,7 @@ void UFloatingBuildingInfo::SetConstructionText(float AConstruction)
 {
 	Construction = AConstruction;
 	//FString ConstructionString = FString::FromInt(FMath::FloorToFloat(Construction)) + "/" + FString::FromInt(MaxConstruction);
-	FString ConstructionString = FString::SanitizeFloat(Construction) + "/" + FString::FromInt(MaxConstruction);
+	FString ConstructionString = FString::SanitizeFloat((FMath::RoundHalfToZero(10.0 * Construction) / 10.0), 0) + "/" + FString::FromInt(MaxConstruction);
 	if (ConstructionText)
 	{
 		ConstructionText->SetText(FText::FromString(ConstructionString));

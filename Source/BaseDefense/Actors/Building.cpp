@@ -20,6 +20,7 @@
 #include "Public/TimerManager.h"
 #include "DamageTextActor.h"
 #include "RepairAction.h"
+#include "UpgradeAction.h"
 #include "BDPlayerState.h"
 #include "BDPlayerController.h"
 // Sets default values
@@ -419,6 +420,24 @@ bool ABuilding::RepairPressed()
 	if (Character != nullptr && Character->RepairAction != nullptr)
 	{
 		return (Character->RepairAction->RepairBuilding(this));
+	}
+	return false;
+}
+
+bool ABuilding::UsePressed()
+{
+	if (Controller == nullptr)
+	{
+		Controller = Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController());
+	}
+	if (Controller != nullptr)
+	{
+		Character = Cast<APlayerChar>(Controller->GetPawn());
+	}
+
+	if (Character != nullptr && Character->UpgradeAction != nullptr)
+	{
+		return (Character->UpgradeAction->UpgradeBuilding(this));
 	}
 	return false;
 }
