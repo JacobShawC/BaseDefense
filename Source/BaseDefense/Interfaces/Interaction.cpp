@@ -52,3 +52,8 @@ bool IInteraction::RepairReleased()
 {
 	return false;
 }
+
+TArray<EGUICommand> IInteraction::GetCommands()
+{
+	return TArray<EGUICommand>();
+}

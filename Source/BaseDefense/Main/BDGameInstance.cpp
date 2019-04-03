@@ -11,6 +11,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FClassFinder<UUserWidget> GUIBP(TEXT("WidgetBlueprint'/Game/UI/GUIWidget.GUIWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> SlotBP(TEXT("WidgetBlueprint'/Game/UI/SlotWidget.SlotWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> HotbarSlotBP(TEXT("WidgetBlueprint'/Game/UI/HotbarSlotWidget.HotbarSlotWidget_C'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> CommandBP(TEXT("WidgetBlueprint'/Game/UI/CommandWidget.CommandWidget_C'"));
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonMesh(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Cannon_03.SM_Prop_Cannon_03'"));
@@ -33,6 +34,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Widgets.Add("GUI", GUIBP.Class);
 	Widgets.Add("Slot", SlotBP.Class);
 	Widgets.Add("HotbarSlot", HotbarSlotBP.Class);
+	Widgets.Add("Command", CommandBP.Class);
 
 	Images.Add(EBuilding::Wall, BarrelImage.Object);
 	//----------------------------------------------------------------------------------------------------------
@@ -72,12 +74,11 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	WallBuildingData.Building = EBuilding::Wall;
 	WallBuildingData.MaxHealth = 100;
 	WallBuildingData.Cost = 20;
-	WallBuildingData.ConstructionTime = 0.1f;
+	WallBuildingData.ConstructionTime = 1.0f;
 
 	WallBuildingData.Properties.Add(EBuildingProperty::Regen);
 	WallBuildingData.Regeneration.RegenAmount = 1;
 
-	Buildings.Add(EBuilding::Wall, WallBuildingData);
 
 	//Wall Levels
 	FBuildingUpgrade WallLevel2;
@@ -86,15 +87,17 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	//Level 2
 	WallLevel2.Upgrades.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 1.5));
 	WallLevel2.UpgradeTime = 3.0f;
+	WallLevel2.Cost = 50.0f;
 	WallBuildingData.Upgrades.Add(EBuildingUpgrade::Level2, WallLevel2);
 
 	//Level 3
 	WallLevel3.Upgrades.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 2));
 	WallLevel3.UpgradeTime = 6.0f;
-
+	WallLevel3.Cost = 100.0f;
 	WallBuildingData.Upgrades.Add(EBuildingUpgrade::Level3, WallLevel3);
 
 
+	Buildings.Add(EBuilding::Wall, WallBuildingData);
 
 
 	//Farm

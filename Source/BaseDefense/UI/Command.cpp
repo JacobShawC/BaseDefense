@@ -3,3 +3,8 @@
 #include "Command.h"
 
 #include "Components/TextBlock.h"
+
+void UCommand::SetText(FText AText)
+{
+	CommandText->SetText(AText);
+}

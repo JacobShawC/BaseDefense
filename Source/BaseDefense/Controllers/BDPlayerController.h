@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerController.h"
+#include "GameFramework/PlayerInput.h"
 #include "StructLibrary.h"
 #include "BDPlayerController.generated.h"
 DECLARE_LOG_CATEGORY_EXTERN(BDPlayerController, Log, All);
@@ -38,10 +39,22 @@ protected:
 
 	FHitResult DoSingleTrace(FVector Start, FVector End, TArray<AActor*> ActorsToIgnore, ECollisionChannel AChannel);
 	void MakeGhost();
+
+	void UpdateCommands();
+
 	void UpdateGhost(bool AReachable, bool ABuildable);
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerConstructBuilding(EBuilding ABuildingEnum, FVector APosition);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerUpgradeBuilding(class ABuilding* ABuilding);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerCancelAction();
+
+	void GetKeysForAction(FName AnActionName, TArray<FInputActionKeyMapping>& Bindings);
+
 	bool ChangePlayerMoney(float AMoney);
 	bool IsSelectedValid();
 	void SelectHotbar(int ASlot);

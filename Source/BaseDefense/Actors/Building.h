@@ -86,6 +86,7 @@ public:
 	void CancelInteraction();
 	void CompleteInteraction();
 
+	virtual TArray<EGUICommand> GetCommands() override;
 
 	void SetUpBuilding(EBuilding ABuilding);
 	UFUNCTION()

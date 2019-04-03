@@ -12,3 +12,11 @@ void UGUI::SetMoneyText(float AMoney)
 {
 	Money->SetText(FText::FromString(FString::SanitizeFloat(AMoney)));
 }
+
+void UGUI::SetCommandList(TArray<EGUICommand> ACommands)
+{
+	if (CommandList != nullptr)
+	{
+		CommandList->SetCommandList(ACommands);
+	}
+}

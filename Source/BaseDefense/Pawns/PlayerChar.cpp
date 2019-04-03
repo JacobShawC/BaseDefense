@@ -25,6 +25,7 @@
 #include "Animation/AnimBlueprintGeneratedClass.h"
 #include "RepairAction.h"
 #include "UpgradeAction.h"
+#include "Kismet/KismetMathLibrary.h"
 // Sets default values
 APlayerChar::APlayerChar()
 {
@@ -137,6 +138,19 @@ void APlayerChar::BeginPlay()
 void APlayerChar::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	if (FollowAction)
+	{
+		if (ActionTarget != nullptr && ActionTarget->IsValidLowLevelFast())
+		{
+			FRotator LookAtRotat = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), ActionTarget->GetActorLocation());
+			if (Controller != nullptr)
+			{
+				FRotator TempRotator = FRotator(0, LookAtRotat.Yaw, 0);
+				SetActorRotation(TempRotator);
+			}
+		}
+	}
 }
 
 bool APlayerChar::Kill()
@@ -148,6 +162,16 @@ bool APlayerChar::Kill()
 void APlayerChar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+}
+
+void APlayerChar::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(APlayerChar, ActionTarget);
+	DOREPLIFETIME(APlayerChar, FollowAction);
+	DOREPLIFETIME(APlayerChar, CurrentAction);
+
 
 }
 

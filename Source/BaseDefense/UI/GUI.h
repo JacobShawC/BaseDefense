@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "StructLibrary.h"
 #include "GUI.generated.h"
 
 /**
@@ -19,11 +20,16 @@ public:
 
 public:
 	void SetMoneyText(float AMoney);
+
+	void SetCommandList(TArray<EGUICommand> ACommands);
 /*
 	UPROPERTY(meta = (BindWidget))
 	class USlot* ATestSlot;*/
 	UPROPERTY(meta = (BindWidget))
 	class UHotbar* HotBar;
+
+	UPROPERTY(meta = (BindWidget))
+	class UCommandList* CommandList = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Money;

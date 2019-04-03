@@ -65,6 +65,8 @@ ABuilding::ABuilding()
 	FloatingWidget->SetWidgetSpace(EWidgetSpace::Screen);
 	FloatingWidget->SetupAttachment(RootComponent);
 	FloatingWidget->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	HealthComponent->OnAttacked.AddUObject(this, &ABuilding::OnAttacked);
 }
 
 void ABuilding::GiveMoney(float AnAmount, bool AToOwningPlayer, bool APenalty)
@@ -102,6 +104,8 @@ void ABuilding::GiveMoney(float AnAmount, bool AToOwningPlayer, bool APenalty)
 
 void ABuilding::CancelInteraction()
 {
+	CurrentInteractionTime = 0;
+
 	if (Interacting)
 	{
 		Interacting = false;
@@ -120,10 +124,17 @@ void ABuilding::CancelInteraction()
 			SetUpBuilding(BuffedBuildingData.Building);
 		}
 	}
+
+	if (FloatingInfo->IsValidLowLevelFast())
+	{
+
+		OnRep_SetInteraction();
+	}
 }
 
 void ABuilding::CompleteInteraction()
 {
+	CurrentInteractionTime = 0;
 
 	if (Interacting)
 	{
@@ -136,13 +147,14 @@ void ABuilding::CompleteInteraction()
 
 		if (FloatingInfo->IsValidLowLevelFast())
 		{
-			FloatingInfo->SetConstructionVisibility(false);
+			OnRep_SetInteraction();
 		}
 
 		if (CurrentInteraction.Type == EBuildingInteractionType::Construct && CurrentInteraction.Building != EBuilding::None)
 		{
 			Constructing = false;
 			SetUpBuilding(CurrentInteraction.Building);
+			UpdateUpgradable();
 		}
 
 		if (CurrentInteraction.Type == EBuildingInteractionType::Destroy)
@@ -161,14 +173,30 @@ void ABuilding::CompleteInteraction()
 		{
 			switch (CurrentUpgrade)
 			{
-			case EBuildingUpgrade::None: CurrentUpgrade = EBuildingUpgrade::Level2;
-			case EBuildingUpgrade::Level2: CurrentUpgrade = EBuildingUpgrade::Level3;
-			case EBuildingUpgrade::Level3: CurrentUpgrade = EBuildingUpgrade::Level4;
+			case EBuildingUpgrade::None: CurrentUpgrade = EBuildingUpgrade::Level2; break;
+			case EBuildingUpgrade::Level2: CurrentUpgrade = EBuildingUpgrade::Level3; break;
+			case EBuildingUpgrade::Level3: CurrentUpgrade = EBuildingUpgrade::Level4; break;
 			}
-
+			UpdateUpgradable();
 			ApplyBuffs();
 		}
 	}
+}
+
+TArray<EGUICommand> ABuilding::GetCommands()
+{
+	TArray<EGUICommand> ReturnArr;
+	if (HealthComponent->Health < HealthComponent->MaxHealth)
+	{
+		ReturnArr.Add(EGUICommand::Repair);
+	}
+
+	if (Upgradable)
+	{
+		ReturnArr.Add(EGUICommand::Upgrade);
+	}
+
+	return ReturnArr;
 }
 
 void ABuilding::TickInteraction(float DeltaSeconds)
@@ -178,7 +206,8 @@ void ABuilding::TickInteraction(float DeltaSeconds)
 		CurrentInteractionTime += DeltaSeconds;
 		if (FloatingInfo->IsValidLowLevelFast())
 		{
-			FloatingInfo->SetConstruction(CurrentInteractionTime);
+
+			OnRep_SetInteraction();
 		}
 
 		if (CurrentInteraction.RequiresPlayer)
@@ -246,12 +275,11 @@ void ABuilding::Construct(EBuilding ABuilding, APlayerChar* AConstructor)
 		//AddBuff(Test1);
 		//AddBuff(Test2);
 		ApplyBuffs();
-
+		
 		
 
 		SetUpBuilding(EBuilding::Construction);
 
-		FloatingInfo->SetMaxConstruction(BuffedBuildingData.ConstructionTime);
 		MaxInteractionTime = BuffedBuildingData.ConstructionTime;
 
 		Constructing = true;
@@ -284,7 +312,7 @@ void ABuilding::Upgrade(EBuildingUpgrade AnUpgrade, APlayerChar * AnUpgrader)
 		Interaction.Type = EBuildingInteractionType::Upgrade;
 		Interaction.Interactor = AnUpgrader;
 		Interaction.Building = BuffedBuildingData.Building;
-		Interaction.Duration = BuffedBuildingData.ConstructionTime;
+		Interaction.Duration = BuffedBuildingData.Upgrades.Find(AnUpgrade)->UpgradeTime;
 		Interaction.Cost = BuffedBuildingData.Upgrades.Find(AnUpgrade)->Cost;
 		Interaction.DestroyOnFail = false;
 		Interaction.RefundOnFail = true;
@@ -437,7 +465,13 @@ bool ABuilding::UsePressed()
 
 	if (Character != nullptr && Character->UpgradeAction != nullptr)
 	{
-		return (Character->UpgradeAction->UpgradeBuilding(this));
+		ABDPlayerController* CharController = nullptr;
+		CharController = Cast<ABDPlayerController>(Character->GetController());
+		if (CharController != nullptr)
+		{
+			CharController->ServerUpgradeBuilding(this);
+			return true;
+		}
 	}
 	return false;
 }
@@ -538,30 +572,47 @@ void ABuilding::WhatDo()
 
 void ABuilding::OnRep_SetInteraction()
 {
-	if (FloatingInfo == nullptr && FloatingWidget->IsValidLowLevelFast())
+	if (FloatingInfo == nullptr || !FloatingWidget->IsValidLowLevelFast())
 	{
 		FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
 	}
 
-	if (FloatingInfo != nullptr)
+	if (FloatingInfo != nullptr && FloatingInfo->IsValidLowLevelFast())
 	{
-		FloatingInfo->SetMaxConstruction(MaxInteractionTime);
+		if (CurrentInteractionTime == 0)
+		{
+			FloatingInfo->SetConstructionVisibility(false);
+		}
+		else
+		{
+			FloatingInfo->SetConstructionVisibility(true);
+			FloatingInfo->SetMaxConstruction(MaxInteractionTime);
 
-		FloatingInfo->SetConstruction(CurrentInteractionTime);
-
+			FloatingInfo->SetConstruction(CurrentInteractionTime);
+		}
 	}
 }
 
 void ABuilding::OnRep_SetMaxInteraction()
 {
-	if (FloatingInfo == nullptr && FloatingWidget->IsValidLowLevelFast())
+	if (FloatingInfo == nullptr || !FloatingWidget->IsValidLowLevelFast())
 	{
 		FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
 	}
 
-	if (FloatingInfo != nullptr)
+	if (FloatingInfo != nullptr && FloatingInfo->IsValidLowLevelFast())
 	{
-		FloatingInfo->SetMaxConstruction(MaxInteractionTime);
+		if (CurrentInteractionTime == 0)
+		{
+			FloatingInfo->SetConstructionVisibility(false);
+		}
+		else
+		{
+			FloatingInfo->SetConstructionVisibility(true);
+			FloatingInfo->SetMaxConstruction(MaxInteractionTime);
+
+			FloatingInfo->SetConstruction(CurrentInteractionTime);
+		}
 	}
 }
 
@@ -587,6 +638,8 @@ void ABuilding::ApplyBuffs()
 	TArray<EBuildingUpgrade> CurrentUpgradeArr;
 	CurrentUpgradeArr.Add(CurrentUpgrade);
 	BuffedBuildingData = BaseBuildingData.ReturnWithBuffs(Buffs, CurrentUpgradeArr);
+
+	HealthComponent->ChangeMaxHealth(BuffedBuildingData.MaxHealth, true);
 }
 
 void ABuilding::AddBuff(FBuildingBuffStruct ABuff)

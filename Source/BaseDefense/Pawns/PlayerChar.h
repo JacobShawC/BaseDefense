@@ -57,8 +57,13 @@ public:
 	UPROPERTY()
 	class UUpgradeAction* UpgradeAction = nullptr;
 
-	UPROPERTY()
+	UPROPERTY(Replicated)
 	class UPlayerAction* CurrentAction = nullptr;
+
+	UPROPERTY(Replicated)
+	class AActor* ActionTarget = nullptr;
+	UPROPERTY(Replicated)
+	bool FollowAction = false;
 
 protected:
 	class UBDGameInstance* GameInstance = nullptr;

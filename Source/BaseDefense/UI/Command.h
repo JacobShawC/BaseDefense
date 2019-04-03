@@ -16,8 +16,10 @@ class BASEDEFENSE_API UCommand : public UBDUserWidget
 	
 
 public:
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* HotkeyText;
+	EGUICommand Command = EGUICommand::None;
+
+	void SetText(FText AText);
+
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* CommandText;

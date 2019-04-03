@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/Interface.h"
+#include "StructLibrary.h"
 #include "Interaction.generated.h"
 
 // This class does not need to be modified.
@@ -52,5 +53,6 @@ public:
 	UFUNCTION()
 	virtual bool RepairReleased();
 
-
+	UFUNCTION()
+	virtual TArray<EGUICommand> GetCommands();
 };

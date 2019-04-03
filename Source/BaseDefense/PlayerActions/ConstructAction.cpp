@@ -67,6 +67,11 @@ void UConstructAction::CancelConstruction()
 	{
 		CurrentBuilding->CancelInteraction();
 	}
+
+	CurrentBuilding = nullptr;
+
+	PlayerChar->FollowAction = false;
+	PlayerChar->ActionTarget = nullptr;
 }
 
 void UConstructAction::CancelAction()
@@ -89,14 +94,6 @@ void UConstructAction::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 		CancelConstruction();
 		return;
 	}
-	FRotator LookAtRotat = UKismetMathLibrary::FindLookAtRotation(GetOwner()->GetActorLocation(), CurrentBuilding->GetActorLocation());
-	if (Controller == nullptr)
-	{
-		Controller = Cast<APlayerController>(Cast<APawn>(GetOwner())->GetController());
-	}
-	if (Controller != nullptr)
-	{
-		FRotator TempRotator = FRotator(0, LookAtRotat.Yaw, 0);
-		GetOwner()->SetActorRotation(TempRotator);
-	}
+	PlayerChar->ActionTarget = CurrentBuilding;
+	PlayerChar->FollowAction = true;
 }

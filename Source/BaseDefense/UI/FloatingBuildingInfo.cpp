@@ -64,12 +64,16 @@ void UFloatingBuildingInfo::SetConstructionTextVisibility(bool AVisiblity)
 
 void UFloatingBuildingInfo::SetConstructionProgressBarVisibility(bool AVisiblity)
 {
-	if (AVisiblity)
+	if (ConstructionProgressBar != nullptr)
 	{
-		ConstructionProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
+		if (AVisiblity)
+		{
+			ConstructionProgressBar->SetVisibility(ESlateVisibility::HitTestInvisible);
+		}
+		else
+		{
+			ConstructionProgressBar->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
-	else
-	{
-		ConstructionProgressBar->SetVisibility(ESlateVisibility::Collapsed);
-	}
+	
 }

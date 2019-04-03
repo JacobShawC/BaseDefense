@@ -7,6 +7,12 @@
 #include "PlayerChar.h"
 #include "Kismet/KismetMathLibrary.h"
 
+UUpgradeAction::UUpgradeAction(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
+{
+	PrimaryComponentTick.bCanEverTick = true;
+	PrimaryComponentTick.bStartWithTickEnabled = false;
+}
+
 bool UUpgradeAction::UpgradeBuilding(ABuilding* ABuilding)
 {
 	ABuilding->UpdateUpgradable();
@@ -22,12 +28,12 @@ bool UUpgradeAction::UpgradeBuilding(ABuilding* ABuilding)
 			Controller = Cast<APlayerController>(Cast<APawn>(GetOwner())->GetController());
 			PlayerState = Cast<ABDPlayerState>(Controller->PlayerState);
 		}
-		EBuildingUpgrade NextUpgrade;
+		EBuildingUpgrade NextUpgrade = EBuildingUpgrade::None;
 			switch (ABuilding->CurrentUpgrade)
 			{
-			case EBuildingUpgrade::None: NextUpgrade = EBuildingUpgrade::Level2;
-			case EBuildingUpgrade::Level2: NextUpgrade = EBuildingUpgrade::Level3;
-			case EBuildingUpgrade::Level3: NextUpgrade = EBuildingUpgrade::Level4;
+			case EBuildingUpgrade::None: NextUpgrade = EBuildingUpgrade::Level2; break;
+			case EBuildingUpgrade::Level2: NextUpgrade = EBuildingUpgrade::Level3; break;
+			case EBuildingUpgrade::Level3: NextUpgrade = EBuildingUpgrade::Level4; break;
 			}
 			float ACost = ABuilding->BuffedBuildingData.Upgrades.Find(NextUpgrade)->Cost;
 
@@ -65,6 +71,11 @@ void UUpgradeAction::CancelAction()
 	{
 		CurrentBuilding->CancelInteraction();
 	}
+
+	CurrentBuilding = nullptr;
+	PlayerChar->FollowAction = false;
+	PlayerChar->ActionTarget = nullptr;
+
 }
 
 void UUpgradeAction::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction * ThisTickFunction)
@@ -77,20 +88,12 @@ void UUpgradeAction::TickComponent(float DeltaTime, ELevelTick TickType, FActorC
 		return;
 	}
 
-	if (CurrentBuilding->CurrentInteraction.Type != EBuildingInteractionType::Construct || CurrentBuilding->Interacting == false)
+	if (CurrentBuilding->CurrentInteraction.Type != EBuildingInteractionType::Upgrade || CurrentBuilding->Interacting == false)
 	{
 		CancelAction();
 		return;
 	}
-	FRotator LookAtRotat = UKismetMathLibrary::FindLookAtRotation(GetOwner()->GetActorLocation(), CurrentBuilding->GetActorLocation());
-	if (Controller == nullptr)
-	{
-		Controller = Cast<APlayerController>(Cast<APawn>(GetOwner())->GetController());
-	}
-	if (Controller != nullptr)
-	{
-		FRotator TempRotator = FRotator(0, LookAtRotat.Yaw, 0);
-		GetOwner()->SetActorRotation(TempRotator);
-	}
+	PlayerChar->ActionTarget = CurrentBuilding;
+	PlayerChar->FollowAction = true;
 
 }

@@ -27,4 +27,3 @@ public:
 public:
 	TMap<FName, class UWidgetAnimation*> AnimationsMap;
 };
-

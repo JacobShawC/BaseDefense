@@ -9,9 +9,9 @@
 
 float ABDGameState::AddMoney(float AMoney)
 {
-	if (!PlayerArray.Num() == 0)
+	float DividedMoney = 0.0f;
 	{
-		float DividedMoney = AMoney / PlayerArray.Num();
+		DividedMoney = AMoney / PlayerArray.Num();
 		for (APlayerState* AState : PlayerArray)
 		{
 			ABDPlayerState* ABDState = Cast<ABDPlayerState>(AState);
@@ -19,14 +19,13 @@ float ABDGameState::AddMoney(float AMoney)
 			{
 				ABDState->Money += DividedMoney;
 				ABDState->OnRep_Money();
-				return DividedMoney;
 			}
 
 
 		}
 
 	}
-	return 0.0f;
+	return DividedMoney;
 	 
 }
 

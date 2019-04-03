@@ -29,13 +29,13 @@ public:
 
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* ConstructionText;
+	class UTextBlock* ConstructionText = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	class UProgressBar* ConstructionProgressBar;
+	class UProgressBar* ConstructionProgressBar = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-	class USizeBox* ConstructionSizeBox;
+	class USizeBox* ConstructionSizeBox = nullptr;
 
 
 	float MaxConstruction = 100;

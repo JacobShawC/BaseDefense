@@ -9,6 +9,19 @@
 /**
  * 
  */
+
+UENUM()
+enum class EGUICommand : uint8
+{
+	None 		UMETA(DisplayName = "None"),
+	Construct	UMETA(DisplayName = "Construct"),
+	Repair 		UMETA(DisplayName = "Repair"),
+	Upgrade 	UMETA(DisplayName = "Upgrade"),
+	Sell 		UMETA(DisplayName = "Sell"),
+	Destroy 	UMETA(DisplayName = "Destroy"),
+	Equip 		UMETA(DisplayName = "Equip"),
+};
+
 UENUM()
 enum class ELevelEvent : uint8
 {

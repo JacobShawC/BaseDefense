@@ -30,7 +30,6 @@ void UHealthComponent::OnRep_SetHealth()
 	//OnRep_LastDamage();
 	CheckFull();
 
-	LastKnownHealth = Health;
 
 	if (FloatingWidget == nullptr)
 	{
@@ -98,7 +97,6 @@ void UHealthComponent::Initialise(float AMaxHealth)
 {
 	MaxHealth = AMaxHealth;
 	Health = AMaxHealth;
-	LastKnownHealth = MaxHealth;
 	UWidgetComponent* WidgetComponent = Cast<UWidgetComponent>(GetOwner()->FindComponentByClass(UWidgetComponent::StaticClass()));
 	if (WidgetComponent)
 	{
@@ -150,7 +148,6 @@ void UHealthComponent::TakeDamage(AActor* AnActor, float ADamage)
 	//OnRep_LastDamage();
 	MulticastSpawnDamageText(FString::SanitizeFloat(ADamage), FColor::Red);
 
-	LastKnownHealth = Health;
 
 
 	OnAttacked.Broadcast(AnActor, ADamage);
@@ -174,10 +171,29 @@ float UHealthComponent::Heal(float AHeal)
 	{
 		FloatingWidget->SetHealth(Health);
 	}
-	LastKnownHealth = Health;
 
 
 	return ReturnFloat;
+}
+
+void UHealthComponent::ChangeMaxHealth(float AMaxHealth, bool ChangesCurrentHealth)
+{
+	if (MaxHealth != AMaxHealth)
+	{
+		if (ChangesCurrentHealth)
+		{
+			float Ratio = AMaxHealth / MaxHealth;
+			MaxHealth = AMaxHealth;
+			Health = Health * Ratio;
+		}
+		else
+		{
+			MaxHealth = AMaxHealth;
+		}
+
+		OnRep_SetHealth();
+	}
+
 }
 
 void UHealthComponent::CheckFull()

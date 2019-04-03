@@ -16,6 +16,7 @@
 #include "PlayerChar.h"
 #include "ConstructAction.h"
 #include "BDPlayerState.h"
+#include "UpgradeAction.h"
 #include "GameFramework/PlayerInput.h"
 #define COLLISION_BUILDABLE		ECC_GameTraceChannel1
 #define COLLISION_BUILDING		ECC_GameTraceChannel2
@@ -134,6 +135,36 @@ void ABDPlayerController::MoveRight(float Value)
 
 
 
+void ABDPlayerController::ServerUpgradeBuilding_Implementation(class ABuilding* ABuilding)
+{
+	APlayerChar* PlayerChar = Cast<APlayerChar>(GetPawn());
+
+	if (PlayerChar->CurrentAction == nullptr)
+	{
+		PlayerChar->UpgradeAction->UpgradeBuilding(ABuilding);
+	}
+}
+
+bool ABDPlayerController::ServerUpgradeBuilding_Validate(class ABuilding* ABuilding)
+{
+	return true;
+}
+
+void ABDPlayerController::ServerCancelAction_Implementation()
+{
+	APlayerChar* PlayerChar = nullptr;
+	PlayerChar = Cast<APlayerChar>(GetPawn());
+	if (PlayerChar != nullptr && PlayerChar->CurrentAction != nullptr)
+	{
+		PlayerChar->CurrentAction->CancelAction();
+	}
+}
+
+bool ABDPlayerController::ServerCancelAction_Validate()
+{
+	return true;
+}
+
 bool ABDPlayerController::ChangePlayerMoney(float AMoney)
 {
 	ABDPlayerState* TempState = nullptr;
@@ -184,6 +215,7 @@ void ABDPlayerController::ServerConstructBuilding_Implementation(EBuilding ABuil
 		}
 	}
 }
+
 bool ABDPlayerController::ServerConstructBuilding_Validate(EBuilding ABuildingEnum, FVector APosition)
 {
 	return true;
@@ -195,7 +227,7 @@ void ABDPlayerController::PlayerTick(float DeltaTime)
 
 	MakeGhost();
 
-	//RoundedMouseTrace(ECC_Visibility);
+	UpdateCommands();
 
 
 }
@@ -367,6 +399,28 @@ void ABDPlayerController::MakeGhost()
 
 
 
+void ABDPlayerController::UpdateCommands()
+{
+	if (GUIWidget != nullptr && GUIWidget->IsValidLowLevel())
+	{
+		if (IsSelectedValid())
+		{
+			TArray<EGUICommand> Commands = CurrentlySelected->GetCommands();
+			GUIWidget->SetCommandList(Commands);
+		}
+		else
+		{
+			GUIWidget->SetCommandList(TArray<EGUICommand>());
+		}
+	}
+	
+}
+
+void ABDPlayerController::GetKeysForAction(FName AnActionName, TArray<FInputActionKeyMapping>& Bindings)
+{
+	Bindings = PlayerInput->GetKeysForAction(AnActionName);
+}
+
 void ABDPlayerController::UpdateGhost(bool AReachable, bool ABuildable)
 {
 	
@@ -488,7 +542,7 @@ void ABDPlayerController::SelectAltPressed()
 	PlayerChar = Cast<APlayerChar>(GetPawn());
 	if (PlayerChar != nullptr && PlayerChar->CurrentAction != nullptr)
 	{
-		PlayerChar->CurrentAction->CancelAction();
+		ServerCancelAction();
 	}
 	else
 	{

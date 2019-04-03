@@ -31,6 +31,8 @@ public:
 	void TakeDamage(AActor* AnActor, float ADamage);
 	float Heal(float AHeal);
 
+	void ChangeMaxHealth(float AMaxHealth, bool ChangesCurrentHealth);
+
 	void CheckFull();
 
 	FBeingAttacked OnAttacked;
@@ -54,7 +56,6 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_SetHealth)
 	float Health = 0;
 
-	float LastKnownHealth = 0;
 
 
 	UPROPERTY()

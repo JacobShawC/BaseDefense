@@ -15,6 +15,8 @@ class BASEDEFENSE_API UUpgradeAction : public UPlayerAction
 	GENERATED_BODY()
 	
 public:
+	UUpgradeAction(const FObjectInitializer& ObjectInitializer);
+
 	bool UpgradeBuilding(class ABuilding* ABuilding);
 	void CancelAction() override;
 	class ABuilding* CurrentBuilding = nullptr;
