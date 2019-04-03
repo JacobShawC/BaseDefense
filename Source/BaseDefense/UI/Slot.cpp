@@ -19,9 +19,11 @@ void USlot::Hovered()
 		{
 			HoverAnimationFinished = false;
 		}
-		FScriptDelegate Del;
-		Del.BindUFunction(this, "SetBoolTest");
-		HoverAnimation->OnAnimationFinished.AddUnique(Del);
+
+		FWidgetAnimationDynamicEvent AnimEvent;
+		AnimEvent.BindUFunction(this, "SetBoolTest");
+		BindToAnimationFinished(HoverAnimation, AnimEvent);
+
 		float Time = GetAnimationCurrentTime(HoverAnimation);
 		PlayAnimation(HoverAnimation, Time, 1, EUMGSequencePlayMode::Forward, 3.0f);
 		HoverAnimationFoward = true;

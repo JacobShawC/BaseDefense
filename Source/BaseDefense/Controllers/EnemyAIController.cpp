@@ -22,17 +22,18 @@
 #include "AIAction.h"
 DEFINE_LOG_CATEGORY(EnemyAIController);
 
-
+//REMEMBER TO TURN ON VISUAL ASSIST "PERFORMANCE > AUTOMATICALLY PARSE ALL FILES WHEN OPENING A PROJECT"
 AEnemyAIController::AEnemyAIController(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UCrowdFollowingComponent>(TEXT("PathFollowingComponent")))
 {
 	
 }
 
-void AEnemyAIController::Possess(class APawn* inPawn)
+
+void AEnemyAIController::OnPossess(APawn* PossessedPawn)
 {
-	Super::Possess(inPawn);
-	MyChar = Cast<AEnemyChar>(inPawn);
+	Super::OnPossess(PossessedPawn);
+	MyChar = Cast<AEnemyChar>(PossessedPawn);
 
 	MyChar->GetCharacterMovement()->SetMovementMode(MOVE_NavWalking);
 	MyChar->GetCharacterMovement()->DefaultLandMovementMode = MOVE_NavWalking;
@@ -60,6 +61,39 @@ void AEnemyAIController::Possess(class APawn* inPawn)
 		WhatDo();
 	}
 }
+//
+//void AEnemyAIController::Possess(class APawn* inPawn)
+//{
+//	Super::Possess(inPawn);
+//	MyChar = Cast<AEnemyChar>(inPawn);
+//
+//	MyChar->GetCharacterMovement()->SetMovementMode(MOVE_NavWalking);
+//	MyChar->GetCharacterMovement()->DefaultLandMovementMode = MOVE_NavWalking;
+//	GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+//	UEnemyAIAction* Action = nullptr;
+//	Action = NewObject<UEnemyAttackAIAction>();
+//	if (Action != nullptr)
+//	{
+//		Action->Initialise(this);
+//		Actions.Add(Action);
+//	}
+//
+//	UEnemyAIAction* Action2 = nullptr;
+//	Action2 = NewObject<UEnemyMoveAIAction>();
+//	if (Action != nullptr)
+//	{
+//		Action2->Initialise(this);
+//		Actions.Add(Action2);
+//	}
+//
+//
+//
+//	if (Role == ROLE_Authority)
+//	{
+//		WhatDo();
+//	}
+//}
+
 
 
 

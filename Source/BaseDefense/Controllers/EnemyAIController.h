@@ -21,9 +21,10 @@ public:
 	AEnemyAIController(const FObjectInitializer& ObjectInitializer);
 
 
+	//UFUNCTION(BlueprintImplementableEvent)
+	void OnPossess(APawn* PossessedPawn) override;
 
-
-	virtual void Possess(class APawn* inPawn) override;
+	//virtual void Possess(class APawn* inPawn) override;
 	virtual void BeginPlay() override;
 	virtual void OnMoveCompleted(
 		const FAIRequestID RequestID,

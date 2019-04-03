@@ -50,9 +50,11 @@ void ADamageTextActor::Initialise(FString AString, FColor AColor)
 
 	if (DamageText != nullptr)
 	{
-		FScriptDelegate Del;
-		Del.BindUFunction(this, "AnimationFinished");
-		DamageText->Animation->OnAnimationFinished.AddUnique(Del);
+		FWidgetAnimationDynamicEvent AnimEvent;
+		AnimEvent.BindUFunction(this, "AnimationFinished");
+		//void BindToAnimationFinished(UWidgetAnimation* Animation, FWidgetAnimationDynamicEvent Delegate);
+		DamageText->BindToAnimationFinished(DamageText->Animation, AnimEvent);
+
 		return;
 	}
 	else
