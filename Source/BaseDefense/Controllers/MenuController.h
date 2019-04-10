@@ -13,5 +13,17 @@ UCLASS()
 class BASEDEFENSE_API AMenuController : public APlayerController
 {
 	GENERATED_BODY()
-	
+
+	AMenuController(const FObjectInitializer& ObjectInitializer);
+	virtual void SetupInputComponent() override;
+
+	virtual void BeginPlay() override;
+
+public:
+	class UMainMenu* Menu = nullptr;
+
+private:
+	class UBDGameInstance* GameInstance = nullptr;
+	class UMainMenu* MainMenuUserWidget = nullptr;
+
 };

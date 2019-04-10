@@ -20,6 +20,9 @@
 #include "Public/TimerManager.h"
 #include "UnrealNetwork.h"
 #include "DamageTextActor.h"
+#include "AnimationSharing/Public/AnimationSharingManager.h"
+#include "AnimationSharing/Public/AnimationSharingSetup.h"
+
 
 AEnemyChar::AEnemyChar()
 {
@@ -29,12 +32,19 @@ AEnemyChar::AEnemyChar()
 
 	//static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMesh(TEXT("/Game/Mannequin/Character/Mesh/SK_Mannequin.SK_Mannequin"));
 	//static ConstructorHelpers::FObjectFinder<USkeletalMesh> PlayerMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_Seaman_01_Bare.SK_Character_Pirate_Seaman_01_Bare'"));
+	
+	
+	
 	//GetMesh()->SetSkeletalMesh(PlayerMesh.Object, true);
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f), false);
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f), false);
 
 	GetMesh()->SetReceivesDecals(false);
 	//static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> AnimObj(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
+	//static ConstructorHelpers::FClassFinder<UAnimationSharingSetup> AnimSharingBP(TEXT("AnimationSharingSetup'/Game/Animation/BDAnimationSharingSetup.BDAnimationSharingSetup'"));
+	static ConstructorHelpers::FObjectFinder<UAnimationSharingSetup> AnimSharingBP(TEXT("AnimationSharingSetup'/Game/Animation/BDAnimationSharingSetup.BDAnimationSharingSetup'"));
+	
+	AnimSharingSetupClass = AnimSharingBP.Object;
 	//GetMesh()->AnimClass = AnimObj.Object;
 	GetMesh()->CastShadow = true;
 	GetMesh()->SetGenerateOverlapEvents(false);
@@ -107,10 +117,27 @@ void AEnemyChar::Initialise(EEnemy AnEnemy)
 	if (GameInstance)
 	{
 		EnemyData = *GameInstance->Enemies.Find(AnEnemy);
-
+		
 		GetMesh()->SetSkeletalMesh(EnemyData.Mesh, true);
 		//GetMesh()->AnimClass = EnemyData.Anim;
 		GetMesh()->SetAnimInstanceClass(EnemyData.Anim);
+
+		//Animation sharing
+		/*UAnimationSharingManager* AnimSharingManager = UAnimationSharingManager::GetAnimationSharingManager(GetWorld());
+		if (AnimSharingManager == nullptr)
+		{
+			UAnimationSharingManager::CreateAnimationSharingManager(GetWorld(), AnimSharingSetupClass);
+			AnimSharingManager = UAnimationSharingManager::GetAnimationSharingManager(GetWorld());
+
+		}
+
+		if (AnimSharingManager != nullptr)
+		{
+			FUpdateActorHandle TestActorHandle;
+			AnimSharingManager->RegisterActorWithSkeleton(this, GetMesh()->SkeletalMesh->Skeleton, TestActorHandle);
+
+		}*/
+
 		Health = EnemyData.MaxHealth;
 		Enemy = EnemyData.Enemy;
 		//GetCharacterMovement()->MaxWalkSpeed = EnemyData.MovementSpeed;

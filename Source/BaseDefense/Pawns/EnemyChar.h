@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "StructLibrary.h"
+#include "AnimationSharing/Public/AnimationSharingSetup.h"
+
 #include "EnemyChar.generated.h"
 
 UCLASS()
@@ -71,4 +73,8 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_SetFloatingHeight)
 	float FloatingHeight = 0;
+
+private:
+	class UAnimationSharingSetup* AnimSharingSetupClass;
+
 };
