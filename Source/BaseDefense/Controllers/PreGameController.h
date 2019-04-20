@@ -14,4 +14,17 @@ class BASEDEFENSE_API APreGameController : public APlayerController
 {
 	GENERATED_BODY()
 	
+
+	APreGameController(const FObjectInitializer& ObjectInitializer);
+	virtual void SetupInputComponent() override;
+
+	virtual void BeginPlay() override;
+
+public:
+	class UMainMenu* Menu = nullptr;
+
+private:
+	class UBDGameInstance* GameInstance = nullptr;
+	class UMainMenu* PreGameUserWidget = nullptr;
+
 };

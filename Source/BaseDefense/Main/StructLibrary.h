@@ -39,12 +39,13 @@ enum class EBuildingUpgrade : uint8
 	Level3 		UMETA(DisplayName = "Level3"),
 	Level4 		UMETA(DisplayName = "Level4"),
 	Level5 		UMETA(DisplayName = "Level5"),
-	PreGame1		UMETA(DisplayName = "PreGame1"),
-	PreGame2 		UMETA(DisplayName = "PreGame2"),
-	PreGame3 		UMETA(DisplayName = "PreGame3"),
-	PreGame4 		UMETA(DisplayName = "PreGame4"),
-	PreGame5 		UMETA(DisplayName = "PreGame5"),
-	PreGame6 		UMETA(DisplayName = "PreGame6"),
+	PreLevel1		UMETA(DisplayName = "PreLevel1"),
+	PreLevel2 		UMETA(DisplayName = "PreLevel2"),
+	PreLevel3 		UMETA(DisplayName = "PreLevel3"),
+	PreLevel4 		UMETA(DisplayName = "PreLevel4"),
+	PreChoice1 		UMETA(DisplayName = "PreChoice1"),
+	PreChoice2 		UMETA(DisplayName = "PreChoice2"),
+	PreChoice3 		UMETA(DisplayName = "PreChoice3"),
 };
 
 UENUM()
@@ -242,6 +243,23 @@ enum class EAttackRule : uint8
 	Furthest 			UMETA(DisplayName = "Furthest"),
 	LowestHealth		UMETA(DisplayName = "LowestHealth"),
 	HighestHealth		UMETA(DisplayName = "HighestHealth")
+};
+
+USTRUCT()
+struct FPreBuildingData
+{
+	GENERATED_BODY()
+
+	EBuilding Building = EBuilding::None;
+	TArray<EBuildingUpgrade> Upgrades;
+};
+
+USTRUCT()
+struct FPreGameData
+{
+	GENERATED_BODY()
+
+	TMap<EBuilding, FPreBuildingData> Buildings;
 };
 
 USTRUCT()

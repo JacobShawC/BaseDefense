@@ -4,6 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameMode.h"
+
+
+
 #include "PreGameGameMode.generated.h"
 
 /**
@@ -13,5 +16,8 @@ UCLASS()
 class BASEDEFENSE_API APreGameGameMode : public AGameMode
 {
 	GENERATED_BODY()
+		APreGameGameMode();
+
+
 	
 };

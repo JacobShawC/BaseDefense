@@ -29,4 +29,6 @@ public:
 	UPROPERTY(ReplicatedUsing = OnRep_Money)
 	float Money = 500;
 
+	FPreGameData PreGameData;
+
 };
