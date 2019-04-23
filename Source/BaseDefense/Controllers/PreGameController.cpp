@@ -2,7 +2,8 @@
 
 
 #include "PreGameController.h"
-
+#include "BDGameInstance.h"
+#include "PreGame.h"
 APreGameController::APreGameController(const FObjectInitializer& ObjectInitializer)
 {
 	bShowMouseCursor = true;
@@ -28,16 +29,15 @@ void APreGameController::BeginPlay()
 		{
 			if (GameInstance)
 			{
-				/*TSubclassOf<UUserWidget>* GUIClass = (GameInstance->Widgets).Find("MainMenu");
-				MainMenuUserWidget = Cast<UMainMenu>(CreateWidget<UUserWidget>(this, GUIClass->Get()));
+				TSubclassOf<UUserWidget>* GUIClass = (GameInstance->Widgets).Find("PreGame");
+				PreGame = Cast<UPreGame>(CreateWidget<UUserWidget>(this, GUIClass->Get()));
 
-				if (MainMenuUserWidget)
+				if (PreGame)
 				{
-					(MainMenuUserWidget)->AddToViewport();
+					(PreGame)->AddToViewport();
 
-					MainMenuUserWidget->SetUp();
-					GameInstance->RefreshFriendsList();
-				}*/
+					PreGame->Setup();
+				}
 			}
 		}
 	}

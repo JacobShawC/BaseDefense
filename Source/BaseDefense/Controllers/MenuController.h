@@ -20,6 +20,9 @@ class BASEDEFENSE_API AMenuController : public APlayerController
 	virtual void BeginPlay() override;
 
 public:
+	void SetMenuLoading();
+
+public:
 	class UMainMenu* Menu = nullptr;
 
 private:

@@ -63,6 +63,10 @@ UCLASS()
 class BASEDEFENSE_API ABuilding : public AActor, public IInteraction
 {
 	GENERATED_BODY()
+
+protected:
+	virtual void BeginPlay() override;
+
 	
 public:	
 	// Sets default values for this actor's properties

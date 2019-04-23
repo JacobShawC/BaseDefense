@@ -3,3 +3,7 @@
 
 #include "PreGame.h"
 
+void UPreGame::Setup()
+{
+
+}

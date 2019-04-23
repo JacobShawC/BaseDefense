@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
+#include "StructLibrary.h"
 #include "PreLevel.generated.h"
 
 /**
@@ -18,7 +19,7 @@ class BASEDEFENSE_API UPreLevel : public UUserWidget
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	class UCheckBox* ToggleButton = nullptr;
+	class UCheckBox* LevelToggleButton = nullptr;
 private:
 
 

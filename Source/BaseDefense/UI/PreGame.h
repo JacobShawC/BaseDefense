@@ -14,4 +14,7 @@ class BASEDEFENSE_API UPreGame : public UUserWidget
 {
 	GENERATED_BODY()
 	
+
+public:
+	void Setup();
 };

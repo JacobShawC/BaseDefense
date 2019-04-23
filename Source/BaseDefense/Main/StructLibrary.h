@@ -11,6 +11,32 @@
  */
 
 UENUM()
+enum class ELevel : uint8
+{
+	None 		UMETA(DisplayName = "None"),
+	Level1		UMETA(DisplayName = "Level1"),
+	Level2 		UMETA(DisplayName = "Level2"),
+	Level3 		UMETA(DisplayName = "Level3"),
+	Level4 		UMETA(DisplayName = "Level4"),
+	Level5 		UMETA(DisplayName = "Level5"),
+	Level6 		UMETA(DisplayName = "Level6"),
+};
+
+UENUM()
+enum class ELevelDifficulty : uint8
+{
+	None 		UMETA(DisplayName = "None"),
+	Easy		UMETA(DisplayName = "Easy"),
+	Medium 		UMETA(DisplayName = "Medium"),
+	Hard 		UMETA(DisplayName = "Hard"),
+	Brutal 		UMETA(DisplayName = "Brutal"),
+	Challenge1 		UMETA(DisplayName = "Challenge1"),
+	Challenge2 		UMETA(DisplayName = "Challenge2"),
+	Survival 		UMETA(DisplayName = "Survival"),
+};
+
+
+UENUM()
 enum class EGUICommand : uint8
 {
 	None 		UMETA(DisplayName = "None"),
@@ -177,7 +203,7 @@ enum class EBuilding : uint8
 	None 			UMETA(DisplayName = "None"),
 	Construction 	UMETA(DisplayName = "Construction"),
 	Wall 			UMETA(DisplayName = "Wall"),
-	ArrowTower 		UMETA(DisplayName = "ArrowTower"),
+	CannonTower 		UMETA(DisplayName = "CannonTower"),
 	Farm			UMETA(DisplayName = "Farm"),
 	SlowTower		UMETA(DisplayName = "SlowTower")
 };
@@ -243,6 +269,17 @@ enum class EAttackRule : uint8
 	Furthest 			UMETA(DisplayName = "Furthest"),
 	LowestHealth		UMETA(DisplayName = "LowestHealth"),
 	HighestHealth		UMETA(DisplayName = "HighestHealth")
+};
+
+USTRUCT()
+struct FLevelSave
+{
+	GENERATED_BODY()
+
+	ELevel Level = ELevel::None;
+
+	//Difficulties levels completed
+	TArray<ELevelDifficulty> ChallengesCompleted;
 };
 
 USTRUCT()
@@ -416,7 +453,7 @@ struct FBuildingData
 
 	UPROPERTY()
 	FString Name = "NoName";
-
+	
 	UPROPERTY()
 	EBuilding Building = EBuilding::None;
 	
@@ -465,6 +502,23 @@ struct FBuildingData
 	UPROPERTY()
 	FRegen Regeneration;
 
+	//PreGame data
+
+	UPROPERTY()
+	FString Description = "This probably needs a description";
+
+	UPROPERTY()
+	int PreGameCost = 0;
+
+	UPROPERTY()
+	int PreGameUnlockCost = 0;
+
+	UPROPERTY()
+	bool PreGameUnlockable = false;
+
+
+
+
 	FBuildingData ReturnWithBuffs(TArray<FBuildingBuffStruct> ABuffs);
 
 	FBuildingData ReturnWithBuffs(TArray<FBuildingBuffStruct> ABuffs, TArray<EBuildingUpgrade> AnUpgrades);
@@ -474,7 +528,26 @@ struct FBuildingData
 	
 };
 
+USTRUCT()
+struct FLevelData
+{
+	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY()
+	FString Name = "Needs a name";
+
+	UPROPERTY()
+	FString Description = "This level needs a description";
+
+	UPROPERTY()
+	int PreGameUnlockCost = 0;
+
+	UPROPERTY()
+	UTexture2D* Thumbnail = nullptr;
+
+	UPROPERTY()
+	FString URL = "";
+};
 
 USTRUCT()
 struct FEnemyData

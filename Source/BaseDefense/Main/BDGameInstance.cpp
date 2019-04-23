@@ -5,10 +5,29 @@
 #include "Blueprint/UserWidget.h"
 #include "Engine/Texture2D.h"
 #include "Engine/SkeletalMesh.h"
+#include "MenuController.h"
 #include "Animation/AnimBlueprintGeneratedClass.h"
+
+#pragma push_macro("ARRAY_COUNT")
+#undef ARRAY_COUNT
+
+#if USING_CODE_ANALYSIS
+MSVC_PRAGMA(warning(push))
+MSVC_PRAGMA(warning(disable : ALL_CODE_ANALYSIS_WARNINGS))
+#endif    // USING_CODE_ANALYSIS
+
 #include "ThirdParty/Steamworks/Steamv139/sdk/public/steam/steam_api.h"
 #include "ThirdParty/Steamworks/Steamv139/sdk/public/steam/isteamuser.h"
 #include "ThirdParty/Steamworks/Steamv139/sdk/public/steam/isteamfriends.h"
+
+#if USING_CODE_ANALYSIS
+MSVC_PRAGMA(warning(pop))
+#endif    // USING_CODE_ANALYSIS
+
+
+#pragma pop_macro("ARRAY_COUNT")
+
+
 //#include "Steam/isteamuser.h"
 #include "Runtime/Core/Public/HAL/FileManagerGeneric.h"
 #include "GameFramework/SaveGame.h"
@@ -19,6 +38,7 @@
 #include "MenuController.h"
 #include "OnlineSessionSettings.h"
 #include "Kismet/GameplayStatics.h"
+#include "BDGameMode.h"
 #include "BDSaveGame.h"
 
 
@@ -34,13 +54,16 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FClassFinder<UUserWidget> MainMenuBP(TEXT("WidgetBlueprint'/Game/UI/MainMenuWidget.MainMenuWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> FriendRowBP(TEXT("WidgetBlueprint'/Game/UI/FriendRowWidget.FriendRowWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> SaveRowBP(TEXT("WidgetBlueprint'/Game/UI/SaveRowWidget.SaveRowWidget_C'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> PreGameBP(TEXT("WidgetBlueprint'/Game/UI/PreGameWidget.PreGameWidget_C'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> PreLevelBP(TEXT("WidgetBlueprint'/Game/UI/PreLevelWidget.PreLevelWidget_C'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> PreBuildingBP(TEXT("WidgetBlueprint'/Game/UI/PreBuildingWidget.PreBuildingWidget_C'"));
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonMesh(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Cannon_03.SM_Prop_Cannon_03'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CoveredCrate(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Crate_Covered_01.SM_Prop_Crate_Covered_01'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonBall(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_CannonBalls_01.SM_Prop_CannonBalls_01'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Flowers(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Environments/SM_Env_Flowers_02.SM_Env_Flowers_02'"));
-	
+
 	static ConstructorHelpers::FObjectFinder<UTexture2D> BarrelImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/BarrelIcon.BarrelIcon'"));
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CannonImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/CannonIcon.CannonIcon'"));
 
@@ -59,6 +82,9 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Widgets.Add("MainMenu", MainMenuBP.Class);
 	Widgets.Add("FriendRow", FriendRowBP.Class);
 	Widgets.Add("SaveRow", SaveRowBP.Class);
+	Widgets.Add("PreGame", PreGameBP.Class);
+	Widgets.Add("PreLevel", PreLevelBP.Class);
+	Widgets.Add("PreBuilding", PreBuildingBP.Class);
 
 	Images.Add(EBuilding::Wall, BarrelImage.Object);
 	//----------------------------------------------------------------------------------------------------------
@@ -98,11 +124,16 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	WallBuildingData.Building = EBuilding::Wall;
 	WallBuildingData.MaxHealth = 100;
 	WallBuildingData.Cost = 20;
-	WallBuildingData.ConstructionTime = 1.0f;
+	WallBuildingData.ConstructionTime = 0.5f;
 
 	WallBuildingData.Properties.Add(EBuildingProperty::Regen);
 	WallBuildingData.Regeneration.RegenAmount = 1;
 
+	WallBuildingData.PreGameUnlockable = true;
+	WallBuildingData.Description = "This is a basic wall building.";
+	WallBuildingData.PreGameUnlockCost = 0;
+	WallBuildingData.PreGameCost = 2;
+	
 
 	//Wall Levels
 	FBuildingUpgrade WallLevel2;
@@ -140,36 +171,46 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	FarmBuildingData.Income.IncomeAmount = 5;
 	FarmBuildingData.Income.Cooldown = 2;
 
+	FarmBuildingData.PreGameUnlockable = true;
+	FarmBuildingData.Description = "This is a basic farm building. It gives income over time.";
+	FarmBuildingData.PreGameUnlockCost = 0;
+	FarmBuildingData.PreGameCost = 2;
+
 	Buildings.Add(EBuilding::Farm, FarmBuildingData);
 
 
 	//Arrow Tower
-	FBuildingData ArrowTowerBuildingData = BaseBuildingData;
+	FBuildingData CannonTowerBuildingData = BaseBuildingData;
 
-	ArrowTowerBuildingData.Name = "Cannon";
-	ArrowTowerBuildingData.Mesh = CannonMesh.Object;
-	ArrowTowerBuildingData.Thumbnail = CannonImage.Object;
-	ArrowTowerBuildingData.MeshScale = 0.4f;
-	ArrowTowerBuildingData.Building = EBuilding::ArrowTower;
-	ArrowTowerBuildingData.MaxHealth = 25;
-	ArrowTowerBuildingData.Cost = 50;
-	ArrowTowerBuildingData.ConstructionTime = 0.5f;
+	CannonTowerBuildingData.Name = "Cannon";
+	CannonTowerBuildingData.Mesh = CannonMesh.Object;
+	CannonTowerBuildingData.Thumbnail = CannonImage.Object;
+	CannonTowerBuildingData.MeshScale = 0.4f;
+	CannonTowerBuildingData.Building = EBuilding::CannonTower;
+	CannonTowerBuildingData.MaxHealth = 25;
+	CannonTowerBuildingData.Cost = 50;
+	CannonTowerBuildingData.ConstructionTime = 0.5f;
 
-	ArrowTowerBuildingData.Properties.Add(EBuildingProperty::Regen);
-	ArrowTowerBuildingData.Regeneration.RegenAmount = 1;
-	ArrowTowerBuildingData.Regeneration.Cooldown = 1;
+	CannonTowerBuildingData.Properties.Add(EBuildingProperty::Regen);
+	CannonTowerBuildingData.Regeneration.RegenAmount = 1;
+	CannonTowerBuildingData.Regeneration.Cooldown = 1;
 
-	ArrowTowerBuildingData.Properties.Add(EBuildingProperty::Attack);
-	ArrowTowerBuildingData.Attack.AnimationTime = 1;
-	ArrowTowerBuildingData.Attack.AttackRule = EAttackRule::Closest;
-	ArrowTowerBuildingData.Attack.AttackType = EAttackType::Ranged;
-	ArrowTowerBuildingData.Attack.Damage = 5;
-	ArrowTowerBuildingData.Attack.ReloadTime = 1;
-	ArrowTowerBuildingData.Attack.Range = 200;
-	ArrowTowerBuildingData.Attack.Projectile.Mesh = CannonBall.Object;
-	ArrowTowerBuildingData.Attack.Projectile.Speed = 300;
+	CannonTowerBuildingData.Properties.Add(EBuildingProperty::Attack);
+	CannonTowerBuildingData.Attack.AnimationTime = 1;
+	CannonTowerBuildingData.Attack.AttackRule = EAttackRule::Closest;
+	CannonTowerBuildingData.Attack.AttackType = EAttackType::Ranged;
+	CannonTowerBuildingData.Attack.Damage = 5;
+	CannonTowerBuildingData.Attack.ReloadTime = 1;
+	CannonTowerBuildingData.Attack.Range = 200;
+	CannonTowerBuildingData.Attack.Projectile.Mesh = CannonBall.Object;
+	CannonTowerBuildingData.Attack.Projectile.Speed = 300;
 
-	Buildings.Add(EBuilding::ArrowTower, ArrowTowerBuildingData);
+	FarmBuildingData.PreGameUnlockable = true;
+	FarmBuildingData.Description = "This is a basic cannon tower building. It gives income over time.";
+	FarmBuildingData.PreGameUnlockCost = 0;
+	FarmBuildingData.PreGameCost = 2;
+
+	Buildings.Add(EBuilding::CannonTower, CannonTowerBuildingData);
 
 	//----------------------------------------------------------------------------------------------------------
 	//Enemies
@@ -223,6 +264,36 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Enemies.Add(EEnemy::FemalePirate, FemalePirateData);
 
 
+	//----------------------------------------------------------------------------------------------------------
+	//Levels
+	//----------------------------------------------------------------------------------------------------------
+	
+	//Level1
+	FLevelData Level1;
+	Level1.Name = "One Way Defense";
+	Level1.Description = "Try to defend the pier from one place at once!";
+	Level1.PreGameUnlockCost = 0;
+	Level1.URL = "/Game/Maps/Level1?listen";
+	Levels.Add(ELevel::Level1, Level1);
+	
+	//Level2
+	FLevelData Level2;
+	Level2.Name = "Two Way Defense";
+	Level2.Description = "Try to defend from two places at once!";
+	Level2.PreGameUnlockCost = 0;
+	Level2.URL = "/Game/Maps/Level2?listen";
+
+	Levels.Add(ELevel::Level2, Level2);
+	
+	//Level3
+	FLevelData Level3;
+	Level3.Name = "Four Way Defense";
+	Level3.Description = "Try to defend from four places at once";
+	Level3.PreGameUnlockCost = 0;
+	Level3.URL = "/Game/Maps/Level3?listen";
+
+	Levels.Add(ELevel::Level3, Level3);
+
 
 }
 
@@ -255,7 +326,8 @@ void UBDGameInstance::Init()
 
 void UBDGameInstance::Host(FString ServerName)
 {
-	DesiredServerName = ServerName;
+	//DesiredServerName = ServerName;
+	DesiredServerName = "TestName";
 	if (SessionInterface.IsValid())
 	{
 		auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
@@ -316,12 +388,18 @@ void UBDGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 
 	UWorld * World = GetWorld();
 	if (!ensure(World != nullptr)) return;
-
 	//World->ServerTravel("/Game/PuzzlePlatforms/Maps/Lobby?listen");
+	World->GetAuthGameMode()->bUseSeamlessTravel = false;
 
-	/*bUseSeamlessTravel = true;
-	World->ServerTravel("/Game/Maps/TopDownExampleMap?listen");*/
-	//StartSession();
+	//World->ServerTravel("/Game/Maps/PreGame?listen?game=/Script/BaseDefense.PreGameGameMode", true, false);
+	//World->ServerTravel("/Game/Maps/TestLevel", true, false);
+	World->ServerTravel("/Game/Maps/PreGame?listen", false, false);
+	
+	FString MapName = GetWorld()->GetMapName();
+	
+	Engine->AddOnScreenDebugMessage(0, 2, FColor::Green, *MapName);
+
+	StartSession();
 
 }
 
@@ -439,6 +517,15 @@ void UBDGameInstance::CreateSave()
 	SaveGameInstance->SaveSlotName = SaveName;
 	UGameplayStatics::SaveGameToSlot(SaveGameInstance, SaveGameInstance->SaveSlotName, SaveGameInstance->UserIndex);
 	RefreshSaves();
+}
+
+void UBDGameInstance::LoadSave(UBDSaveGame* ASave)
+{
+	if (ASave != nullptr && ASave->IsValidLowLevel())
+	CurrentSave = ASave;
+	Host(CurrentSave->UserSaveName);
+
+
 }
 
 void UBDGameInstance::RefreshServerList()

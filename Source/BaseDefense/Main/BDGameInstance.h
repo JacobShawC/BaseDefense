@@ -68,6 +68,7 @@ public:
 
 	void RefreshSaves();
 	void CreateSave();
+	void LoadSave(class UBDSaveGame* ASave);
 
 private:
 	
@@ -98,7 +99,11 @@ public:
 	TMap<EBuilding, class UTexture2D*> Images;
 	TMap<EBuilding, FBuildingData> Buildings;
 	TMap<EEnemy, FEnemyData> Enemies;
+	TMap<ELevel, FLevelData> Levels;
 	FPlayerData DefaultPlayerData;
 	UPROPERTY()
 	TArray<class UBDSaveGame*> Saves;
+
+	UPROPERTY()
+	class UBDSaveGame* CurrentSave = nullptr;
 };

@@ -6,6 +6,7 @@
 #include "Components/Image.h"
 #include "Components/TextBlock.h"
 #include "Engine/World.h"
+#include "Engine/Texture2D.h"
 #include "OnlineSubsystemUtils.h"
 
 #include "BDGameInstance.h"

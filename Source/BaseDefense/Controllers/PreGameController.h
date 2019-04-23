@@ -21,10 +21,9 @@ class BASEDEFENSE_API APreGameController : public APlayerController
 	virtual void BeginPlay() override;
 
 public:
-	class UMainMenu* Menu = nullptr;
+	class UPreGame* PreGame = nullptr;
 
 private:
 	class UBDGameInstance* GameInstance = nullptr;
-	class UMainMenu* PreGameUserWidget = nullptr;
 
 };

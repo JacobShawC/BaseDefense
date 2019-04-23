@@ -15,7 +15,7 @@ class BASEDEFENSE_API USaveRow : public UUserWidget
 	GENERATED_BODY()
 	
 public:
-	void SetUp(FString ASaveName);
+	void SetUp(class UBDSaveGame* ASaveName);
 	void SetUp();
 	
 	UFUNCTION()
@@ -29,6 +29,8 @@ public:
 
 
 	bool NewGame = false;
+
+	UBDSaveGame* Save = nullptr;
 
 	FString SaveName = "";
 

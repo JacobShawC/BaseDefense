@@ -34,4 +34,7 @@ public:
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	int Points = 0;
 
+	UPROPERTY()
+	TArray<FLevelSave> LevelSaves;
+
 };

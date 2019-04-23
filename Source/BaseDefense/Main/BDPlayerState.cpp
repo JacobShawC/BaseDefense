@@ -8,7 +8,7 @@ void ABDPlayerState::SetUpTestData()
 {
 	PlayerData.HotbarSlots.Add(EBuilding::Wall);
 
-	PlayerData.HotbarSlots.Add(EBuilding::ArrowTower);
+	PlayerData.HotbarSlots.Add(EBuilding::CannonTower);
 
 	PlayerData.HotbarSlots.Add(EBuilding::Farm);
 }

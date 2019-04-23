@@ -33,4 +33,7 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Money;
+
+	UPROPERTY(meta = (BindWidget))
+	class UMiniMap* MiniMap = nullptr;
 };

@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "OnlineSubsystemUtils.h"
-
+#include "StructLibrary.h"
 #include "FriendRow.generated.h"
 
 /**
@@ -31,23 +31,19 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* FriendAvatar;
 
-	UPROPERTY(BlueprintReadOnly)
 	bool Playing = false;
 
-	UPROPERTY(BlueprintReadOnly)
 	bool Joinable = false;
 
-	UPROPERTY(BlueprintReadOnly)
 	bool Online = false;
 
 	void Setup(uint32 AnIndex, bool AnInviteOrJoin, FOnlineUserPresence APresence);
 
-	void SetAvatar(UTexture2D* AnAvatar);
+	void SetAvatar(class UTexture2D* AnAvatar);
 
 	uint32 Index;
 
 	bool InviteOrJoin = true;
 
-	UFUNCTION()
 	void OnButtonClicked();
 };

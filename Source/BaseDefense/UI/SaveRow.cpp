@@ -5,17 +5,22 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "BDGameInstance.h"
+#include "BDSaveGame.h"
 #include "BDGameInstance.h"
 
-void USaveRow::SetUp(FString ASaveName)
+void USaveRow::SetUp(UBDSaveGame* ASave)
 {
 	Instance = Cast<UBDGameInstance>(GetWorld()->GetGameInstance());
 
-	NewGame = false;
-	ButtonText->SetText(FText::FromString(ASaveName));
+	if (ASave != nullptr)
+	{
+		Save = ASave;
+		NewGame = false;
+		ButtonText->SetText(FText::FromString(ASave->SaveSlotName));
 
-	SaveButton->OnClicked.AddDynamic(this, &USaveRow::OnButtonClicked);
-	SaveName = ASaveName;
+		SaveButton->OnClicked.AddDynamic(this, &USaveRow::OnButtonClicked);
+		SaveName = ASave->SaveSlotName;
+	}
 }
 
 void USaveRow::SetUp()
@@ -42,6 +47,6 @@ void USaveRow::OnButtonClicked()
 	}
 	else
 	{
-		//load save
+		Instance->LoadSave(Save);
 	}
 }

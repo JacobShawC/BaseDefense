@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
 #include "Main/StructLibrary.h"
+#include "FriendRow.h"
+
 #include "MainMenu.generated.h"
 
 /**
@@ -22,8 +24,11 @@ private:
 
 	void RefreshSaves();
 
+
 public:
 	void SetUp();
+	void SetLoading();
+
 
 private:
 

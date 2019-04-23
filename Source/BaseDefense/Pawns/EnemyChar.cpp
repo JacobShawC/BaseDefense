@@ -17,6 +17,7 @@
 #include "BDGameState.h"
 #include "Math/Box.h"
 #include "Engine/World.h"
+#include "BDGameState.h"
 #include "Public/TimerManager.h"
 #include "UnrealNetwork.h"
 #include "DamageTextActor.h"
@@ -38,7 +39,7 @@ AEnemyChar::AEnemyChar()
 	//GetMesh()->SetSkeletalMesh(PlayerMesh.Object, true);
 	GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -90.0f), false);
 	GetMesh()->SetRelativeRotation(FRotator(0.0f, -90.0f, 0.0f), false);
-
+	GetMesh()->SetIsReplicated(true);
 	GetMesh()->SetReceivesDecals(false);
 	//static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> AnimObj(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
 	//static ConstructorHelpers::FClassFinder<UAnimationSharingSetup> AnimSharingBP(TEXT("AnimationSharingSetup'/Game/Animation/BDAnimationSharingSetup.BDAnimationSharingSetup'"));
@@ -166,8 +167,18 @@ void AEnemyChar::Initialise(EEnemy AnEnemy)
 void AEnemyChar::BeginPlay()
 {
 	Super::BeginPlay();
-	Initialise(EEnemy::Seaman);
-	SpawnDefaultController();
+	
+	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+	if (GameState != nullptr)
+	{
+		GameState->AddEnemyCharacter(TWeakObjectPtr<AEnemyChar>(this));
+
+	}
+	if (Role == ROLE_Authority)
+	{
+		Initialise(EEnemy::Seaman);
+		SpawnDefaultController();
+	}
 }
 
 void AEnemyChar::EndPlay(const EEndPlayReason::Type EndPlayReason)

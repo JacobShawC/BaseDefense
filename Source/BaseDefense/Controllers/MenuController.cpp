@@ -47,3 +47,8 @@ void AMenuController::BeginPlay()
 		}
 	}
 }
+
+void AMenuController::SetMenuLoading()
+{
+	MainMenuUserWidget->SetLoading();
+}

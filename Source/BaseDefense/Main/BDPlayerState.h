@@ -23,6 +23,9 @@ public:
 	UFUNCTION()
 	void OnRep_Money();
 public:
+
+	
+
 	UPROPERTY(Replicated)
 	FPlayerData PlayerData;
 

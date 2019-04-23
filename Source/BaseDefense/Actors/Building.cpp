@@ -22,7 +22,20 @@
 #include "RepairAction.h"
 #include "UpgradeAction.h"
 #include "BDPlayerState.h"
+#include "BDGameState.h"
 #include "BDPlayerController.h"
+
+void ABuilding::BeginPlay()
+{
+	Super::BeginPlay();
+
+	GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+	if (GameState != nullptr)
+	{
+		GameState->AddBuilding(TWeakObjectPtr<ABuilding>(this));
+	}
+}
+
 // Sets default values
 ABuilding::ABuilding()
 {

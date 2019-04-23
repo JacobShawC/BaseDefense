@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "BDGameInstance.h"
 #include "FriendRow.h"
+#include "Components/WidgetSwitcher.h"
 #include "Components/ScrollBox.h"
 #include "Components/TextBlock.h"
 #include "OnlineSubsystemUtils.h"
@@ -132,8 +133,13 @@ void UMainMenu::RefreshSaves()
 	for (UBDSaveGame* ASave : Instance->Saves)
 	{
 		USaveRow* SaveGameRow = CreateWidget<USaveRow>(World, SaveRowWidgetClass->Get());
-		SaveGameRow->SetUp(ASave->SaveSlotName);
+		SaveGameRow->SetUp(ASave);
 
 		SaveList->AddChild(SaveGameRow);
 	}
+}
+
+void UMainMenu::SetLoading()
+{
+	MenuWidgetSwitcher->SetActiveWidgetIndex(1);
 }
