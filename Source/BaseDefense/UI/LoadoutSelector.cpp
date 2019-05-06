@@ -10,6 +10,7 @@
 #include "PreInfoSlot.h"
 #include "Components/UniformGridPanel.h"
 #include "Components/UniformGridSlot.h"
+#include "Components/TextBlock.h"
 #include "Components/Button.h"
 #include "Components/WidgetSwitcher.h"
 #include "Components/Image.h"
@@ -89,6 +90,10 @@ void ULoadoutSelector::SetupBuildingInformation(FBuildingData ABuildingData)
 	GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
 	TSubclassOf<UUserWidget>* PreInfoClass = GameInstance->Widgets.Find("PreInfo");
 
+	InformationTitle->SetText(FText::FromString(ABuildingData.Name));
+	InformationImage->SetBrushFromTexture(ABuildingData.Thumbnail);
+	InformationText->SetText(FText::FromString(ABuildingData.Description));
+
 
 	for (auto& ADifficulty : ABuildingData.LoadoutUpgrades)
 	{
@@ -102,14 +107,27 @@ void ULoadoutSelector::SetupBuildingInformation(FBuildingData ABuildingData)
 
 void ULoadoutSelector::RefreshBuildings()
 {
-	TArray<UWidget*> Slots = BuildingsGridPanel->GetAllChildren();
-	for (auto & ASlot : Slots)
+	ABDGameState* GameState = GetWorld()->GetGameState<ABDGameState>();
+
+	TArray<UWidget*> Widgets = BuildingsGridPanel->GetAllChildren();
+	int CurrentLevelReward = GameState->LevelRewards;
+
+	for (auto AWidget : Widgets)
 	{
 		UPreBuilding* BuildingSlot = nullptr;
-		BuildingSlot = Cast<UPreBuilding>(ASlot);
+
+		BuildingSlot = Cast<UPreBuilding>(AWidget);
+
 		if (BuildingSlot != nullptr)
 		{
-			BuildingSlot->Refresh();
+			if (CurrentLevelReward > BuildingSlot->BuildingData.PreGameUnlockCost)
+			{
+				BuildingSlot->SetLocked(false);
+			}
+			else
+			{
+				BuildingSlot->SetLocked(true);
+			}
 		}
 	}
 }
@@ -141,6 +159,11 @@ void ULoadoutSelector::PreBuildingClicked(UPreBuilding* ABuilding)
 }
 
 void ULoadoutSelector::PreInfoSlotClicked(UPreInfoSlot* AnInfoSlot)
+{
+
+}
+
+void ULoadoutSelector::OnStartButtonClicked()
 {
 
 }

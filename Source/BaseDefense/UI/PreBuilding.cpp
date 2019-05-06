@@ -21,18 +21,20 @@ void UPreBuilding::SetUp(FBuildingData ABuilding)
 
 }
 
-void UPreBuilding::Unlocked(bool AnUnlocked)
-{
-
-}
 
 void UPreBuilding::OnButtonClicked()
 {
 	OnSelfClicked.Broadcast(this);
 }
 
-void UPreBuilding::Refresh()
+void UPreBuilding::SetLocked(bool LockedOrUnlocked)
 {
-	this->SetVisibility(ESlateVisibility::HitTestInvisible);
-
+	if (LockedOrUnlocked)
+	{
+		SetRenderOpacity(0.5f);
+	}
+	else
+	{
+		SetRenderOpacity(1.0f);
+	}
 }

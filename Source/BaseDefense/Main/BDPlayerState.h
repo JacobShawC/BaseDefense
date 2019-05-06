@@ -25,9 +25,14 @@ public:
 	UFUNCTION()
 	void OnRep_Money();
 
-private:
+	UFUNCTION()
 	void OnRep_RemainingLevelRewards();
+	UFUNCTION()
 	void OnRep_Loadout();
+
+	void SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove);
+
+private:
 public:
 
 	FPlayerStateVariableUpdated RemainingLevelRewardsUpdated;

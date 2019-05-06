@@ -16,7 +16,7 @@ int UBDSaveGame::RefreshPoints()
 
 	int ReturnPoints = 0;
 
-	for (auto It = LevelSaves.CreateConstIterator(); It; It++)
+	for (auto It = LevelSaves.CreateConstIterator(); It; ++It)
 	{
 		FLevelSave ASave = It->Value;
 		FLevelData* LevelData = GameInstance->Levels.Find(It->Key);

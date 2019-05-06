@@ -48,7 +48,7 @@ public:
 	void ServerConstructBuilding(EBuilding ABuildingEnum, FVector APosition);
 
 	UFUNCTION(Server, Reliable, WithValidation)
-	void ServerSelectLoadout(EBuildingUpgrade AnUpgrade, bool AddOrRemove);
+	void ServerSelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove);
 
 
 

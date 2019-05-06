@@ -413,12 +413,25 @@ void ABDPlayerController::UpdateCommands()
 	}
 }
 
-void ABDPlayerController::ServerSelectLoadout_Implementation(EBuildingUpgrade AnUpgrade, bool AddOrRemove)
+int AddCost(FBuildingData ABuildingData, EBuildingUpgrade AnUpgrade)
 {
+	int ReturnCost = 0;
+
+	return ReturnCost;
 
 }
 
-bool ABDPlayerController::ServerSelectLoadout_Validate(EBuildingUpgrade AnUpgrade, bool AddOrRemove)
+
+
+void ABDPlayerController::ServerSelectBuildingUpgrade_Implementation(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove)
+{
+ 	if (GetPawn()->GetPlayerState() != nullptr)
+	{
+		Cast<ABDPlayerState>(GetPawn()->GetPlayerState())->SelectBuildingUpgrade(ABuilding, AnUpgrade, AddOrRemove);
+	}
+}
+
+bool ABDPlayerController::ServerSelectBuildingUpgrade_Validate(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove)
 {
 	return true;
 }

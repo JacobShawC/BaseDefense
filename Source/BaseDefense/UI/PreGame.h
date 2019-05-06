@@ -21,22 +21,17 @@ public:
 
 	void RefreshLevels();
 	
-	void RefreshBuildings();
-	
+	void SetUpLevelInformation(FLevelData ALevelData);
+
 	void RefreshInformation();
 
 	void RefreshLevelRewards();
 
 	void PreLevelClicked(class UPreLevel* ALevel);
-	void PreBuildingClicked(class UPreBuilding* ABuilding);
 
-	
+	void PreInfoSlotClicked(class UPreInfoSlot* AnInfoSlot);
 
 private:
-	UFUNCTION()
-	void OnLevelsButtonClicked();
-	UFUNCTION()
-	void OnBuildingsButtonClicked();
 	UFUNCTION()
 	void OnStartButtonClicked();
 	UFUNCTION()
@@ -46,18 +41,11 @@ private:
 	UFUNCTION()
 	void OnLeaveButtonClicked();
 
-	
 
 protected:
 	
 	UPROPERTY(meta = (BindWidget))
 		class UButton* InviteFriendsButton;
-
-	UPROPERTY(meta = (BindWidget))
-		class UButton* LevelsButton;
-
-	UPROPERTY(meta = (BindWidget))
-		class UButton* BuildingsButton;
 
 	UPROPERTY(meta = (BindWidget))
 		class UButton* StartButton;
@@ -69,13 +57,10 @@ protected:
 		class UButton* LeaveButton;
 
 	UPROPERTY(meta = (BindWidget))
-		class UWidgetSwitcher* SelectionSwitcher;
+	class UUniformGridPanel* LevelsGridPanel;
 
 	UPROPERTY(meta = (BindWidget))
-		class UUniformGridPanel* LevelsGridPanel;
-
-	UPROPERTY(meta = (BindWidget))
-		class UUniformGridPanel* BuildingsGridPanel;
+	class UTextBlock* InformationText;
 
 	UPROPERTY(meta = (BindWidget))
 		class UImage* InformationImage;
@@ -84,10 +69,13 @@ protected:
 		class UTextBlock* InformationTitle;
 
 	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* InformationText;
+		class UTextBlock* SelectedLevelText;
 
 	UPROPERTY(meta = (BindWidget))
-		class UVerticalBox* InformationSlotBox;
+		class UTextBlock* SelectedDifficultyText;
+
+	UPROPERTY(meta = (BindWidget))
+	class UVerticalBox* InformationSlotBox;
 
 	class UBDGameInstance* GameInstance = nullptr;
 	class UBDSaveGame* CurrentSave = nullptr;
@@ -98,5 +86,5 @@ protected:
 	ELevel SelectedLevel = ELevel::None;
 
 	//Selected Build
-	FLoadout SelectedBuild;
+	FLoadout* SelectedBuild = nullptr;
 };

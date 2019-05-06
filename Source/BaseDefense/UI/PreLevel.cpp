@@ -4,27 +4,34 @@
 #include "PreLevel.h"
 #include "PreGame.h"
 #include "Components/TextBlock.h"
+#include "Components/Button.h"
 #include "Components/Image.h"
-void UPreLevel::SetUp(FLevelData ALevel, UPreGame* AnOwner)
+void UPreLevel::SetUp(FLevelData ALevel)
 {
 	LevelData = ALevel;
-	Owner = AnOwner;
 
 	Name->SetText(FText::FromString(ALevel.Name));
 	Image->SetBrushFromTexture(ALevel.Thumbnail);
 	Description->SetText(FText::FromString(ALevel.Description));
 	UnlockCost->SetText(FText::AsNumber(ALevel.PreGameUnlockCost));
+
+	LevelButton->OnClicked.AddDynamic(this, &UPreLevel::OnButtonClicked);
+
 }
 
-void UPreLevel::Unlocked(bool AnUnlocked)
+void UPreLevel::SetLocked(bool LockedOrUnlocked)
 {
-
+	if (LockedOrUnlocked)
+	{
+		SetRenderOpacity(0.5f);
+	}
+	else
+	{
+		SetRenderOpacity(1.0f);
+	}
 }
 
 void UPreLevel::OnButtonClicked()
 {
-	if (Owner != nullptr)
-	{
-		Owner->PreLevelClicked(this);
-	}
+	OnSelfClicked.Broadcast(this);
 }

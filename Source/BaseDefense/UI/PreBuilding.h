@@ -19,10 +19,10 @@ class BASEDEFENSE_API UPreBuilding : public UUserWidget
 	GENERATED_BODY()
 public:
 	void SetUp(FBuildingData ABuilding);
-	void Unlocked(bool AnUnlocked);
+	UFUNCTION()
 	void OnButtonClicked();
 
-	void Refresh();
+	void SetLocked(bool LockedOrUnlocked);
 
 private:
 	UPROPERTY(meta = (BindWidget))

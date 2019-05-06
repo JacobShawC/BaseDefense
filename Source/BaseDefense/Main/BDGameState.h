@@ -23,7 +23,9 @@ protected:
 	UFUNCTION()
 	void OnRep_LevelRewards();
 	UFUNCTION()
-	void OnRep_LevelSaves();
+	void OnRep_LevelSaves();	
+	UFUNCTION()
+	void OnRep_GameState();
 public:
 
 	float AddMoney(float AMoney);
@@ -56,9 +58,12 @@ public:
 
 	FVariableUpdated LevelRewardsUpdated;
 	FVariableUpdated LevelSavesUpdated;
+	FVariableUpdated GameStateUpdated;
 	UPROPERTY(ReplicatedUsing=OnRep_LevelRewards)	int LevelRewards = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_LevelSaves)	TMap<ELevel, FLevelSave> LevelSaves;
+
+	UPROPERTY(ReplicatedUsing = OnRep_GameState)	EGameState GameState = EGameState::PreGame;
 
 protected:
 	class UBDGameInstance* GameInstance = nullptr;

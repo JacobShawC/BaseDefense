@@ -19,6 +19,7 @@ class BASEDEFENSE_API UPreInfoSlot : public UUserWidget
 public:
 	void SetUp(ELevelDifficulty ADifficulty, FLevelData AData);
 	void SetUp(EBuildingUpgrade AnUpgrade, FBuildingData AData);
+	UFUNCTION()
 	void OnButtonClicked();
 	void Refresh();
 

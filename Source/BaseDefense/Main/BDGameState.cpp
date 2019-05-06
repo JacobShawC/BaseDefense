@@ -164,3 +164,8 @@ void ABDGameState::OnRep_LevelSaves()
 {
 	LevelSavesUpdated.Broadcast();
 }
+
+void ABDGameState::OnRep_GameState()
+{
+	GameStateUpdated.Broadcast();
+}

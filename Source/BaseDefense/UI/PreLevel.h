@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "StructLibrary.h"
 #include "PreLevel.generated.h"
+DECLARE_MULTICAST_DELEGATE_OneParam(FLevelButtonClickedDelegate, UPreLevel*);
 
 /**
  * 
@@ -15,8 +16,9 @@ class BASEDEFENSE_API UPreLevel : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	void SetUp(FLevelData ALevel, class UPreGame* AnOwner);
-	void Unlocked(bool AnUnlocked);
+	void SetUp(FLevelData ALevel);
+	void SetLocked(bool LockedOrUnlocked);
+	UFUNCTION()
 	void OnButtonClicked();
 private:
 	UPROPERTY(meta = (BindWidget))
@@ -36,8 +38,8 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* UnlockCost = nullptr;
 
-
 public:
 	FLevelData LevelData;
+	FLevelButtonClickedDelegate OnSelfClicked;
 
 };

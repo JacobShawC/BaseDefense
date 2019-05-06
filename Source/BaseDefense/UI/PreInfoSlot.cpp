@@ -13,6 +13,7 @@
 #include "BDPlayerController.h"
 #include "BDPlayerState.h"
 #include "PlayerChar.h"
+#include "GameFramework/PlayerController.h"
 #include "PreGame.h"
 
 void UPreInfoSlot::SetUp(ELevelDifficulty ADifficulty, FLevelData AData)
@@ -23,8 +24,27 @@ void UPreInfoSlot::SetUp(ELevelDifficulty ADifficulty, FLevelData AData)
 	SlotButton->OnClicked.AddDynamic(this, &UPreInfoSlot::OnButtonClicked);
 
 	SlotButtonText->SetText(FText::FromString("Select Level"));
+	FString DifficultyText = "";
+	switch (ADifficulty) {
+	case ELevelDifficulty::None: DifficultyText = "None";
+		break;
+	case ELevelDifficulty::Easy : DifficultyText = "Easy";
+		break;
+	case ELevelDifficulty::Medium : DifficultyText = "Medium";
+		break;
+	case ELevelDifficulty::Hard : DifficultyText = "Hard";
+		break;
+	case ELevelDifficulty::Brutal : DifficultyText = "Brutal";
+		break;
+	case ELevelDifficulty::Survival : DifficultyText = "Survival";
+		break;
+	case ELevelDifficulty::Challenge1 : DifficultyText = "Challenge1";
+		break;
+	case ELevelDifficulty::Challenge2: DifficultyText = "Challenge2";
+		break;
+	}
 
-	SlotTitle->SetText(FText::FromString(LevelData.Name));
+	SlotTitle->SetText(FText::FromString(DifficultyText));
 	SlotDescription->SetText(FText::FromString(LevelData.Description));
 
 
@@ -45,9 +65,17 @@ void UPreInfoSlot::OnButtonClicked()
 
 void UPreInfoSlot::Refresh()
 {
-	ABDGameState* GameState = GetOwningPlayer<ABDPlayerController>()->GetWorld()->GetGameState<ABDGameState>();
+	APlayerController* PlayerController = GetOwningPlayer();
+	ABDPlayerController* Controller = GetOwningPlayer<ABDPlayerController>();
+	UWorld* World = PlayerController->GetWorld();
 
-	ABDPlayerState* PlayerState = GetOwningPlayerPawn<APlayerChar>()->GetPlayerState<ABDPlayerState>();
+
+	AGameStateBase* TempGameState = World->GetGameState();
+	ABDGameState* GameState = Cast<ABDGameState>(TempGameState);
+	APawn* TempPawn = GetOwningPlayerPawn();
+	APlayerState* TempPlayerState = TempPawn->GetPlayerState();
+
+	ABDPlayerState* PlayerState = Cast<ABDPlayerState>(TempPlayerState);
 
 	if (GameState == nullptr || PlayerState == nullptr)
 		return;

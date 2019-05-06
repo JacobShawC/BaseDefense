@@ -23,6 +23,18 @@ enum class ELevel : uint8
 };
 
 UENUM()
+enum class EGameState : uint8
+{
+	None 		UMETA(DisplayName = "None"),
+	PreGame		UMETA(DisplayName = "PreGame"),
+	InProgress 	UMETA(DisplayName = "InProgress"),
+	PostGame 	UMETA(DisplayName = "PostGame"),
+	Paused 		UMETA(DisplayName = "Paused")
+};
+
+
+
+UENUM()
 enum class ELevelDifficulty : uint8
 {
 	None 		UMETA(DisplayName = "None"),
@@ -538,6 +550,8 @@ USTRUCT()
 struct FLevelData
 {
 	GENERATED_USTRUCT_BODY()
+
+	ELevel Level = ELevel::None;
 
 	UPROPERTY()
 	FString Name = "Needs a name";

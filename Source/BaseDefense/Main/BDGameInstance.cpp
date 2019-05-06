@@ -57,7 +57,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreGameBP(TEXT("WidgetBlueprint'/Game/UI/PreGameWidget.PreGameWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreLevelBP(TEXT("WidgetBlueprint'/Game/UI/PreLevelWidget.PreLevelWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreBuildingBP(TEXT("WidgetBlueprint'/Game/UI/PreBuildingWidget.PreBuildingWidget_C'"));
-	static ConstructorHelpers::FClassFinder<UUserWidget> PreInfoBP(TEXT("WidgetBlueprint'/Game/UI/PreInfoWidget.PreInfoWidget_C'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> PreInfoSlotBP(TEXT("WidgetBlueprint'/Game/UI/PreInfoSlotWidget.PreInfoSlotWidget_C'"));
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonMesh(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Cannon_03.SM_Prop_Cannon_03'"));
@@ -88,7 +88,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Widgets.Add("PreGame", PreGameBP.Class);
 	Widgets.Add("PreLevel", PreLevelBP.Class);
 	Widgets.Add("PreBuilding", PreBuildingBP.Class);
-	Widgets.Add("PreInfo", PreInfoBP.Class);
+	Widgets.Add("PreInfoSlot", PreInfoSlotBP.Class);
 
 	Images.Add(EBuilding::Wall, BarrelImage.Object);
 	//----------------------------------------------------------------------------------------------------------
@@ -274,6 +274,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	
 	//Level1
 	FLevelData Level1;
+	Level1.Level = ELevel::Level1;
 	Level1.Name = "One Way Defense";
 	Level1.Description = "Try to defend the pier from one place at once!";
 	Level1.PreGameUnlockCost = 0;
@@ -283,6 +284,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 
 	//Level2
 	FLevelData Level2;
+	Level2.Level = ELevel::Level2;
 	Level2.Name = "Two Way Defense";
 	Level2.Description = "Try to defend from two places at once!";
 	Level2.PreGameUnlockCost = 0;
@@ -292,6 +294,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	
 	//Level3
 	FLevelData Level3;
+	Level3.Level = ELevel::Level3;
 	Level3.Name = "Four Way Defense";
 	Level3.Description = "Try to defend from four places at once";
 	Level3.PreGameUnlockCost = 0;
