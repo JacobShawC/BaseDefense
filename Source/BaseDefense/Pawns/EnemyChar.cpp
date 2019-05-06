@@ -174,9 +174,10 @@ void AEnemyChar::BeginPlay()
 		GameState->AddEnemyCharacter(TWeakObjectPtr<AEnemyChar>(this));
 
 	}
+	
+	Initialise(EEnemy::Seaman);
 	if (Role == ROLE_Authority)
 	{
-		Initialise(EEnemy::Seaman);
 		SpawnDefaultController();
 	}
 }

@@ -68,7 +68,7 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 				CanvasPanelSlot->SetSize(FVector2D(EnemySize, EnemySize));
 				CanvasPanelSlot->SetPosition(GetCanvasLocation(Iterator->Key->GetActorLocation()));
 			}
-			else 
+			else
 			{
 				if (MapWidth == 0)
 				{

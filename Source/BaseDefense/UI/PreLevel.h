@@ -14,14 +14,15 @@ UCLASS()
 class BASEDEFENSE_API UPreLevel : public UUserWidget
 {
 	GENERATED_BODY()
-	
-	void SetUp(EBuilding ABuilding);
-
+public:
+	void SetUp(FLevelData ALevel, class UPreGame* AnOwner);
+	void Unlocked(bool AnUnlocked);
+	void OnButtonClicked();
 private:
 	UPROPERTY(meta = (BindWidget))
-	class UCheckBox* LevelToggleButton = nullptr;
+	class UButton* LevelButton = nullptr;
 private:
-
+	class UPreGame* Owner;
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Name = nullptr;
@@ -34,5 +35,9 @@ private:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* UnlockCost = nullptr;
+
+
+public:
+	FLevelData LevelData;
 
 };

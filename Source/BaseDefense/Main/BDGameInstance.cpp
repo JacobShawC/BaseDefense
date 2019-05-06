@@ -57,6 +57,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreGameBP(TEXT("WidgetBlueprint'/Game/UI/PreGameWidget.PreGameWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreLevelBP(TEXT("WidgetBlueprint'/Game/UI/PreLevelWidget.PreLevelWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreBuildingBP(TEXT("WidgetBlueprint'/Game/UI/PreBuildingWidget.PreBuildingWidget_C'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> PreInfoBP(TEXT("WidgetBlueprint'/Game/UI/PreInfoWidget.PreInfoWidget_C'"));
 	
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonMesh(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Cannon_03.SM_Prop_Cannon_03'"));
@@ -75,6 +76,8 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 
 
 
+
+
 	Widgets.Add("GUI", GUIBP.Class);
 	Widgets.Add("Slot", SlotBP.Class);
 	Widgets.Add("HotbarSlot", HotbarSlotBP.Class);
@@ -85,6 +88,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Widgets.Add("PreGame", PreGameBP.Class);
 	Widgets.Add("PreLevel", PreLevelBP.Class);
 	Widgets.Add("PreBuilding", PreBuildingBP.Class);
+	Widgets.Add("PreInfo", PreInfoBP.Class);
 
 	Images.Add(EBuilding::Wall, BarrelImage.Object);
 	//----------------------------------------------------------------------------------------------------------
@@ -274,15 +278,16 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Level1.Description = "Try to defend the pier from one place at once!";
 	Level1.PreGameUnlockCost = 0;
 	Level1.URL = "/Game/Maps/Level1?listen";
+	Level1.DifficultyRewards.Add(ELevelDifficulty::Medium, 1);
 	Levels.Add(ELevel::Level1, Level1);
-	
+
 	//Level2
 	FLevelData Level2;
 	Level2.Name = "Two Way Defense";
 	Level2.Description = "Try to defend from two places at once!";
 	Level2.PreGameUnlockCost = 0;
 	Level2.URL = "/Game/Maps/Level2?listen";
-
+	Level2.DifficultyRewards.Add(ELevelDifficulty::Medium, 1);
 	Levels.Add(ELevel::Level2, Level2);
 	
 	//Level3
@@ -291,6 +296,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Level3.Description = "Try to defend from four places at once";
 	Level3.PreGameUnlockCost = 0;
 	Level3.URL = "/Game/Maps/Level3?listen";
+	Level3.DifficultyRewards.Add(ELevelDifficulty::Medium, 1);
 
 	Levels.Add(ELevel::Level3, Level3);
 
@@ -370,6 +376,38 @@ void UBDGameInstance::CreateSession()
 		SessionSettings.Set(SERVER_NAME_SETTINGS_KEY, DesiredServerName, EOnlineDataAdvertisementType::ViaOnlineServiceAndPing);
 
 		SessionInterface->CreateSession(0, SESSION_NAME, SessionSettings);
+	}
+}
+
+
+void UBDGameInstance::RefreshLevelRewards()
+{
+	int Reward = 0;
+
+	if (CurrentSave != nullptr)
+	{
+
+		//Go through all of the level saves in the current level
+		for (auto LevelSavesIterator = CurrentSave->LevelSaves.CreateConstIterator(); LevelSavesIterator; ++LevelSavesIterator)
+		{
+			//Find the level data in the game instance
+			if (Levels.Contains(LevelSavesIterator->Key))
+			{
+				FLevelData CurrentLevelData = *(Levels.Find(LevelSavesIterator->Key));
+
+				//add up all the rewards from the completed challenges and the level data
+				for (auto Difficulty : LevelSavesIterator->Value.ChallengesCompleted)
+				{
+					if (CurrentLevelData.DifficultyRewards.Contains(Difficulty))
+					{
+						Reward += *(CurrentLevelData.DifficultyRewards.Find(Difficulty));
+					}
+
+				}
+
+			}
+		}
+		CurrentSave->Points = Reward;
 	}
 }
 

@@ -7,6 +7,8 @@
 #include "MiniMapCapture.h"
 #include "BDGameState.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FVariableUpdated);
+
 /**
  *	
  */
@@ -17,7 +19,11 @@ class BASEDEFENSE_API ABDGameState : public AGameState
 
 protected:
 	void GetMiniMap();
-
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+	UFUNCTION()
+	void OnRep_LevelRewards();
+	UFUNCTION()
+	void OnRep_LevelSaves();
 public:
 
 	float AddMoney(float AMoney);
@@ -27,6 +33,8 @@ public:
 	void AddBuilding(TWeakObjectPtr<class ABuilding> ABuilding);
 	void AddEnemyCharacter(TWeakObjectPtr<class AEnemyChar> AnEnemyChar);
 	void SetMapProperties(FVector APosition, float AWidth);
+
+	void RefreshLevelRewards();
 public:
 	UPROPERTY()
 	TArray<TWeakObjectPtr<class ABuilding>> Buildings;
@@ -46,6 +54,13 @@ public:
 
 	class UMiniMap* MiniMap = nullptr;
 
+	FVariableUpdated LevelRewardsUpdated;
+	FVariableUpdated LevelSavesUpdated;
+	UPROPERTY(ReplicatedUsing=OnRep_LevelRewards)	int LevelRewards = 0;
 
+	UPROPERTY(ReplicatedUsing = OnRep_LevelSaves)	TMap<ELevel, FLevelSave> LevelSaves;
+
+protected:
+	class UBDGameInstance* GameInstance = nullptr;
 
 };

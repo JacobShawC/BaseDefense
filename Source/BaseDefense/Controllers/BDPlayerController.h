@@ -48,6 +48,11 @@ public:
 	void ServerConstructBuilding(EBuilding ABuildingEnum, FVector APosition);
 
 	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerSelectLoadout(EBuildingUpgrade AnUpgrade, bool AddOrRemove);
+
+
+
+	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerUpgradeBuilding(class ABuilding* ABuilding);
 
 	UFUNCTION(Server, Reliable, WithValidation)

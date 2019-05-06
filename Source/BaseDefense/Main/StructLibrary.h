@@ -292,7 +292,7 @@ struct FPreBuildingData
 };
 
 USTRUCT()
-struct FPreGameData
+struct FLoadout
 {
 	GENERATED_BODY()
 
@@ -437,6 +437,9 @@ struct FBuildingUpgrade
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
+	FString Description = "This needs a description.";
+
+	UPROPERTY()
 	TArray<FBuildingBuffStruct> Upgrades;
 
 	UPROPERTY()
@@ -483,6 +486,9 @@ struct FBuildingData
 
 	UPROPERTY()
 	bool CanBeBuffed = true;
+
+	UPROPERTY()
+	TMap<EBuildingUpgrade, FBuildingUpgrade> LoadoutUpgrades;
 
 	UPROPERTY()
 	TMap<EBuildingUpgrade, FBuildingUpgrade> Upgrades;
@@ -543,10 +549,28 @@ struct FLevelData
 	int PreGameUnlockCost = 0;
 
 	UPROPERTY()
+	TMap<ELevelDifficulty, int> DifficultyRewards;
+
+	UPROPERTY()
 	UTexture2D* Thumbnail = nullptr;
 
 	UPROPERTY()
 	FString URL = "";
+
+	int GetReward(ELevelDifficulty ADifficulty)
+	{
+		return *(DifficultyRewards.Find(ADifficulty));
+	}
+
+	int GetReward(TArray<ELevelDifficulty> ADifficulties)
+	{
+		int ReturnInt = 0;
+		for (ELevelDifficulty ADifficulty : ADifficulties)
+		{
+			ReturnInt += GetReward(ADifficulty);
+		}
+		return ReturnInt;
+	}
 };
 
 USTRUCT()

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "StructLibrary.h"
 #include "BDSaveGame.generated.h"
 
 /**
@@ -18,6 +19,7 @@ public:
 
 	UBDSaveGame();
 
+	int RefreshPoints();
 
 	UPROPERTY(VisibleAnywhere, Category = Basic)
 	FString PlayerName;
@@ -35,6 +37,6 @@ public:
 	int Points = 0;
 
 	UPROPERTY()
-	TArray<FLevelSave> LevelSaves;
+	TMap<ELevel, FLevelSave> LevelSaves;
 
 };

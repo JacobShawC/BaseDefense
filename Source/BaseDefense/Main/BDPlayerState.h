@@ -7,6 +7,8 @@
 #include "Main/StructLibrary.h"
 #include "BDPlayerState.generated.h"
 
+DECLARE_MULTICAST_DELEGATE(FPlayerStateVariableUpdated);
+
 /**
  * 
  */
@@ -22,16 +24,23 @@ public:
 	virtual void GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const override;
 	UFUNCTION()
 	void OnRep_Money();
+
+private:
+	void OnRep_RemainingLevelRewards();
+	void OnRep_Loadout();
 public:
 
+	FPlayerStateVariableUpdated RemainingLevelRewardsUpdated;
+	FPlayerStateVariableUpdated LoadoutUpdated;
 	
-
 	UPROPERTY(Replicated)
 	FPlayerData PlayerData;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Money)
 	float Money = 500;
 
-	FPreGameData PreGameData;
+	UPROPERTY(ReplicatedUsing = OnRep_RemainingLevelRewards)	int RemainingLevelRewards = 0;
+
+	UPROPERTY(ReplicatedUsing = OnRep_Loadout)	FLoadout Loadout;
 
 };

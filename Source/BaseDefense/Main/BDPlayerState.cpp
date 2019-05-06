@@ -53,3 +53,13 @@ void ABDPlayerState::OnRep_Money()
 		}
 	}
 }
+
+void ABDPlayerState::OnRep_RemainingLevelRewards()
+{
+	RemainingLevelRewardsUpdated.Broadcast();
+}
+
+void ABDPlayerState::OnRep_Loadout()
+{
+	LoadoutUpdated.Broadcast();
+}

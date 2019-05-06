@@ -10,9 +10,6 @@ AMenuController::AMenuController(const FObjectInitializer& ObjectInitializer)
 	bShowMouseCursor = true;
 	bEnableMouseOverEvents = true;
 	bEnableTouchEvents = false;
-
-
-
 }
 
 void AMenuController::SetupInputComponent()
@@ -37,12 +34,11 @@ void AMenuController::BeginPlay()
 
 				if (MainMenuUserWidget)
 				{
-					(MainMenuUserWidget)->AddToViewport();
+					MainMenuUserWidget->AddToViewport();
 
 					MainMenuUserWidget->SetUp();
 					GameInstance->RefreshFriendsList();
 				}
-
 			}
 		}
 	}

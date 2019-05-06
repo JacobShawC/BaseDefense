@@ -4,6 +4,8 @@
 #include "GameFramework/PlayerState.h"
 #include "PlayerChar.h"
 #include "BDPlayerState.h"
+#include "BDGameInstance.h"
+#include "BDSaveGame.h"
 #include "Building.h"
 #include "EnemyChar.h"
 #include "Engine/World.h"
@@ -116,6 +118,23 @@ void ABDGameState::SetMapProperties(FVector APosition, float AWidth)
 	}
 }
 
+void ABDGameState::RefreshLevelRewards()
+{
+	if (Role == ROLE_Authority)
+	{
+		GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
+		if (GameInstance != nullptr)
+		{
+			GameInstance->RefreshLevelRewards();
+			if (GameInstance->CurrentSave != nullptr)
+			{
+				LevelRewards = GameInstance->CurrentSave->Points;
+			}
+		}
+
+	}
+}
+
 TArray<APlayerChar*> ABDGameState::GetPlayerPawns()
 {
 	TArray<APlayerChar*> PlayerCharacters;
@@ -130,4 +149,18 @@ TArray<APlayerChar*> ABDGameState::GetPlayerPawns()
 		}
 	}
 	return PlayerCharacters;
+}
+
+void ABDGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(ABDGameState, LevelRewards);
+}
+void ABDGameState::OnRep_LevelRewards()
+{
+	LevelRewardsUpdated.Broadcast();
+}
+
+void ABDGameState::OnRep_LevelSaves()
+{
+	LevelSavesUpdated.Broadcast();
 }

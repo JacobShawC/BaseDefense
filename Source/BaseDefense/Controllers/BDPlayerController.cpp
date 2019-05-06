@@ -397,8 +397,6 @@ void ABDPlayerController::MakeGhost()
 	}
 }
 
-
-
 void ABDPlayerController::UpdateCommands()
 {
 	if (GUIWidget != nullptr && GUIWidget->IsValidLowLevel())
@@ -413,7 +411,16 @@ void ABDPlayerController::UpdateCommands()
 			GUIWidget->SetCommandList(TArray<EGUICommand>());
 		}
 	}
-	
+}
+
+void ABDPlayerController::ServerSelectLoadout_Implementation(EBuildingUpgrade AnUpgrade, bool AddOrRemove)
+{
+
+}
+
+bool ABDPlayerController::ServerSelectLoadout_Validate(EBuildingUpgrade AnUpgrade, bool AddOrRemove)
+{
+	return true;
 }
 
 void ABDPlayerController::GetKeysForAction(FName AnActionName, TArray<FInputActionKeyMapping>& Bindings)

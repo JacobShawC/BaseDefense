@@ -7,6 +7,9 @@
 #include "StructLibrary.h"
 #include "PreBuilding.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FButtonClickedDelegate, UPreBuilding*);
+
+
 /**
  * 
  */
@@ -15,13 +18,17 @@ class BASEDEFENSE_API UPreBuilding : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	void SetUp(EBuilding ABuilding);
+	void SetUp(FBuildingData ABuilding);
+	void Unlocked(bool AnUnlocked);
+	void OnButtonClicked();
+
+	void Refresh();
 
 private:
 	UPROPERTY(meta = (BindWidget))
-	class UCheckBox* LevelToggleButton = nullptr;
+	class UButton* BuildingButton = nullptr;
 private:
-	
+
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Name = nullptr;
@@ -38,5 +45,7 @@ private:
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* UnlockCost = nullptr;
 
-
+public:
+	FBuildingData BuildingData;
+	FButtonClickedDelegate OnSelfClicked;
 };

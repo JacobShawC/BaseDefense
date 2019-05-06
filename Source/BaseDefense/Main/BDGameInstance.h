@@ -69,10 +69,10 @@ public:
 	void RefreshSaves();
 	void CreateSave();
 	void LoadSave(class UBDSaveGame* ASave);
+	void RefreshLevelRewards();
 
 private:
 	
-
 	void OnCreateSessionComplete(FName SessionName, bool Success);
 	void OnDestroySessionComplete(FName SessionName, bool Success);
 	void OnFindSessionsComplete(bool Success);
