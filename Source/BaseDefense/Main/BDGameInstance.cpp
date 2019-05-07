@@ -6,7 +6,12 @@
 #include "Engine/Texture2D.h"
 #include "Engine/SkeletalMesh.h"
 #include "MenuController.h"
+#include "Engine/TextureRenderTarget2D.h"
 #include "Animation/AnimBlueprintGeneratedClass.h"
+#include "Public/SaveGameSystem.h"
+#include "PlatformFeatures.h"
+#include "GameFramework/SaveGame.h"
+
 
 #pragma push_macro("ARRAY_COUNT")
 #undef ARRAY_COUNT
@@ -47,6 +52,8 @@ const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
 UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
 {
+
+	//Blueprints
 	static ConstructorHelpers::FClassFinder<UUserWidget> GUIBP(TEXT("WidgetBlueprint'/Game/UI/GUIWidget.GUIWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> SlotBP(TEXT("WidgetBlueprint'/Game/UI/SlotWidget.SlotWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> HotbarSlotBP(TEXT("WidgetBlueprint'/Game/UI/HotbarSlotWidget.HotbarSlotWidget_C'"));
@@ -59,19 +66,30 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreBuildingBP(TEXT("WidgetBlueprint'/Game/UI/PreBuildingWidget.PreBuildingWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreInfoSlotBP(TEXT("WidgetBlueprint'/Game/UI/PreInfoSlotWidget.PreInfoSlotWidget_C'"));
 	
+	//Meshes
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonMesh(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Cannon_03.SM_Prop_Cannon_03'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CoveredCrate(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Crate_Covered_01.SM_Prop_Crate_Covered_01'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonBall(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_CannonBalls_01.SM_Prop_CannonBalls_01'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Flowers(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Environments/SM_Env_Flowers_02.SM_Env_Flowers_02'"));
 
+	//Thumbnails
 	static ConstructorHelpers::FObjectFinder<UTexture2D> BarrelImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/BarrelIcon.BarrelIcon'"));
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CannonImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/CannonIcon.CannonIcon'"));
+	
+	//MiniMaps
+	static ConstructorHelpers::FObjectFinder<UTexture2D> TestLevelMiniMap(TEXT("Texture2D'/Game/Textures/MiniMap/TestLevel_Tex.TestLevel_Tex'"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> Level1MiniMap(TEXT("Texture2D'/Game/Textures/MiniMap/Level1_Tex.Level1_Tex'"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> Level2MiniMap(TEXT("Texture2D'/Game/Textures/MiniMap/Level2_Tex.Level2_Tex'"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> Level3MiniMap(TEXT("Texture2D'/Game/Textures/MiniMap/Level3_Tex.Level3_Tex'"));
+	static ConstructorHelpers::FObjectFinder<UTexture2D> Level4MiniMap(TEXT("Texture2D'/Game/Textures/MiniMap/Level4_Tex.Level4_Tex'"));
 
+	//Character meshes
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SeamanMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_Seaman_01_Bare.SK_Character_Pirate_Seaman_01_Bare'"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FirstMateMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_First_Mate_01_Bare.SK_Character_Pirate_First_Mate_01_Bare'"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FemalePirateMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Female_Pirate_01_Bare.SK_Character_Female_Pirate_01_Bare'"));
 	
+	//Animations
 	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> PirateSeamanAnimBP(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
 
 
@@ -275,16 +293,21 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	//Level1
 	FLevelData Level1;
 	Level1.Level = ELevel::Level1;
+	Level1.MiniMap = Level1MiniMap.Object;
+	Level1.Thumbnail = Level1MiniMap.Object;
 	Level1.Name = "One Way Defense";
 	Level1.Description = "Try to defend the pier from one place at once!";
 	Level1.PreGameUnlockCost = 0;
 	Level1.URL = "/Game/Maps/Level1?listen";
 	Level1.DifficultyRewards.Add(ELevelDifficulty::Medium, 1);
 	Levels.Add(ELevel::Level1, Level1);
+	
 
 	//Level2
 	FLevelData Level2;
 	Level2.Level = ELevel::Level2;
+	Level2.MiniMap = Level2MiniMap.Object;
+	Level2.Thumbnail = Level2MiniMap.Object;
 	Level2.Name = "Two Way Defense";
 	Level2.Description = "Try to defend from two places at once!";
 	Level2.PreGameUnlockCost = 0;
@@ -295,6 +318,8 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	//Level3
 	FLevelData Level3;
 	Level3.Level = ELevel::Level3;
+	Level3.MiniMap = Level3MiniMap.Object;
+	Level3.Thumbnail = Level3MiniMap.Object;
 	Level3.Name = "Four Way Defense";
 	Level3.Description = "Try to defend from four places at once";
 	Level3.PreGameUnlockCost = 0;
@@ -430,7 +455,7 @@ void UBDGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 	UWorld * World = GetWorld();
 	if (!ensure(World != nullptr)) return;
 	//World->ServerTravel("/Game/PuzzlePlatforms/Maps/Lobby?listen");
-	World->GetAuthGameMode()->bUseSeamlessTravel = false;
+	World->GetAuthGameMode()->bUseSeamlessTravel = true;
 
 	//World->ServerTravel("/Game/Maps/PreGame?listen?game=/Script/BaseDefense.PreGameGameMode", true, false);
 	//World->ServerTravel("/Game/Maps/TestLevel", true, false);
@@ -515,10 +540,28 @@ void UBDGameInstance::RefreshSaves()
 {
 	TArray<FString> SavesNames;
 	TArray<UBDSaveGame*> TempSaves;
-	FString SaveDirectory = "C:/Users/Ziggy/Documents/Unreal Projects/BaseDefense/Saved/Cooked/WindowsNoEditor/BaseDefense/Saved/SaveGames";
+	//FString SaveDirectory = "C:/Users/Ziggy/Documents/Unreal Projects/BaseDefense/Saved/Cooked/WindowsNoEditor/BaseDefense/Saved/SaveGames";
 	
-	FString Test = FPlatformProcess::UserDir();
-	
+	ISaveGameSystem* SaveSystem = IPlatformFeaturesModule::Get().GetSaveGameSystem();
+	FString SaveDirectory = "";
+
+	// If we have a save system and a valid name..
+	if (SaveSystem)
+	{
+		// From SaveGameSystem.h in the Unreal source code base.
+		SaveDirectory = FPaths::ProjectSavedDir() + "SaveGames";
+		//FString SaveDirectory2 = FPaths::ProjectUserDir() + "SaveGames";
+
+		//FString SaveDirectory3 = FString::Printf(TEXT("%sSaveGames/*"), *FPaths::ProjectSavedDir());
+		//FString SaveDirectory4 = FPaths::ProjectUserDir();
+
+		int Wow = 0;
+
+	}
+	else
+	{
+		SaveDirectory = "C:/Users/Ziggy/Documents/Unreal Projects/BaseDefense/Saved/Cooked/WindowsNoEditor/BaseDefense/Saved/SaveGames";
+	}
 	//SaveDirectory = FPlatformProcess::UserSettingsDir();
 //
 //#if WITH_EDITOR
@@ -702,6 +745,20 @@ void UBDGameInstance::LoadMainMenu()
 	if (!ensure(PlayerController != nullptr)) return;
 
 	PlayerController->ClientTravel("/Game/Maps/MainMenu", ETravelType::TRAVEL_Absolute);
+}
+
+void UBDGameInstance::LoadLevel(ELevel ALevel)
+{
+	if (ALevel != ELevel::None)
+	{
+		APlayerController* PlayerController = GetFirstLocalPlayerController();
+		if (!ensure(PlayerController != nullptr)) return;
+
+		FString LevelURL = "";
+		LevelURL = *(Levels.Find(ALevel))->URL;
+
+		GetWorld()->ServerTravel(LevelURL, ETravelType::TRAVEL_Absolute);
+	}
 }
 
 bool UBDGameInstance::GetMenuController()

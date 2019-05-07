@@ -22,6 +22,9 @@ class BASEDEFENSE_API AMenuController : public APlayerController
 public:
 	void SetMenuLoading();
 
+	UFUNCTION(Client, Reliable, Category = "Things")
+		void ClearHUDWidgets();
+	virtual void ClearHUDWidgets_Implementation();
 public:
 	class UMainMenu* Menu = nullptr;
 

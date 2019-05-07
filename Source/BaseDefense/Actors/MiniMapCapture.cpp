@@ -36,9 +36,9 @@ void AMiniMapCapture::BeginPlay()
 	if (!GetCaptureComponent2D()->TextureTarget || MiniMapWidth != GetCaptureComponent2D()->TextureTarget->GetSurfaceWidth()
 		|| MiniMapHeight != GetCaptureComponent2D()->TextureTarget->GetSurfaceHeight())
 	{
-		MiniMapView = NewObject<UTextureRenderTarget2D>();
-		MiniMapView->InitAutoFormat(MiniMapWidth, MiniMapHeight);
-		GetCaptureComponent2D()->TextureTarget = MiniMapView;
+		RenderTarget = NewObject<UTextureRenderTarget2D>();
+		RenderTarget->InitAutoFormat(MiniMapWidth, MiniMapHeight);
+		GetCaptureComponent2D()->TextureTarget = RenderTarget;
 		bTextureChanged = true;
 	}
 
@@ -79,10 +79,10 @@ void AMiniMapCapture::UpdateWorldBounds()
 		MaterialInstance->SetScalarParameterValue(FName(TEXT("Opacity")), 0);
 		
 		//UKismetRenderingLibrary::ClearRenderTarget2D(this, RenderTarget, FLinearColor(1, 0, 0, 0));
-		UKismetRenderingLibrary::ClearRenderTarget2D(this, RenderTarget, FLinearColor(0, 0, 0, 1));
+		UKismetRenderingLibrary::ClearRenderTarget2D(this, MiniMapView, FLinearColor(0, 0, 0, 1));
 
 		
-		UKismetRenderingLibrary::DrawMaterialToRenderTarget(GetWorld(), RenderTarget, MaterialInstance);
+		UKismetRenderingLibrary::DrawMaterialToRenderTarget(GetWorld(), MiniMapView, MaterialInstance);
 	}
 }
 

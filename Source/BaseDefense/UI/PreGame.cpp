@@ -20,7 +20,17 @@
 void UPreGame::Setup()
 {
 	InviteFriendsButton->OnClicked.AddDynamic(this, &UPreGame::OnInviteFriendsButtonClicked);
-	StartButton->OnClicked.AddDynamic(this, &UPreGame::OnStartButtonClicked);
+	
+	if (GetOwningPlayerPawn()->Role == ROLE_Authority)
+	{
+		StartButton->OnClicked.AddDynamic(this, &UPreGame::OnStartButtonClicked);
+	}
+	else
+	{
+		StartButton->SetVisibility(ESlateVisibility::Collapsed);
+	}
+	
+	
 	SettingsButton->OnClicked.AddDynamic(this, &UPreGame::OnSettingsButtonClicked);
 	LeaveButton->OnClicked.AddDynamic(this, &UPreGame::OnLeaveButtonClicked);
 
@@ -31,6 +41,8 @@ void UPreGame::Setup()
 	{
 		GameState->LevelRewardsUpdated.AddUObject(this, &UPreGame::RefreshLevels);
 		GameState->LevelRewardsUpdated.AddUObject(this, &UPreGame::RefreshInformation);
+		GameState->SelectedLevelUpdated.AddUObject(this, &UPreGame::RefreshSelectedLevel);
+		GameState->SelectedLevelDifficultyUpdated.AddUObject(this, &UPreGame::RefreshSelectedLevel);
 	}
 
 	
@@ -77,6 +89,11 @@ void UPreGame::Setup()
 		LevelSlot->SetColumn(Column - 1);
 		LevelSlot->SetRow(Row - 1);
 	}
+
+
+
+	RefreshSelectedLevel();
+	RefreshLevels();
 }
 
 void UPreGame::RefreshLevels()
@@ -103,7 +120,6 @@ void UPreGame::RefreshLevels()
 			}
 		}
 	}
-
 }
 
 void UPreGame::SetUpLevelInformation(FLevelData ALevelData)
@@ -112,17 +128,27 @@ void UPreGame::SetUpLevelInformation(FLevelData ALevelData)
 	TSubclassOf<UUserWidget>* InfoSlotClass = GameInstance->Widgets.Find("PreInfoSlot");
 
 	InformationTitle->SetText(FText::FromString(ALevelData.Name));
-	InformationImage->SetBrushFromTexture(ALevelData.Thumbnail);
+	InformationImage->SetBrushFromTexture(ALevelData.MiniMap);
 	InformationText->SetText(FText::FromString(ALevelData.Description));
 
 	InformationSlotBox->ClearChildren();
 	for (auto& ADif : ALevelData.DifficultyRewards)
 	{
-		UPreInfoSlot* InfoSlot = Cast<UPreInfoSlot>(CreateWidget<UUserWidget>(this, InfoSlotClass->Get()));
-		InfoSlot->OnSelfClicked.AddUObject(this, &UPreGame::PreInfoSlotClicked);
+		
 
+		UPreInfoSlot* InfoSlot = Cast<UPreInfoSlot>(CreateWidget<UUserWidget>(this, InfoSlotClass->Get()));
 		InfoSlot->SetUp(ADif.Key, ALevelData);
 		InformationSlotBox->AddChild(InfoSlot);
+
+		if (GetOwningPlayerPawn()->Role == ROLE_Authority)
+		{
+			InfoSlot->OnSelfClicked.AddUObject(this, &UPreGame::PreInfoSlotClicked);
+		}
+		else
+		{
+			InfoSlot->SetRenderOpacity(0.5f);
+		}
+
 	}
 		
 }
@@ -138,8 +164,53 @@ void UPreGame::RefreshLevelRewards()
 	
 }
 
+void UPreGame::RefreshSelectedLevel()
+{
+	GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
+
+	ABDGameState* GameState = GetWorld()->GetGameState<ABDGameState>();
+
+	if (GameState->SelectedLevel == ELevel::None || GameState->SelectedLevelDifficulty == ELevelDifficulty::None) return;
+
+	ELevel ALevel = GameState->SelectedLevel;
+
+	FString LevelName = GameInstance->Levels.Find(ALevel)->Name;
+	ELevelDifficulty ADifficulty = GameState->SelectedLevelDifficulty;
+	
+	FString DifficultyText = "";
+	switch (ADifficulty) {
+	case ELevelDifficulty::None: DifficultyText = "None";
+		break;
+	case ELevelDifficulty::Easy: DifficultyText = "Easy";
+		break;
+	case ELevelDifficulty::Medium: DifficultyText = "Medium";
+		break;
+	case ELevelDifficulty::Hard: DifficultyText = "Hard";
+		break;
+	case ELevelDifficulty::Brutal: DifficultyText = "Brutal";
+		break;
+	case ELevelDifficulty::Survival: DifficultyText = "Survival";
+		break;
+	case ELevelDifficulty::Challenge1: DifficultyText = "Challenge1";
+		break;
+	case ELevelDifficulty::Challenge2: DifficultyText = "Challenge2";
+		break;
+	}
+	//Set level name
+	SelectedLevelText->SetText(FText::FromString(LevelName));
+
+	SelectedDifficultyText->SetText(FText::FromString(DifficultyText));
+}
+
 void UPreGame::OnStartButtonClicked()
 {
+	ABDGameState* GameState = GetWorld()->GetGameState<ABDGameState>();
+
+	GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
+	if (GameState->SelectedLevel != ELevel::None)
+	{
+		GameInstance->LoadLevel(GameState->SelectedLevel);
+	}
 }
 
 void UPreGame::OnInviteFriendsButtonClicked()
@@ -164,6 +235,13 @@ void UPreGame::PreLevelClicked(UPreLevel* ALevel)
 
 void UPreGame::PreInfoSlotClicked(UPreInfoSlot* AnInfoSlot)
 {
+	if (GetOwningPlayerPawn()->Role == ROLE_Authority)
+	{
+		ABDGameState* GameState = GetWorld()->GetGameState<ABDGameState>();
 
+		GameState->SelectedLevel = AnInfoSlot->LevelData.Level;
+		GameState->SelectedLevelDifficulty = AnInfoSlot->LevelDifficulty;
+		GameState->OnRep_SelectedLevel();
+	}
 }
 

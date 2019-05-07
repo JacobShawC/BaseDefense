@@ -569,6 +569,9 @@ struct FLevelData
 	UTexture2D* Thumbnail = nullptr;
 
 	UPROPERTY()
+	UTexture2D* MiniMap = nullptr;
+
+	UPROPERTY()
 	FString URL = "";
 
 	int GetReward(ELevelDifficulty ADifficulty)

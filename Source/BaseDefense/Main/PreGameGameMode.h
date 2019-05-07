@@ -19,5 +19,8 @@ class BASEDEFENSE_API APreGameGameMode : public AGameMode
 		APreGameGameMode();
 
 
-	
+public:
+	virtual APlayerController* ProcessClientTravel(FString& FURL, FGuid NextMapGuid, bool bSeamless, bool bAbsolute) override;
+
+
 };

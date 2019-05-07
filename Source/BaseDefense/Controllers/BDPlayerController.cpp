@@ -17,6 +17,8 @@
 #include "ConstructAction.h"
 #include "BDPlayerState.h"
 #include "UpgradeAction.h"
+#include "UObject/UObjectIterator.h"
+
 #include "GameFramework/PlayerInput.h"
 #define COLLISION_BUILDABLE		ECC_GameTraceChannel1
 #define COLLISION_BUILDING		ECC_GameTraceChannel2
@@ -70,12 +72,14 @@ void ABDPlayerController::SetupInputComponent()
 
 	InputComponent->BindAction("Scroll Up", IE_Pressed, this, &ABDPlayerController::ScrollHotbar<false>);
 	InputComponent->BindAction("Scroll Down", IE_Pressed, this, &ABDPlayerController::ScrollHotbar<true>);
-	//SetInputMode(FInputModeGameAndUI());
+	SetInputMode(FInputModeGameAndUI());
 }
 
 void ABDPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+
+
 	World = GetWorld();
 	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
 
@@ -434,6 +438,25 @@ void ABDPlayerController::ServerSelectBuildingUpgrade_Implementation(EBuilding A
 bool ABDPlayerController::ServerSelectBuildingUpgrade_Validate(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove)
 {
 	return true;
+}
+
+void ABDPlayerController::ClearHUDWidgets_Implementation()
+{
+	/* Object Iterator for All User Widgets! */
+	for (TObjectIterator<UUserWidget> Itr; Itr; ++Itr)
+	{
+		UUserWidget* LiveWidget = *Itr;
+
+		/* If the Widget has no World, Ignore it (It's probably in the Content Browser!) */
+		if (!LiveWidget->GetWorld())
+		{
+			continue;
+		}
+		else
+		{
+			LiveWidget->RemoveFromParent();
+		}
+	}
 }
 
 void ABDPlayerController::GetKeysForAction(FName AnActionName, TArray<FInputActionKeyMapping>& Bindings)

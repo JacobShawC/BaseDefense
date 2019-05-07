@@ -154,6 +154,10 @@ TArray<APlayerChar*> ABDGameState::GetPlayerPawns()
 void ABDGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ABDGameState, LevelRewards);
+	DOREPLIFETIME(ABDGameState, SelectedLevel);
+	DOREPLIFETIME(ABDGameState, SelectedLevelDifficulty);
+	DOREPLIFETIME(ABDGameState, LevelSaves);
+	DOREPLIFETIME(ABDGameState, GameState);
 }
 void ABDGameState::OnRep_LevelRewards()
 {
@@ -168,4 +172,14 @@ void ABDGameState::OnRep_LevelSaves()
 void ABDGameState::OnRep_GameState()
 {
 	GameStateUpdated.Broadcast();
+}
+
+void ABDGameState::OnRep_SelectedLevel()
+{
+	SelectedLevelUpdated.Broadcast();
+}
+
+void ABDGameState::OnRep_SelectedLevelDifficulty()
+{
+	SelectedLevelDifficultyUpdated.Broadcast();
 }

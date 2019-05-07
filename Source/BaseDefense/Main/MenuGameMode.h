@@ -14,5 +14,7 @@ class BASEDEFENSE_API AMenuGameMode : public AGameMode
 {
 	GENERATED_BODY()
 		AMenuGameMode();
+public:
+	virtual APlayerController* ProcessClientTravel(FString& FURL, FGuid NextMapGuid, bool bSeamless, bool bAbsolute) override;
 
 };

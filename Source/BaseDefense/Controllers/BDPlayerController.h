@@ -50,7 +50,9 @@ public:
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerSelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove);
 
-
+	UFUNCTION(Client, Reliable, Category = "Things")
+		void ClearHUDWidgets();
+	virtual void ClearHUDWidgets_Implementation();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerUpgradeBuilding(class ABuilding* ABuilding);

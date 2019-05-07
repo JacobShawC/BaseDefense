@@ -3,6 +3,9 @@
 #include "MenuController.h"
 #include "UI/MainMenu.h"
 #include "BDGameInstance.h"
+
+#include "Blueprint/UserWidget.h"
+#include "UObject/UObjectIterator.h"
 #include "UObject/ConstructorHelpers.h"
 
 AMenuController::AMenuController(const FObjectInitializer& ObjectInitializer)
@@ -47,4 +50,23 @@ void AMenuController::BeginPlay()
 void AMenuController::SetMenuLoading()
 {
 	MainMenuUserWidget->SetLoading();
+}
+
+void AMenuController::ClearHUDWidgets_Implementation()
+{
+	/* Object Iterator for All User Widgets! */
+	for (TObjectIterator<UUserWidget> Itr; Itr; ++Itr)
+	{
+		UUserWidget* LiveWidget = *Itr;
+
+		/* If the Widget has no World, Ignore it (It's probably in the Content Browser!) */
+		if (!LiveWidget->GetWorld())
+		{
+			continue;
+		}
+		else
+		{
+			LiveWidget->RemoveFromParent();
+		}
+	}
 }

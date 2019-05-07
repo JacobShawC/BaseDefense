@@ -56,6 +56,7 @@ void UPreInfoSlot::SetUp(EBuildingUpgrade AnUpgrade, FBuildingData AData)
 	BuildingData = AData;
 	LevelOrBuilding = false;
 	SlotButton->OnClicked.AddDynamic(this, &UPreInfoSlot::OnButtonClicked);
+	Refresh();
 }
 
 void UPreInfoSlot::OnButtonClicked()
@@ -84,15 +85,15 @@ void UPreInfoSlot::Refresh()
 	{
 		if (GameState != nullptr)
 		{
-			if (GameState->LevelRewards > LevelData.PreGameUnlockCost)
-			{
-				SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-				SetRenderOpacity(0.5f);
-			}
-			else
+			if (GameState->LevelRewards >= LevelData.PreGameUnlockCost)
 			{
 				SetVisibility(ESlateVisibility::Visible);
 				SetRenderOpacity(1.0f);
+			}
+			else
+			{
+				SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+				SetRenderOpacity(0.5f);
 			}
 		}
 	}

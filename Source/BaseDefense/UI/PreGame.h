@@ -27,6 +27,9 @@ public:
 
 	void RefreshLevelRewards();
 
+	void RefreshSelectedLevel();
+
+
 	void PreLevelClicked(class UPreLevel* ALevel);
 
 	void PreInfoSlotClicked(class UPreInfoSlot* AnInfoSlot);

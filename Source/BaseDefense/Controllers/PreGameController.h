@@ -19,6 +19,10 @@ class BASEDEFENSE_API APreGameController : public APlayerController
 	virtual void SetupInputComponent() override;
 
 	virtual void BeginPlay() override;
+public:
+	UFUNCTION(Client, Reliable, Category = "Things")
+	void ClearHUDWidgets();
+	virtual void ClearHUDWidgets_Implementation();
 
 public:
 	class UPreGame* PreGame = nullptr;

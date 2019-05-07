@@ -23,7 +23,11 @@ private:
 public:
 	void SetUp();
 
+	virtual void NativeConstruct() override;
+
 	void Refresh();
+
+	void RefreshMiniMapTexture();
 
 	void AddBuilding(TWeakObjectPtr<class ABuilding> ABuildingInput);
 	void AddEnemyCharacter(TWeakObjectPtr<class AEnemyChar> AnEnemyChar);

@@ -5,6 +5,7 @@
 #include "Engine/World.h"
 #include "Building.h"
 #include "EnemyChar.h"
+#include "BDGameInstance.h"
 #include "BDGameState.h"
 #include "BDPlayerState.h"
 #include "Components/Image.h"
@@ -15,6 +16,7 @@
 void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 {
 	Super::NativeTick(MyGeometry, DeltaTime);
+	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 
 	for (auto Iterator = Buildings.CreateIterator(); Iterator; ++Iterator)
 	{
@@ -24,7 +26,6 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			{
 				if (MapWidth == 0)
 				{
-					ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 
 					MapWidth = State->OrthoWidth;
 					MapPosition = State->MapCapturePosition;	
@@ -54,7 +55,6 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			{
 				if (MapWidth == 0)
 				{
-					ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 
 					MapWidth = State->OrthoWidth;
 					MapPosition = State->MapCapturePosition;
@@ -72,7 +72,6 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			{
 				if (MapWidth == 0)
 				{
-					ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 
 					MapWidth = State->OrthoWidth;
 					MapPosition = State->MapCapturePosition;
@@ -110,7 +109,6 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			{
 				if (MapWidth == 0)
 				{
-					ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 
 					MapWidth = State->OrthoWidth;
 					MapPosition = State->MapCapturePosition;
@@ -128,7 +126,6 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			{
 				if (MapWidth == 0)
 				{
-					ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 
 					MapWidth = State->OrthoWidth;
 					MapPosition = State->MapCapturePosition;
@@ -169,7 +166,25 @@ void UMiniMap::SetUp()
 
 }
 
+void UMiniMap::NativeConstruct()
+{
+	UBDGameInstance* Instance = Cast<UBDGameInstance>(GetWorld()->GetGameInstance());
+
+	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
+	UTexture2D* Texture = Instance->Levels.Find(State->SelectedLevel)->Thumbnail;
+	if (Texture != nullptr)
+	{
+		MiniMapTexture->SetBrushFromTexture(Texture);
+	}
+
+}
+
 void UMiniMap::Refresh()
+{
+
+}
+
+void UMiniMap::RefreshMiniMapTexture()
 {
 
 }

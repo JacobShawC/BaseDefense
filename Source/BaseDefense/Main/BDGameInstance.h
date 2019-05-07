@@ -58,6 +58,7 @@ public:
 
 	virtual void LoadMainMenu();
 
+	void LoadLevel(ELevel ALevel);
 	bool GetMenuController();
 
 	void RefreshServerList();
@@ -89,11 +90,11 @@ private:
 	IOnlineFriendsPtr FriendsInterface;
 	TSharedPtr<class FOnlineSessionSearch> SessionSearch;
 
-
 public:
 	TArray< TSharedRef<FOnlineFriend> > Friends;
 	FFriendsUpdated OnFriendsUpdated;
 	FSavesUpdated OnSavesUpdated;
+
 
 	TMap<FString, TSubclassOf<class UUserWidget>> Widgets;
 	TMap<EBuilding, class UTexture2D*> Images;

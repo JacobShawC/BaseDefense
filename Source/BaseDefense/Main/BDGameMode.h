@@ -14,6 +14,9 @@ class BASEDEFENSE_API ABDGameMode : public AGameMode
 {
 	GENERATED_BODY()
 
+public:
+	virtual APlayerController* ProcessClientTravel(FString& FURL, FGuid NextMapGuid, bool bSeamless, bool bAbsolute) override;
+
 protected:
 	ABDGameMode();
 
