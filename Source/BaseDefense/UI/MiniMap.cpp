@@ -168,15 +168,32 @@ void UMiniMap::SetUp()
 
 void UMiniMap::NativeConstruct()
 {
-	UBDGameInstance* Instance = Cast<UBDGameInstance>(GetWorld()->GetGameInstance());
 
 	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
-	UTexture2D* Texture = Instance->Levels.Find(State->SelectedLevel)->Thumbnail;
-	if (Texture != nullptr)
+	if (State != nullptr)
 	{
-		MiniMapTexture->SetBrushFromTexture(Texture);
+		State->SelectedLevelUpdated.AddUObject(this, &UMiniMap::RefreshMiniMapTexture);
+
+	}
+	if (State != nullptr)
+	{
+		Buildings.Empty();
+		for (TWeakObjectPtr<ABuilding> ATempBuilding : State->Buildings)
+		{
+			Buildings.Add(ATempBuilding, nullptr);
+
+		}
 	}
 
+	if (State != nullptr)
+	{
+		EnemyCharacters.Empty();
+		for (TWeakObjectPtr<AEnemyChar> ATempEnemy : State->EnemyCharacters)
+		{
+			EnemyCharacters.Add(ATempEnemy, nullptr);
+
+		}
+	}
 }
 
 void UMiniMap::Refresh()
@@ -186,47 +203,29 @@ void UMiniMap::Refresh()
 
 void UMiniMap::RefreshMiniMapTexture()
 {
+	UBDGameInstance* Instance = Cast<UBDGameInstance>(GetWorld()->GetGameInstance());
 
+	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
+
+	if (State->SelectedLevel != ELevel::None)
+	{
+		UTexture2D* Texture = Instance->Levels.Find(State->SelectedLevel)->Thumbnail;
+		if (Texture != nullptr)
+		{
+			MiniMapTexture->SetBrushFromTexture(Texture);
+		}
+	}
+	
 }
 
 void UMiniMap::AddBuilding(TWeakObjectPtr<class ABuilding> ABuildingInput)
 {
-	if (Buildings.Num() == 0)
-	{
-		ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
-		if (State != nullptr)
-		{
-			for (TWeakObjectPtr<ABuilding> ATempBuilding : State->Buildings)
-			{
-				Buildings.Add(ATempBuilding, nullptr);
-
-			}
-		}
-
-	}
-	else
-	{
+	
 		Buildings.Add(ABuildingInput, nullptr);
-	}
 }
 
 void UMiniMap::AddEnemyCharacter(TWeakObjectPtr<class AEnemyChar> AnEnemyChar)
 {
-	if (EnemyCharacters.Num() == 0)
-	{
-		ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
-		if (State != nullptr)
-		{
-			for (TWeakObjectPtr<AEnemyChar> ATempEnemy : State->EnemyCharacters)
-			{
-				EnemyCharacters.Add(ATempEnemy, nullptr);
-
-			}
-		}
-
-	}
-	else
-	{
-		EnemyCharacters.Add(AnEnemyChar, nullptr);
-	}
+	
+	EnemyCharacters.Add(AnEnemyChar, nullptr);
 }

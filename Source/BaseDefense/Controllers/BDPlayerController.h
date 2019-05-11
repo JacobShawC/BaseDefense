@@ -25,9 +25,6 @@ protected:
 	virtual void SetupInputComponent() override;
 	virtual void BeginPlay() override;
 
-	void MoveForward(float Value);
-	void MoveRight(float Value);
-
 	
 
 	FBuildingLocationInfo GetLocationInfo(FHitResult ATrace);
@@ -106,6 +103,13 @@ public:
 
 	void RepairReleased();
 
+	void LoadoutPressed();
+	void LoadoutReleased();
+
+	UFUNCTION()
+	void OnGameStateChanged();
+
+
 public:
 	UPROPERTY()
 	TScriptInterface<class IInteraction> CurrentlySelected = nullptr;
@@ -113,6 +117,9 @@ public:
 
 	UPROPERTY()
 	class UGUI* GUIWidget = nullptr;
+
+	class ULoadoutSelector* LoadoutSelectorWidget = nullptr;
+
 	UPROPERTY()
 	class ABuildingGhost* BuildingGhost = nullptr;
 

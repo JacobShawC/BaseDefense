@@ -26,13 +26,23 @@
 #include "RepairAction.h"
 #include "UpgradeAction.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "GameFramework/Controller.h"
+
 // Sets default values
 APlayerChar::APlayerChar()
 {
+
+
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
+	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
+
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
 
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
@@ -50,33 +60,21 @@ APlayerChar::APlayerChar()
 
 	GetMesh()->SetGenerateOverlapEvents(true);
 	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> AnimObj(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
-	//static ConstructorHelpers::FClassFinder<UAnimBlueprint> AnimBPClass(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
 	GetMesh()->AnimClass = AnimObj.Object;
-	//GetMesh()->SetAnimInstanceClass(AnimObj.Object->GetAnimBlueprintGeneratedClass());
-	//GetMesh()->SetAnimInstanceClass(AnimObj.Object->GetClass());
-	// Configure character movement
-	//GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
-	//GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
-	//GetCharacterMovement()->bConstrainToPlane = true;
-	//GetCharacterMovement()->bSnapToPlaneAtStart = true;
-	//GetCharacterMovement()->bUseControllerDesiredRotation = false;
-	////GetCharacterMovement()->bIgnoreBaseRotation = true;
-	////bUseControllerRotationPitch = false;
-	////bUseControllerRotationYaw = true;
-	////bUseControllerRotationRoll = false;
 
 	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
-	GetCharacterMovement()->bConstrainToPlane = true;
-	GetCharacterMovement()->bSnapToPlaneAtStart = true;
+	GetCharacterMovement()->AirControl = 0.2f;
+	//GetCharacterMovement()->bConstrainToPlane = true;
+	//GetCharacterMovement()->bSnapToPlaneAtStart = true;
 
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
+
+	
 
 
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
-	Camera->SetupAttachment(SpringArm);
+	Camera->SetupAttachment(SpringArm, USpringArmComponent::SocketName);
+	Camera->bUsePawnControlRotation = false;
 	
 
 	static ConstructorHelpers::FObjectFinder<UMaterial> DefaultDecalMat(TEXT("Material'/Game/Decals/RangeDecal.RangeDecal'"));
@@ -90,6 +88,7 @@ APlayerChar::APlayerChar()
 	//RangeDecal->FadeDuration = 0.0f;
 	//RangeDecal->SetMaterial(0, DefaultDecalMat.Object);
 	//RangeDecal->SetupAttachment(RootComponent);
+
 
 	PlayerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("PlayerCapsule"));
 	PlayerCapsule->SetCollisionProfileName("Player");
@@ -158,11 +157,42 @@ bool APlayerChar::Kill()
 	return true;
 }
 
-// Called to bind functionality to input
-void APlayerChar::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+void APlayerChar::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	// Set up gameplay key bindings
+	check(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis("MoveForward", this, &APlayerChar::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &APlayerChar::MoveRight);
+}
+
+void APlayerChar::MoveForward(float Value)
+{
+	if ((Controller != NULL) && (Value != 0.0f))
+	{
+		// find out which way is forward
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get forward vector
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(Direction, Value);
+	}
+}
+
+void APlayerChar::MoveRight(float Value)
+{
+	if ((Controller != NULL) && (Value != 0.0f))
+	{
+		// find out which way is right
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+
+		// get right vector 
+		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		// add movement in that direction
+		AddMovementInput(Direction, Value);
+	}
 }
 
 void APlayerChar::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const

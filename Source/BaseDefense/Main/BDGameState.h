@@ -25,7 +25,7 @@ public:
 	UFUNCTION()
 	void OnRep_LevelRewards();
 	UFUNCTION()
-	void OnRep_LevelSaves();	
+	void OnRep_LevelSaves();
 	UFUNCTION()
 	void OnRep_GameState(); 
 	UFUNCTION()

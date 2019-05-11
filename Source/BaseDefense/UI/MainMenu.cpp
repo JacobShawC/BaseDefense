@@ -23,7 +23,6 @@ void UMainMenu::SetUp()
 
 	RefreshFriends();
 	Instance->OnFriendsUpdated.AddUObject(this, &UMainMenu::RefreshFriends);
-	Instance->RefreshFriendsList();
 
 	Instance->OnSavesUpdated.AddUObject(this, &UMainMenu::RefreshSaves);
 	Instance->RefreshSaves();
@@ -32,7 +31,7 @@ void UMainMenu::SetUp()
 	FTimerHandle TimerHandle;
 	FTimerDelegate TimerDelegate;
 	TimerDelegate.BindUObject(Instance, &UBDGameInstance::RefreshFriendsList);
-	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 0.0f, true, 2.0f);
+	GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, 4.0f, true, 2.0f);
 	
 
 
@@ -53,9 +52,11 @@ void UMainMenu::RefreshFriends()
 	FriendsList->ClearChildren();
 
 
-	int i = 0;
-	for (TSharedRef<FOnlineFriend> AFriend : Instance->Friends)
+	//for (TSharedRef<FOnlineFriend> AFriend : Instance->Friends)
+
+	for (int i = 0; i < Instance->Friends.Num(); i++)
 	{
+		TSharedRef<FOnlineFriend> AFriend = Instance->Friends[i];
 		FOnlineUserPresence APresence = AFriend->GetPresence();
 		UFriendRow* Row = CreateWidget<UFriendRow>(World, FriendRowWidgetClass->Get());
 

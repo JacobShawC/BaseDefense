@@ -6,12 +6,22 @@
 #include "Engine/GameInstance.h"
 #include "Main/StructLibrary.h"
 
-
+#include "CoreMinimal.h"
+#include "Misc/CoreMisc.h"
+#include "Containers/Ticker.h"
+#include "UObject/CoreOnline.h"
+#include "OnlineSubsystemTypes.h"
 #include "OnlineSubsystem.h"
+#include "OnlineSessionSettings.h"
+#include "Interfaces/OnlineSessionInterface.h"
+
+#include "Interfaces/OnlineSessionInterface.h"
+#include "OnlineSessionSettings.h"
+
 #include "OnlineSessionInterface.h"
 #include "OnlineFriendsInterface.h"
 
-
+#include "OnlineSessionSettings.h"
 
 #include "UObject/CoreOnline.h"
 #include "OnlineSubsystemTypes.h"
@@ -24,7 +34,7 @@
 DECLARE_MULTICAST_DELEGATE(FFriendsUpdated);
 DECLARE_MULTICAST_DELEGATE(FSavesUpdated);
 
-
+class FOnlineSessionSearchResult;
 
 UCLASS()
 class BASEDEFENSE_API UBDGameInstance : public UGameInstance
@@ -74,11 +84,18 @@ public:
 
 private:
 	
+	UFUNCTION()
 	void OnCreateSessionComplete(FName SessionName, bool Success);
+	UFUNCTION()
 	void OnDestroySessionComplete(FName SessionName, bool Success);
+	UFUNCTION()
 	void OnFindSessionsComplete(bool Success);
-	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);
-	void OnReadFriendsComplete(int32 LocalPlayer, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr);
+	/*UFUNCTION()
+	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);*/
+	UFUNCTION()
+	void OnReadFriendsComplete(int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr);
+	void OnFindFriendSessionComplete(int32 LocalUserNum, bool bWasSuccessful, const TArray<FOnlineSessionSearchResult>& SearchResult);
+
 
 	FString DesiredServerName;
 	void CreateSession();

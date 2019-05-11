@@ -7,15 +7,38 @@
 
 void UBDUserWidget::NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController())->CurrentlySelected = this;
+	if (GetWorld() != nullptr && GetWorld()->GetFirstPlayerController() != nullptr)
+	{
+		ABDPlayerController* Controller = nullptr;
+		Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController());
+		if (Controller != nullptr)
+		{
+			Controller->CurrentlySelected = this;
+		}
+	}
 }
 
 void UBDUserWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
+	/*
 	if (Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController())->CurrentlySelected == this)
 	{
 		Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController())->CurrentlySelected = nullptr;
+	}*/
+
+	if (GetWorld() != nullptr && GetWorld()->GetFirstPlayerController() != nullptr)
+	{
+		ABDPlayerController* Controller = nullptr;
+		Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController());
+		if (Controller != nullptr)
+		{
+			if (Controller->CurrentlySelected == this)
+			{
+				Controller->CurrentlySelected = nullptr;
+			}
+		}
 	}
+
 }
 
 FReply UBDUserWidget::NativeOnMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)

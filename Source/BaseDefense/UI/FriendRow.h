@@ -44,6 +44,6 @@ public:
 	uint32 Index;
 
 	bool InviteOrJoin = true;
-
+	UFUNCTION()
 	void OnButtonClicked();
 };

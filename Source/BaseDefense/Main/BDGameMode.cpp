@@ -48,6 +48,7 @@ ABDGameMode::ABDGameMode()
 {
 	GameStateClass = ABDGameState::StaticClass();
 	DefaultPawnClass = APlayerChar::StaticClass();
+
 	PlayerControllerClass = ABDPlayerController::StaticClass();
 	PlayerStateClass = ABDPlayerState::StaticClass();
 	bUseSeamlessTravel = true;

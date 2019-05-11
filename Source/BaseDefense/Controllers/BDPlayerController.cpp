@@ -8,6 +8,8 @@
 #include "UI/Hotbar.h"
 #include "Engine/World.h"
 #include "BDPlayerState.h"
+#include "BDGameState.h"
+#include "LoadoutSelector.h"
 #include "Public/DrawDebugHelpers.h"
 #include "GenericPlatform/GenericPlatformMath.h"
 #include "Kismet/KismetMathLibrary.h"
@@ -18,7 +20,7 @@
 #include "BDPlayerState.h"
 #include "UpgradeAction.h"
 #include "UObject/UObjectIterator.h"
-
+#include "PreGame.h"
 #include "GameFramework/PlayerInput.h"
 #define COLLISION_BUILDABLE		ECC_GameTraceChannel1
 #define COLLISION_BUILDING		ECC_GameTraceChannel2
@@ -45,19 +47,19 @@ void ABDPlayerController::SetupInputComponent()
 	Super::SetupInputComponent();
 
 
-	InputComponent->BindAxis("MoveForward", this, &ABDPlayerController::MoveForward);
-	InputComponent->BindAxis("MoveRight", this, &ABDPlayerController::MoveRight);
-
 	InputComponent->BindAction("Select", IE_Pressed, this, &ABDPlayerController::SelectPressed);
 	InputComponent->BindAction("Select", IE_Released, this, &ABDPlayerController::SelectReleased);
 	InputComponent->BindAction("SelectAlt", IE_Pressed, this, &ABDPlayerController::SelectAltPressed);
 	InputComponent->BindAction("SelectAlt", IE_Released, this, &ABDPlayerController::SelectAltReleased);
+
 	InputComponent->BindAction("Use", IE_Pressed, this, &ABDPlayerController::UsePressed);
 	InputComponent->BindAction("Use", IE_Released, this, &ABDPlayerController::UseReleased);
 	InputComponent->BindAction("UseAlt", IE_Pressed, this, &ABDPlayerController::UseAltPressed);
 	InputComponent->BindAction("UseAlt", IE_Released, this, &ABDPlayerController::UseAltReleased);
 	InputComponent->BindAction("Repair", IE_Pressed, this, &ABDPlayerController::RepairPressed);
 	InputComponent->BindAction("Repair", IE_Released, this, &ABDPlayerController::RepairReleased);
+	InputComponent->BindAction("Loadout", IE_Pressed, this, &ABDPlayerController::LoadoutPressed);
+	InputComponent->BindAction("Loadout", IE_Released, this, &ABDPlayerController::LoadoutReleased);
 
 	InputComponent->BindAction("Hotbar1", IE_Pressed, this, &ABDPlayerController::SelectHotbar<0>);
 	InputComponent->BindAction("Hotbar2", IE_Pressed, this, &ABDPlayerController::SelectHotbar<1>);
@@ -78,6 +80,7 @@ void ABDPlayerController::SetupInputComponent()
 void ABDPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
+	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
 
 
 	World = GetWorld();
@@ -85,57 +88,32 @@ void ABDPlayerController::BeginPlay()
 
 	if (IsLocalPlayerController())
 	{
-		if (IsLocalPlayerController())
+		if (GameState != nullptr)
 		{
-			if (GameInstance)
+			GameState->GameStateUpdated.AddUObject(this, &ABDPlayerController::OnGameStateChanged);
+		}
+
+
+		if (GameInstance)
+		{
+			TSubclassOf<UUserWidget>* GUIClass = (GameInstance->Widgets).Find("GUI");
+			GUIWidget = Cast<UGUI>(CreateWidget<UUserWidget>(this, GUIClass->Get()));
+
+			if (GUIWidget)
 			{
-				TSubclassOf<UUserWidget>* GUIClass = (GameInstance->Widgets).Find("GUI");
-				GUIWidget = Cast<UGUI>(CreateWidget<UUserWidget>(this, GUIClass->Get()));
-
-				if (GUIWidget)
+				(GUIWidget)->AddToViewport();
+				UGUI* GUITemp = Cast<UGUI>(GUIWidget);
+				ABDPlayerState* State = Cast<ABDPlayerState>(GetPlayerState<ABDPlayerState>());
+				if (State)
 				{
-					(GUIWidget)->AddToViewport();
-					UGUI* GUITemp = Cast<UGUI>(GUIWidget);
-					ABDPlayerState* State = Cast<ABDPlayerState>(GetPlayerState<ABDPlayerState>());
-					if (State)
-					{
-						GUITemp->SetMoneyText(State->Money);
-					}
+					GUITemp->SetMoneyText(State->Money);
 				}
-
 			}
 		}
 	}
 }
 
-void ABDPlayerController::MoveForward(float Value)
-{
-	if (Value != 0.0f)
-	{
-		// find out which way is forward
-		const FRotator Rotation = GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
 
-		// get forward vector
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-		GetPawn()->AddMovementInput(Direction, Value);
-	}
-}
-
-void ABDPlayerController::MoveRight(float Value)
-{
-	if (Value != 0.0f)
-	{
-		// find out which way is right
-		const FRotator Rotation = GetControlRotation();
-		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get right vector 
-		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-		// add movement in that direction
-		GetPawn()->AddMovementInput(Direction, Value);
-	}
-}
 
 
 
@@ -337,8 +315,8 @@ void ABDPlayerController::MakeGhost()
 		ActorString = HitResult.GetActor()->GetName();
 	}
 	
-	UE_LOG(LogTemp, Warning, TEXT("Rotator: %s, %s"),
-		*Rotat.ToString(), *ActorString);
+	/*UE_LOG(LogTemp, Warning, TEXT("Rotator: %s, %s"),
+		*Rotat.ToString(), *ActorString);*/
 
 	//if the surface is uneven where your mouse is then dont make the ghost.
 	if (!(Rotat.Pitch <= 90 && Rotat.Pitch >= 50))
@@ -649,6 +627,60 @@ void ABDPlayerController::RepairReleased()
 	if (IsSelectedValid())
 	{
 		CurrentlySelected->RepairReleased();
+	}
+}
+
+void ABDPlayerController::LoadoutPressed()
+{
+	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+	if (GameState != nullptr)
+	{
+		if (GameState->GameState == EGameState::PreGame)
+		{
+			//open loadout
+			if (LoadoutSelectorWidget == nullptr)
+			{
+				TSubclassOf<UUserWidget>* LoadoutSelectorClass = (GameInstance->Widgets).Find("LoadoutSelector");
+				LoadoutSelectorWidget = Cast<ULoadoutSelector>(CreateWidget<UUserWidget>(this, LoadoutSelectorClass->Get()));
+				if (LoadoutSelectorWidget != nullptr)
+				{
+					LoadoutSelectorWidget->Setup();
+
+					LoadoutSelectorWidget->AddToViewport();
+				}
+				//setup widget
+			}
+
+			if (LoadoutSelectorWidget != nullptr)
+			{
+				if (LoadoutSelectorWidget->Visibility != ESlateVisibility::Visible)
+				{
+					LoadoutSelectorWidget->SetVisibility(ESlateVisibility::Visible);
+				}
+				else
+				{
+					LoadoutSelectorWidget->SetVisibility(ESlateVisibility::Collapsed);
+				}
+			}
+		}
+	}
+}
+
+void ABDPlayerController::LoadoutReleased()
+{
+	
+}
+
+void ABDPlayerController::OnGameStateChanged()
+{
+	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+	if (GameState != nullptr)
+	{
+		//do something with game state
+		if (GameState->GameState != EGameState::PreGame && LoadoutSelectorWidget != nullptr)
+		{
+			LoadoutSelectorWidget->SetVisibility(ESlateVisibility::Collapsed);
+		}
 	}
 }
 

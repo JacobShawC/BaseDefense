@@ -65,6 +65,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreLevelBP(TEXT("WidgetBlueprint'/Game/UI/PreLevelWidget.PreLevelWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreBuildingBP(TEXT("WidgetBlueprint'/Game/UI/PreBuildingWidget.PreBuildingWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreInfoSlotBP(TEXT("WidgetBlueprint'/Game/UI/PreInfoSlotWidget.PreInfoSlotWidget_C'"));
+	static ConstructorHelpers::FClassFinder<UUserWidget> LoadoutSelectorBP(TEXT("WidgetBlueprint'/Game/UI/LoadoutSelectorWidget.LoadoutSelectorWidget_C'"));
 	
 	//Meshes
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
@@ -107,6 +108,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Widgets.Add("PreLevel", PreLevelBP.Class);
 	Widgets.Add("PreBuilding", PreBuildingBP.Class);
 	Widgets.Add("PreInfoSlot", PreInfoSlotBP.Class);
+	Widgets.Add("LoadoutSelector", LoadoutSelectorBP.Class);
 
 	Images.Add(EBuilding::Wall, BarrelImage.Object);
 	//----------------------------------------------------------------------------------------------------------
@@ -349,7 +351,8 @@ void UBDGameInstance::Init()
 			SessionInterface->OnCreateSessionCompleteDelegates.AddUObject(this, &UBDGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UBDGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UBDGameInstance::OnFindSessionsComplete);
-			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UBDGameInstance::OnJoinSessionComplete);
+			SessionInterface->OnFindFriendSessionCompleteDelegates[0].AddUObject(this, &UBDGameInstance::OnFindFriendSessionComplete);
+			SessionInterface->OnSessionUserInviteAcceptedDelegates.AddUObject(this, &UBDGameInstance::OnSessionUserInviteAccepted);
 		}
 	}
 	else {
@@ -478,6 +481,12 @@ void UBDGameInstance::RefreshFriendsList()
 		Delegate.BindUObject(this, &UBDGameInstance::OnReadFriendsComplete);
 
 		IOnlineSubsystem::Get()->GetFriendsInterface()->ReadFriendsList(0, TEXT("TestFriends"), Delegate);
+	}
+	else
+	{
+		IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
+
+		FriendsInterface = Subsystem->GetFriendsInterface();
 	}
 }
 
@@ -686,6 +695,7 @@ void UBDGameInstance::OnSessionUserInviteAccepted(bool bWasSuccessful, int32 Con
 	}
 }
 
+
 void UBDGameInstance::Join(uint32 Index)
 {
 	if (!SessionInterface.IsValid()) return;
@@ -695,32 +705,12 @@ void UBDGameInstance::Join(uint32 Index)
 	SessionInterface->JoinSession(0, SESSION_NAME, SessionSearch->SearchResults[Index]);
 }
 
-void UBDGameInstance::OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result)
-{
-	if (!SessionInterface.IsValid()) return;
-
-	FString Address;
-	if (!SessionInterface->GetResolvedConnectString(SessionName, Address)) {
-		UE_LOG(LogTemp, Warning, TEXT("Could not get connect string."));
-		return;
-	}
-
-	UEngine* Engine = GetEngine();
-	if (!ensure(Engine != nullptr)) return;
-
-	Engine->AddOnScreenDebugMessage(0, 5, FColor::Green, FString::Printf(TEXT("Joining %s"), *Address));
-
-	APlayerController * PlayerController = GetFirstLocalPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-
-	PlayerController->ClientTravel(Address, ETravelType::TRAVEL_Absolute);
-}
 
 
-void UBDGameInstance::OnReadFriendsComplete(int32 LocalPlayer, bool bWasSuccessful, const FString & ListName, const FString & ErrorStr)
+void UBDGameInstance::OnReadFriendsComplete(int32 LocalUserNum, bool bWasSuccessful, const FString & ListName, const FString & ErrorStr)
 {
 	TArray< TSharedRef<FOnlineFriend> > TempFriends;
-	if (IOnlineSubsystem::Get()->GetFriendsInterface()->GetFriendsList(LocalPlayer, ListName, TempFriends))
+	if (IOnlineSubsystem::Get()->GetFriendsInterface()->GetFriendsList(LocalUserNum, ListName, TempFriends))
 	{
 		Friends = TempFriends;
 		OnFriendsUpdated.Broadcast();
@@ -729,6 +719,22 @@ void UBDGameInstance::OnReadFriendsComplete(int32 LocalPlayer, bool bWasSuccessf
 
 
 
+}
+
+void UBDGameInstance::OnFindFriendSessionComplete(int32 LocalUserNum, bool bWasSuccessful, const TArray<FOnlineSessionSearchResult>& SearchResult)
+{
+	if (bWasSuccessful)
+	{
+		// Can't just use SearchResult.IsValid() here - it's possible the SessionInfo pointer is valid, but not the data until we actually join the session
+		if (SearchResult.Num() > 0 && SearchResult[0].Session.OwningUserId.IsValid() && SearchResult[0].Session.SessionInfo.IsValid())
+		{
+			SessionInterface->JoinSession(0, SESSION_NAME, SearchResult[0]);
+		}
+		else
+		{
+			UE_LOG_ONLINE_SESSION(Warning, TEXT("Join friend returned no search result."));
+		}
+	}
 }
 
 void UBDGameInstance::StartSession()

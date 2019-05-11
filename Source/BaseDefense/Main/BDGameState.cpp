@@ -48,10 +48,8 @@ float ABDGameState::AddMoney(float AMoney)
 				ABDState->OnRep_Money();
 			}
 		}
-
 	}
 	return DividedMoney;
-	 
 }
 
 void ABDGameState::BeginPlay()

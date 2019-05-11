@@ -25,8 +25,11 @@ void ULoadoutSelector::Setup()
 
 void ULoadoutSelector::SetupBuildings()
 {
-	ABDGameState* GameState = GetWorld()->GetGameState<ABDGameState>();
-	GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
+	ULoadoutSelector* Test = this;
+	UWorld* World = GetWorld();
+	AGameStateBase* TestState = World->GetGameState();
+	ABDGameState* GameState = Cast<ABDGameState>(TestState);
+	GameInstance = GetWorld() != NULL ? Cast<UBDGameInstance>(GetWorld()->GetGameInstance()) : nullptr;
 
 	if (GameState != nullptr)
 	{
@@ -77,7 +80,6 @@ void ULoadoutSelector::SetupBuildings()
 		int Column = i % 3;
 		if (Column == 0) Column = Width;
 		UUniformGridSlot * BuildingSlot = BuildingsGridPanel->AddChildToUniformGrid(BuildingWidgets[i - 1]);
-
 		BuildingSlot->SetColumn(Column - 1);
 		BuildingSlot->SetRow(Row - 1);
 	}
