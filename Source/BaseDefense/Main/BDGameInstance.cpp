@@ -73,6 +73,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CoveredCrate(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Crate_Covered_01.SM_Prop_Crate_Covered_01'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonBall(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_CannonBalls_01.SM_Prop_CannonBalls_01'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Flowers(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Environments/SM_Env_Flowers_02.SM_Env_Flowers_02'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/PolygonFantasyRivals/Meshes/Props/SM_Prop_Tree_02.SM_Prop_Tree_02'"));
 
 	//Thumbnails
 	static ConstructorHelpers::FObjectFinder<UTexture2D> BarrelImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/BarrelIcon.BarrelIcon'"));
@@ -89,9 +90,15 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SeamanMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_Seaman_01_Bare.SK_Character_Pirate_Seaman_01_Bare'"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FirstMateMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Pirate_First_Mate_01_Bare.SK_Character_Pirate_First_Mate_01_Bare'"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FemalePirateMesh(TEXT("SkeletalMesh'/Game/PolygonPirates/Meshes/Characters/People/SK_Character_Female_Pirate_01_Bare.SK_Character_Female_Pirate_01_Bare'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> ElementalGolemMesh(TEXT("SkeletalMesh'/Game/PolygonFantasyRivals/Meshes/Characters/SK_BR_Character_ElementalGolem_01.SK_BR_Character_ElementalGolem_01'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FortGolemMesh(TEXT("SkeletalMesh'/Game/PolygonFantasyRivals/Meshes/Characters/SK_BR_Character_FortGolem_01.SK_BR_Character_FortGolem_01'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MechanicalGolemMesh(TEXT("SkeletalMesh'/Game/PolygonFantasyRivals/Meshes/Characters/SK_BR_Character_MechanicalGolem_01.SK_BR_Character_MechanicalGolem_01'"));
+
 	
 	//Animations
 	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> PirateSeamanAnimBP(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
+	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> BRANimBP(TEXT("AnimBlueprint'/Game/PolygonFantasyRivals/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
+
 
 
 
@@ -156,13 +163,19 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	WallBuildingData.PreGameUnlockable = true;
 	WallBuildingData.Description = "This is a basic wall building.";
 	WallBuildingData.PreGameUnlockCost = 0;
-	WallBuildingData.PreGameCost = 2;
 	
 
-	//Wall Levels
+	//Wall Loadout Upgrades
+	FBuildingUpgrade WallPreLevel1;
+	
+	//Level 1
+	WallPreLevel1.Cost = 1;
+	WallBuildingData.LoadoutUpgrades.Add(EBuildingUpgrade::PreLevel1, WallPreLevel1);
+
+
+	//Wall Upgrades
 	FBuildingUpgrade WallLevel2;
 	FBuildingUpgrade WallLevel3;
-
 	//Level 2
 	WallLevel2.Upgrades.Add(FBuildingBuffStruct(EBuildingBuffType::Health, EBuffOperator::Multiply, 1.5));
 	WallLevel2.UpgradeTime = 3.0f;
@@ -184,23 +197,33 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	FarmBuildingData.Name = "Farm";
 	FarmBuildingData.Mesh = Flowers.Object;
 	FarmBuildingData.Building = EBuilding::Farm;
+	FarmBuildingData.BuildingType = EBuildingType::Farm;
 	FarmBuildingData.MaxHealth = 50;
-	FarmBuildingData.Cost = 100;
-	FarmBuildingData.ConstructionTime = 1.f;
+	FarmBuildingData.Cost = 250;
+	FarmBuildingData.ConstructionTime = 5.f;
 
 	FarmBuildingData.Properties.Add(EBuildingProperty::Regen);
 	FarmBuildingData.Regeneration.RegenAmount = 1;
 
 	FarmBuildingData.Properties.Add(EBuildingProperty::Income);
-	FarmBuildingData.Income.IncomeAmount = 5;
-	FarmBuildingData.Income.Cooldown = 2;
+	FarmBuildingData.Income.IncomeAmount = 10;
+	FarmBuildingData.Income.Cooldown = 4;
 
 	FarmBuildingData.PreGameUnlockable = true;
 	FarmBuildingData.Description = "This is a basic farm building. It gives income over time.";
 	FarmBuildingData.PreGameUnlockCost = 0;
-	FarmBuildingData.PreGameCost = 2;
+
+	//Farm Loadout Upgrades
+	FBuildingUpgrade FarmPreLevel1;
+
+	//Level 1
+	FarmPreLevel1.Cost = 1;
+	FarmBuildingData.LoadoutUpgrades.Add(EBuildingUpgrade::PreLevel1, FarmPreLevel1);
+
 
 	Buildings.Add(EBuilding::Farm, FarmBuildingData);
+
+
 
 
 	//Arrow Tower
@@ -229,10 +252,16 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	CannonTowerBuildingData.Attack.Projectile.Mesh = CannonBall.Object;
 	CannonTowerBuildingData.Attack.Projectile.Speed = 300;
 
-	FarmBuildingData.PreGameUnlockable = true;
-	FarmBuildingData.Description = "This is a basic cannon tower building. It gives income over time.";
-	FarmBuildingData.PreGameUnlockCost = 0;
-	FarmBuildingData.PreGameCost = 2;
+	CannonTowerBuildingData.PreGameUnlockable = true;
+	CannonTowerBuildingData.Description = "This is a basic cannon tower building. It gives income over time.";
+	CannonTowerBuildingData.PreGameUnlockCost = 0;
+
+	//Farm Loadout Upgrades
+	FBuildingUpgrade CannonTowerPreLevel1;
+
+	//Level 1
+	CannonTowerPreLevel1.Cost = 1;
+	CannonTowerBuildingData.LoadoutUpgrades.Add(EBuildingUpgrade::PreLevel1, CannonTowerPreLevel1);
 
 	Buildings.Add(EBuilding::CannonTower, CannonTowerBuildingData);
 
@@ -248,7 +277,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	SeamanData.Attack.Damage = 10;
 	SeamanData.Attack.ReloadTime = 2;
 	SeamanData.Attack.Range = 50;
-	SeamanData.Bounty = 50;
+	SeamanData.Bounty = 10;
 	SeamanData.Mesh = SeamanMesh.Object;
 	SeamanData.Anim = PirateSeamanAnimBP.Object;
 
@@ -286,7 +315,53 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 
 	FemalePirateData.Attack.AttackRule = EAttackRule::Closest;
 	Enemies.Add(EEnemy::FemalePirate, FemalePirateData);
+	
+	//Elemental Golem
+	FEnemyData ElementalGolemData;
+	ElementalGolemData.Name = "Elemental Golem";
+	ElementalGolemData.Enemy = EEnemy::ElementalGolem;
+	ElementalGolemData.MaxHealth = 50;
+	ElementalGolemData.MovementSpeed = 5;
+	ElementalGolemData.Attack.Damage = 10;
+	ElementalGolemData.Attack.ReloadTime = 2;
+	ElementalGolemData.Attack.Range = 50;
+	ElementalGolemData.Bounty = 5;
+	ElementalGolemData.Mesh = ElementalGolemMesh.Object;
+	ElementalGolemData.Anim = BRANimBP.Object;
+	ElementalGolemData.Attack.AttackRule = EAttackRule::Closest;
+	Enemies.Add(ElementalGolemData.Enemy, ElementalGolemData);
 
+	//Fort Golem
+	FEnemyData FortGolemData;
+	FortGolemData.Name = "Fortress Golem";
+	FortGolemData.Enemy = EEnemy::FortGolem;
+	FortGolemData.MaxHealth = 100;
+	FortGolemData.MovementSpeed = 5;
+	FortGolemData.Attack.Damage = 15;
+	FortGolemData.Attack.ReloadTime = 2;
+	FortGolemData.Attack.Range = 50;
+	FortGolemData.Bounty = 10;
+	FortGolemData.Mesh = FortGolemMesh.Object;
+	FortGolemData.Anim = BRANimBP.Object;
+
+	FortGolemData.Attack.AttackRule = EAttackRule::Closest;
+	Enemies.Add(FortGolemData.Enemy, FortGolemData);
+
+	//Mechanical Golem
+	FEnemyData MechanicalGolemData;
+	MechanicalGolemData.Name = "Mechanical Golem";
+	MechanicalGolemData.Enemy = EEnemy::MechanicalGolem;
+	MechanicalGolemData.MaxHealth = 200;
+	MechanicalGolemData.MovementSpeed = 5;
+	MechanicalGolemData.Attack.Damage = 20;
+	MechanicalGolemData.Attack.ReloadTime = 2;
+	MechanicalGolemData.Attack.Range = 50;
+	MechanicalGolemData.Bounty = 15;
+	MechanicalGolemData.Mesh = MechanicalGolemMesh.Object;
+	MechanicalGolemData.Anim = BRANimBP.Object;
+
+	MechanicalGolemData.Attack.AttackRule = EAttackRule::Closest;
+	Enemies.Add(MechanicalGolemData.Enemy, MechanicalGolemData);
 
 	//----------------------------------------------------------------------------------------------------------
 	//Levels
@@ -352,7 +427,9 @@ void UBDGameInstance::Init()
 			SessionInterface->OnDestroySessionCompleteDelegates.AddUObject(this, &UBDGameInstance::OnCreateSessionComplete);
 			SessionInterface->OnFindSessionsCompleteDelegates.AddUObject(this, &UBDGameInstance::OnFindSessionsComplete);
 			SessionInterface->OnFindFriendSessionCompleteDelegates[0].AddUObject(this, &UBDGameInstance::OnFindFriendSessionComplete);
+			SessionInterface->OnFindFriendSessionCompleteDelegates[1].AddUObject(this, &UBDGameInstance::OnFindFriendSessionComplete);
 			SessionInterface->OnSessionUserInviteAcceptedDelegates.AddUObject(this, &UBDGameInstance::OnSessionUserInviteAccepted);
+			SessionInterface->OnJoinSessionCompleteDelegates.AddUObject(this, &UBDGameInstance::OnJoinSessionComplete);
 		}
 	}
 	else {
@@ -379,11 +456,24 @@ void UBDGameInstance::Host(FString ServerName)
 	}
 }
 
+void UBDGameInstance::LoadMainMenu()
+{
+	APlayerController* PlayerController = GetFirstLocalPlayerController();
+	if (!ensure(PlayerController != nullptr)) return;
+
+	PlayerController->ClientTravel("/Game/MenuSystem/MainMenu", ETravelType::TRAVEL_Absolute);
+
+
+	auto ExistingSession = SessionInterface->GetNamedSession(SESSION_NAME);
+	if (ExistingSession != nullptr)
+	{
+		SessionInterface->DestroySession(SESSION_NAME);
+	}
+
+}
+
 void UBDGameInstance::OnDestroySessionComplete(FName SessionName, bool Success)
 {
-	if (Success) {
-		CreateSession();
-	}
 }
 
 
@@ -458,7 +548,7 @@ void UBDGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 	UWorld * World = GetWorld();
 	if (!ensure(World != nullptr)) return;
 	//World->ServerTravel("/Game/PuzzlePlatforms/Maps/Lobby?listen");
-	World->GetAuthGameMode()->bUseSeamlessTravel = true;
+	World->GetAuthGameMode()->bUseSeamlessTravel = false;
 
 	//World->ServerTravel("/Game/Maps/PreGame?listen?game=/Script/BaseDefense.PreGameGameMode", true, false);
 	//World->ServerTravel("/Game/Maps/TestLevel", true, false);
@@ -474,7 +564,6 @@ void UBDGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 
 void UBDGameInstance::RefreshFriendsList()
 {
-
 	if (FriendsInterface.IsValid())
 	{
 		FOnReadFriendsListComplete Delegate;
@@ -737,6 +826,22 @@ void UBDGameInstance::OnFindFriendSessionComplete(int32 LocalUserNum, bool bWasS
 	}
 }
 
+void UBDGameInstance::OnJoinSessionComplete(FName AServerName, EOnJoinSessionCompleteResult::Type AResult)
+{
+	IOnlineSubsystem* Subsystem = IOnlineSubsystem::Get();
+
+	IOnlineSessionPtr Session = Subsystem->GetSessionInterface();
+
+	FString URL;
+	if (SessionInterface->GetResolvedConnectString(AServerName, URL))
+	{
+		APlayerController* PlayerController = GetFirstLocalPlayerController();
+		if (!ensure(PlayerController != nullptr)) return;
+
+		PlayerController->ClientTravel(URL, ETravelType::TRAVEL_Absolute);
+	}
+}
+
 void UBDGameInstance::StartSession()
 {
 	if (SessionInterface.IsValid())
@@ -745,13 +850,6 @@ void UBDGameInstance::StartSession()
 	}
 }
 
-void UBDGameInstance::LoadMainMenu()
-{
-	APlayerController* PlayerController = GetFirstLocalPlayerController();
-	if (!ensure(PlayerController != nullptr)) return;
-
-	PlayerController->ClientTravel("/Game/Maps/MainMenu", ETravelType::TRAVEL_Absolute);
-}
 
 void UBDGameInstance::LoadLevel(ELevel ALevel)
 {

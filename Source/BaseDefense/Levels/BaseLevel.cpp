@@ -65,30 +65,31 @@ void ABaseLevel::RunLevel()
 
 }
 
-void ABaseLevel::SpawnWave(EEnemy AnEnemyType, int ABoxNumber, int ANumber, float AFrequency, float AStartTime)
+void ABaseLevel::SpawnWave(EEnemy AnEnemyType, int ABoxNumber, float AFrequency, float AStartSeconds, float AEndSeconds)
 {
-	if (SpawnBoxes.Num() >= ABoxNumber)
+	if (AStartSeconds <= AEndSeconds)
 	{
-		float BeginingTime = AStartTime;
-		for (int i = 0; i < ANumber; i++)
+		if (SpawnBoxes.Num() >= ABoxNumber)
 		{
-			FTimerHandle TimerHandle;
-			FTimerDelegate TimerDelegate;
-			TimerDelegate.BindUFunction(SpawnBoxes[ABoxNumber - 1], FName("SpawnEnemy"), AnEnemyType);
-			GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, BeginingTime, false);
-			BeginingTime += AFrequency;
+			float TotalTime = AEndSeconds - AStartSeconds;
+			for (float Time = 0; Time <= AEndSeconds; Time += AFrequency)
+			{
+				FTimerHandle TimerHandle;
+				FTimerDelegate TimerDelegate;
+				TimerDelegate.BindUFunction(SpawnBoxes[ABoxNumber - 1], FName("SpawnEnemy"), AnEnemyType);
+				GetWorld()->GetTimerManager().SetTimer(TimerHandle, TimerDelegate, Time, false);
+			}
+			LogEvent(ELevelEvent::Wave, AnEnemyType, ABoxNumber, AFrequency, AStartSeconds, AEndSeconds);
 		}
-		LogEvent(ELevelEvent::Wave, AStartTime, AStartTime + ANumber * AFrequency);
-	
 	}
 }
 
-void ABaseLevel::LogEvent(ELevelEvent AEventType, float AStartTime, float ADuration)
+void ABaseLevel::LogEvent(ELevelEvent AEventType, EEnemy AnEnemyType, int ABoxNumber, float AFrequency, float AStartSeconds, float AEndSeconds)
 {
 	FLevelEvent LevelEvent;
 	LevelEvent.Event = AEventType;
-	LevelEvent.StartTime = AStartTime;
-	LevelEvent.Duration = ADuration;
+	LevelEvent.StartSeconds = AStartSeconds;
+	LevelEvent.EndSeconds = AEndSeconds;
 	Events.Add(LevelEvent);
 }
 

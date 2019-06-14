@@ -24,8 +24,8 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	virtual void RunLevel();
-	void SpawnWave(EEnemy AnEnemyType, int ABoxNumber, int ANumber, float AFrequency, float AStartTime);
-	void LogEvent(ELevelEvent AEventType, float AStartTime, float ADuration);
+	void SpawnWave(EEnemy AnEnemyType, int ABoxNumber, float AFrequency, float AStartSeconds, float AEndSeconds);
+	void LogEvent(ELevelEvent AEventType, EEnemy AnEnemyType, int ABoxNumber, float AFrequency, float AStartSeconds, float AEndSeconds);
 
 public:
 	float EventTimeCounter = 0;

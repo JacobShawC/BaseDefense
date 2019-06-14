@@ -93,6 +93,8 @@ public:
 	virtual TArray<EGUICommand> GetCommands() override;
 
 	void SetUpBuilding(EBuilding ABuilding);
+
+
 	UFUNCTION()
 	void OnMouseEnter(UPrimitiveComponent* TouchedComponent);
 	UFUNCTION()
@@ -146,7 +148,7 @@ public:
 
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* MeshComponent;
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditAnywhere)
 	EBuilding Building = EBuilding::None;
 
 	UPROPERTY(VisibleAnywhere)
@@ -160,6 +162,8 @@ public:
 
 	UPROPERTY(Replicated)
 	bool Upgradable = false;
+
+	bool HasBeenSetup = false;
 
 
 	UPROPERTY(VisibleAnywhere)

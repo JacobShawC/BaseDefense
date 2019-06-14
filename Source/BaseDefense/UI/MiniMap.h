@@ -6,6 +6,9 @@
 #include "Blueprint/UserWidget.h"
 #include "MiniMap.generated.h"
 
+DECLARE_MULTICAST_DELEGATE_OneParam(FMiniMapClicked, FVector2D);
+
+
 /**
  * 
  */
@@ -20,17 +23,28 @@ private:
 
 	FVector2D GetCanvasLocation(FVector ALocation);
 
+	FVector GetWorldLocationFromCanvas(FVector2D ALocation);
 public:
 	void SetUp();
 
 	virtual void NativeConstruct() override;
 
+	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual FReply NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+
+
+	void MiniMapClicked(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
+	void MiniMapReleased();
 	void Refresh();
 
 	void RefreshMiniMapTexture();
 
 	void AddBuilding(TWeakObjectPtr<class ABuilding> ABuildingInput);
 	void AddEnemyCharacter(TWeakObjectPtr<class AEnemyChar> AnEnemyChar);
+
+	FMiniMapClicked OnMiniMapClicked;
 
 public:
 	UPROPERTY()
@@ -43,8 +57,8 @@ public:
 	TMap<TWeakObjectPtr<class APawn>, class UImage*> Players;
 
 	UPROPERTY(meta = (BindWidget))
-	class UPanelWidget* MiniMapPanel = nullptr;
-
+	class UPanelWidget* MiniMapPanel = nullptr; 
+	
 	UPROPERTY(meta = (BindWidget))
 	class UPanelWidget* BuildingsPanel = nullptr;
 

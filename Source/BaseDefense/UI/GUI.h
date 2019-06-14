@@ -22,6 +22,10 @@ public:
 	void SetMoneyText(float AMoney);
 
 	void SetCommandList(TArray<EGUICommand> ACommands);
+
+	void Setup();
+
+	void OnMoneyUpdated(float AMoney);
 /*
 	UPROPERTY(meta = (BindWidget))
 	class USlot* ATestSlot;*/

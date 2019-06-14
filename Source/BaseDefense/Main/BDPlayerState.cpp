@@ -4,7 +4,9 @@
 #include "UnrealNetwork.h"
 #include "GUI.h"
 #include "BDGameInstance.h"
+#include "BDGameState.h"
 #include "BDPlayerController.h"
+//#include "ISimplexNoise.h"
 void ABDPlayerState::SetUpTestData()
 {
 	PlayerData.HotbarSlots.Add(EBuilding::Wall);
@@ -47,14 +49,8 @@ void ABDPlayerState::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & Ou
 void ABDPlayerState::OnRep_Money()
 {
 	ABDPlayerController* OwnerController = nullptr;
-	OwnerController = Cast<ABDPlayerController>(GetOwner());
-	if (OwnerController != nullptr)
-	{
-		if (OwnerController->GUIWidget != nullptr)
-		{
-			OwnerController->GUIWidget->SetMoneyText(Money);
-		}
-	}
+
+	MoneyUpdated.Broadcast(Money);
 }
 
 void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove)
@@ -84,8 +80,11 @@ void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade
 			if (!(Loadout.Buildings.Contains(ABuilding) && Loadout.Buildings.Find(ABuilding)->Upgrades.Contains(AnUpgrade)))
 			{
 				UpgradesToAdd.Add(AnUpgrade);
-
-				FPreBuildingData Data = *Loadout.Buildings.Find(ABuilding);
+				FPreBuildingData Data;
+				if (Loadout.Buildings.Contains(ABuilding))
+				{
+					Data = *Loadout.Buildings.Find(ABuilding);
+				}
 				//Add up all necessary Upgrades that we need to add 
 				if (AnUpgrade == EBuildingUpgrade::PreLevel1 || AnUpgrade == EBuildingUpgrade::PreLevel2 || AnUpgrade == EBuildingUpgrade::PreLevel3 || AnUpgrade == EBuildingUpgrade::PreLevel4)
 				{
@@ -138,15 +137,8 @@ void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade
 				//find out the costs of all those upgrades
 				for (auto TempUp : CheckCostOf)
 				{
-					if (TempUp == EBuildingUpgrade::PreLevel1)
-					{
-						Cost += BuildingData.PreGameCost;
-					}
-					else
-					{
-						FBuildingUpgrade TempUpgrade = *(BuildingData.LoadoutUpgrades.Find(TempUp));
-						Cost += TempUpgrade.Cost;
-					}
+					FBuildingUpgrade TempUpgrade = *(BuildingData.LoadoutUpgrades.Find(TempUp));
+					Cost += TempUpgrade.Cost;
 				}
 			}
 		}
@@ -155,7 +147,11 @@ void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade
 			if (Loadout.Buildings.Contains(ABuilding) && Loadout.Buildings.Find(ABuilding)->Upgrades.Contains(AnUpgrade))
 			{
 				UpgradesToRemove.Add(AnUpgrade);
-				FPreBuildingData Data = *Loadout.Buildings.Find(ABuilding);
+				FPreBuildingData Data;
+				if (Loadout.Buildings.Contains(ABuilding))
+				{
+					Data = *Loadout.Buildings.Find(ABuilding);
+				}
 				TArray<EBuildingUpgrade> UpgradesCheck;
 
 				//Add the initial removed upgrade to the list of refunded upgrades
@@ -191,15 +187,8 @@ void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade
 				{
 					if (Data.Upgrades.Contains(TempUp))
 					{
-						if (TempUp == EBuildingUpgrade::PreLevel1)
-						{
-							Cost -= BuildingData.PreGameCost;
-						}
-						else
-						{
-							FBuildingUpgrade TempUpgrade = *(BuildingData.LoadoutUpgrades.Find(TempUp));
-							Cost -= TempUpgrade.Cost;
-						}
+						FBuildingUpgrade TempUpgrade = *(BuildingData.LoadoutUpgrades.Find(TempUp));
+						Cost -= TempUpgrade.Cost;
 					}
 				}
 			}
@@ -211,8 +200,12 @@ void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade
 		{
 			RemainingLevelRewards -= Cost;
 
-			FPreBuildingData PreBuildingData = Loadout.Buildings.FindOrAdd(ABuilding);
-			BuildingData.Building = ABuilding;
+			FPreBuildingData PreBuildingData;
+			if (Loadout.Buildings.Contains(ABuilding))
+			{
+				PreBuildingData = *Loadout.Buildings.Find(ABuilding);
+			}
+			PreBuildingData.Building = ABuilding;
 
 			for (auto TempUp : UpgradesToAdd)
 			{
@@ -225,7 +218,7 @@ void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade
 			}
 
 			//Update the building data
-			*Loadout.Buildings.Find(ABuilding) = PreBuildingData;
+			Loadout.Buildings.FindOrAdd(ABuilding) = PreBuildingData;
 		}
 	}
 
@@ -233,8 +226,61 @@ void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade
 	if (UpgradesToAdd.Num() != 0 || UpgradesToRemove.Num() != 0)
 	{
 		RemainingLevelRewardsUpdated.Broadcast();
+		void OnRep_RemainingLevelRewards();
+
 		LoadoutUpdated.Broadcast();
+		void OnRep_Loadout();
+
 	}
+
+}
+
+void ABDPlayerState::RefreshRemainingLevelRewards()
+{
+	if (Role == ROLE_Authority)
+	{
+		ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+		UBDGameInstance* GameInstance = Cast<UBDGameInstance>(GetGameInstance());
+		int LevelRewards = 0;
+		int LoadoutCost = 0;
+		if (GameState != nullptr || GameInstance != nullptr)
+		{
+			LevelRewards = GameState->LevelRewards;
+
+			for (auto It : Loadout.Buildings)
+			{
+				FBuildingData* Data = GameInstance->Buildings.Find(It.Value.Building);
+				if (Data != nullptr)
+				{
+					for (auto Upgrade : It.Value.Upgrades)
+					{
+						FBuildingUpgrade BuidlingUp = *Data->LoadoutUpgrades.Find(Upgrade);
+						LoadoutCost += BuidlingUp.Cost;
+					}
+				}
+			}
+
+			if (RemainingLevelRewards != LevelRewards - LoadoutCost)
+			{
+				RemainingLevelRewards = LevelRewards - LoadoutCost;
+				RemainingLevelRewardsUpdated.Broadcast();
+				void OnRep_RemainingLevelRewards();
+			}
+		}
+	}
+}
+
+void ABDPlayerState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+
+	if (Role == ROLE_Authority && GameState != nullptr)
+	{
+		GameState->LevelRewardsUpdated.AddUObject(this, &ABDPlayerState::RefreshRemainingLevelRewards);
+	}
+	RefreshRemainingLevelRewards();
 
 }
 

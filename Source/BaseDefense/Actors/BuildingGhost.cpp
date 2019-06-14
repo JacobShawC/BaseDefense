@@ -17,7 +17,7 @@ ABuildingGhost::ABuildingGhost()
 
 
 
-void ABuildingGhost::Initialise(EBuilding ABuilding, bool AReachable, bool ABuildable)
+void ABuildingGhost::Initialise(EBuilding ABuilding, bool AReachable, bool ABuildable, bool AMinable)
 {
 	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
 
@@ -27,7 +27,7 @@ void ABuildingGhost::Initialise(EBuilding ABuilding, bool AReachable, bool ABuil
 
 	SetReachable(AReachable);
 	SetBuildable(ABuildable);
-
+	SetMineable(AMinable);
 	Initialised = true;
 }
 
@@ -60,6 +60,28 @@ void ABuildingGhost::SetBuildable(bool ABuildable)
 		float GreenOrRed = 0;
 
 		if (!Buildable)
+		{
+			GreenOrRed = 1;
+		}
+		if (MeshComponent)
+		{
+			MeshComponent->SetScalarParameterValueOnMaterials(FName(TEXT("GreenOrRed")), GreenOrRed);
+		}
+	}
+}
+
+
+void ABuildingGhost::SetMineable(bool AMineable)
+{
+	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
+
+	FBuildingData Data;
+	Data = *GameInstance->Buildings.Find(Building);
+	if (Data.BuildingType == EBuildingType::Farm)
+	{
+		float GreenOrRed = 0;
+
+		if (!AMineable)
 		{
 			GreenOrRed = 1;
 		}

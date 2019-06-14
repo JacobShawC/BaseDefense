@@ -134,8 +134,6 @@ void UPreGame::SetUpLevelInformation(FLevelData ALevelData)
 	InformationSlotBox->ClearChildren();
 	for (auto& ADif : ALevelData.DifficultyRewards)
 	{
-		
-
 		UPreInfoSlot* InfoSlot = Cast<UPreInfoSlot>(CreateWidget<UUserWidget>(this, InfoSlotClass->Get()));
 		InfoSlot->SetUp(ADif.Key, ALevelData);
 		InformationSlotBox->AddChild(InfoSlot);
@@ -223,6 +221,12 @@ void UPreGame::OnSettingsButtonClicked()
 
 void UPreGame::OnLeaveButtonClicked()
 {
+	GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
+	if (GameInstance != nullptr)
+	{
+		GameInstance->LoadMainMenu();
+
+	}
 }
 
 void UPreGame::PreLevelClicked(UPreLevel* ALevel)

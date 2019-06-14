@@ -12,12 +12,17 @@
 #include "GUI.h"
 #include "MiniMap.h"
 #include "BDPlayerController.h"
+#include "BaseLevel.h"
+#include "Level1.h"
+#include "BDGameInstance.h"
+#include "StructLibrary.h"
+#include "BDPlayerState.h"
+#include "Public/KismetAnimationLibrary.h"
 
 
 void ABDGameState::GetMiniMap()
 {
 	UWorld* World = GetWorld();
-
 	if (World != nullptr)
 	{
 		ABDPlayerController* Controller = Cast<ABDPlayerController>(World->GetFirstPlayerController());
@@ -50,6 +55,24 @@ float ABDGameState::AddMoney(float AMoney)
 		}
 	}
 	return DividedMoney;
+}
+
+void ABDGameState::SetCurrentState(EGameState AState)
+{
+	if (Role == ROLE_Authority)
+	{
+		CurrentState = AState;
+
+		if (SelectedLevel == ELevel::None)
+		{
+			SelectedLevel = ELevel::Level1;
+		}
+
+		if (CurrentState == EGameState::InProgress)
+		{
+			StartGame();
+		}
+	}
 }
 
 void ABDGameState::BeginPlay()
@@ -95,8 +118,6 @@ void ABDGameState::AddEnemyCharacter(TWeakObjectPtr<AEnemyChar> AnEnemyChar)
 	{
 		MiniMap->AddEnemyCharacter(AnEnemyChar);
 	}
-
-
 }
 
 
@@ -120,7 +141,7 @@ void ABDGameState::RefreshLevelRewards()
 {
 	if (Role == ROLE_Authority)
 	{
-		GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
+		UBDGameInstance* GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
 		if (GameInstance != nullptr)
 		{
 			GameInstance->RefreshLevelRewards();
@@ -129,8 +150,12 @@ void ABDGameState::RefreshLevelRewards()
 				LevelRewards = GameInstance->CurrentSave->Points;
 			}
 		}
-
 	}
+}
+
+EGameState ABDGameState::GetCurrentState()
+{
+	return CurrentState;
 }
 
 TArray<APlayerChar*> ABDGameState::GetPlayerPawns()
@@ -155,7 +180,7 @@ void ABDGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ABDGameState, SelectedLevel);
 	DOREPLIFETIME(ABDGameState, SelectedLevelDifficulty);
 	DOREPLIFETIME(ABDGameState, LevelSaves);
-	DOREPLIFETIME(ABDGameState, GameState);
+	DOREPLIFETIME(ABDGameState, CurrentState);
 }
 void ABDGameState::OnRep_LevelRewards()
 {
@@ -167,9 +192,9 @@ void ABDGameState::OnRep_LevelSaves()
 	LevelSavesUpdated.Broadcast();
 }
 
-void ABDGameState::OnRep_GameState()
+void ABDGameState::OnRep_CurrentState()
 {
-	GameStateUpdated.Broadcast();
+	CurrentStateUpdated.Broadcast();
 }
 
 void ABDGameState::OnRep_SelectedLevel()
@@ -180,4 +205,35 @@ void ABDGameState::OnRep_SelectedLevel()
 void ABDGameState::OnRep_SelectedLevelDifficulty()
 {
 	SelectedLevelDifficultyUpdated.Broadcast();
+}
+
+void ABDGameState::SetLevelRewards(int ALevelRewards)
+{
+	if (Role == ROLE_Authority)
+	{
+		LevelRewards = ALevelRewards;
+		OnRep_LevelRewards();
+	}
+}
+
+void ABDGameState::StartGame()
+{
+	FVector Location(0.0f, 0.0f, 0.0f);
+	FRotator Rotation(0.0f, 0.0f, 0.0f);
+	FActorSpawnParameters SpawnInfo;
+	FLevelData LevelData;
+	UBDGameInstance* GameInstance = Cast<UBDGameInstance>(GetGameInstance());
+	if (GameInstance)
+	{
+		LevelData = *GameInstance->Levels.Find(SelectedLevel);
+	}
+	
+
+	if (SelectedLevel == ELevel::Level1)
+	{
+		Cast<ABaseLevel>(GetWorld()->SpawnActor<ALevel1>());
+	}
+
+	AddMoney(LevelData.StartingGold);
+
 }

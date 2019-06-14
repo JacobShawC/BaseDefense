@@ -26,6 +26,8 @@ public:
 
 	void RefreshInformation();
 
+	void RefreshRewards();
+
 	void PreBuildingClicked(class UPreBuilding* ABuilding);
 
 	void PreInfoSlotClicked(class UPreInfoSlot* AnInfoSlot);
@@ -39,28 +41,32 @@ private:
 protected:
 
 
-	
+	UPROPERTY(meta = (BindWidget))
+		class UTextBlock* TotalLevelRewards = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* StartButton;
+		class UTextBlock* RemainingLevelRewards = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-		class UButton* ReadyButton;
+		class UButton* StartButton = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-		class UUniformGridPanel* BuildingsGridPanel;
+		class UButton* ReadyButton = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-		class UImage* InformationImage;
+		class UUniformGridPanel* BuildingsGridPanel = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* InformationTitle;
+		class UImage* InformationImage = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* InformationText;
+		class UTextBlock* InformationTitle = nullptr;
 
 	UPROPERTY(meta = (BindWidget))
-		class UVerticalBox* InformationSlotBox;
+		class UTextBlock* InformationText = nullptr;
+
+	UPROPERTY(meta = (BindWidget))
+		class UVerticalBox* InformationSlotBox = nullptr;
 
 	class UBDGameInstance* GameInstance = nullptr;
 	class UBDSaveGame* CurrentSave = nullptr;

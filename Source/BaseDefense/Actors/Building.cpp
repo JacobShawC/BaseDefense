@@ -28,8 +28,14 @@
 void ABuilding::BeginPlay()
 {
 	Super::BeginPlay();
+	if (Building != EBuilding::None && HasBeenSetup == false)
+	{
+		Constructing = false;
+		SetUpBuilding(Building);
 
+	}
 	GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+
 	if (GameState != nullptr)
 	{
 		GameState->AddBuilding(TWeakObjectPtr<ABuilding>(this));
@@ -274,6 +280,7 @@ void ABuilding::Construct(EBuilding ABuilding, APlayerChar* AConstructor)
 	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
 	OwningCharacter = AConstructor;
 	Building = ABuilding;
+	HasBeenSetup = true;
 	if (GameInstance)
 	{
 		BaseBuildingData = *GameInstance->Buildings.Find(ABuilding);
@@ -338,20 +345,41 @@ void ABuilding::Upgrade(EBuildingUpgrade AnUpgrade, APlayerChar * AnUpgrader)
 
 void ABuilding::SetUpBuilding(EBuilding ABuilding)
 {
+
 	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
 	Building = ABuilding;
 	FBuildingData TempBuildingData;
 	if (GameInstance)
 	{
 		TempBuildingData = *GameInstance->Buildings.Find(ABuilding);
-		if (FloatingWidget)
+
+		if (FloatingWidget != nullptr)
 		{
 			FloatingInfo = Cast<UFloatingBuildingInfo>(FloatingWidget->GetUserWidgetObject());
 		}
+
+
+		if (HasBeenSetup == false)
+		{
+			BaseBuildingData = *GameInstance->Buildings.Find(ABuilding);
+			ApplyBuffs();
+
+			if (FloatingWidget != nullptr)
+			{
+				FloatingInfo->SetConstructionVisibility(false);
+
+			}
+		}
+		
+
 		if (FloatingInfo)
 		{
 			FloatingInfo->SetName(TempBuildingData.Name);
 			FloatingInfo->SetNameVisibility(false);
+			if (HasBeenSetup == false)
+			{
+				FloatingInfo->SetConstructionVisibility(true);
+			}
 		}
 		HealthComponent->Initialise(TempBuildingData.MaxHealth);
 		UStaticMesh* Mesh = nullptr;
@@ -390,8 +418,8 @@ void ABuilding::SetUpBuilding(EBuilding ABuilding)
 	{
 		WhatDo();
 	}
-
 }
+
 
 void ABuilding::OnMouseEnter(UPrimitiveComponent * TouchedComponent)
 {

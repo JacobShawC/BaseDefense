@@ -22,7 +22,7 @@ public:
 	UFUNCTION()
 	void OnButtonClicked();
 	void Refresh();
-
+	void SetLocked(bool ALocked);
 
 public:
 
@@ -45,7 +45,8 @@ public:
 	FBuildingData BuildingData;
 	FLevelData LevelData;
 
-	ELevelDifficulty LevelDifficulty;
+	ELevelDifficulty LevelDifficulty = ELevelDifficulty::None;
+	EBuildingUpgrade BuildingUpgrade = EBuildingUpgrade::None;
 
 protected:
 

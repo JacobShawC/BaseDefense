@@ -2,6 +2,9 @@
 
 #include "GUI.h"
 #include "Components/TextBlock.h"
+#include "BDPlayerState.h"
+#include "CommandList.h"
+#include "BDGameInstance.h"
 
 UGUI::UGUI(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
@@ -19,4 +22,19 @@ void UGUI::SetCommandList(TArray<EGUICommand> ACommands)
 	{
 		CommandList->SetCommandList(ACommands);
 	}
+}
+
+void UGUI::Setup()
+{
+	ABDPlayerState* PlayerState = GetOwningPlayerState<ABDPlayerState>();
+	if (PlayerState != nullptr)
+	{
+		SetMoneyText(PlayerState->Money);
+		PlayerState->MoneyUpdated.AddUObject(this, &UGUI::OnMoneyUpdated);
+	}
+}
+
+void UGUI::OnMoneyUpdated(float AMoney)
+{
+	SetMoneyText(AMoney);
 }

@@ -39,6 +39,7 @@ protected:
 
 	void UpdateCommands();
 
+
 	void UpdateGhost(bool AReachable, bool ABuildable);
 public:
 	UFUNCTION(Server, Reliable, WithValidation)
@@ -56,6 +57,7 @@ public:
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void ServerCancelAction();
+
 
 	void GetKeysForAction(FName AnActionName, TArray<FInputActionKeyMapping>& Bindings);
 

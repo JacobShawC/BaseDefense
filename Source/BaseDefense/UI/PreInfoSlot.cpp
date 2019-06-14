@@ -47,7 +47,6 @@ void UPreInfoSlot::SetUp(ELevelDifficulty ADifficulty, FLevelData AData)
 	SlotTitle->SetText(FText::FromString(DifficultyText));
 	SlotDescription->SetText(FText::FromString(LevelData.Description));
 
-
 	Refresh();
 }
 
@@ -55,6 +54,7 @@ void UPreInfoSlot::SetUp(EBuildingUpgrade AnUpgrade, FBuildingData AData)
 {
 	BuildingData = AData;
 	LevelOrBuilding = false;
+	BuildingUpgrade = AnUpgrade;
 	SlotButton->OnClicked.AddDynamic(this, &UPreInfoSlot::OnButtonClicked);
 	Refresh();
 }
@@ -66,51 +66,21 @@ void UPreInfoSlot::OnButtonClicked()
 
 void UPreInfoSlot::Refresh()
 {
-	APlayerController* PlayerController = GetOwningPlayer();
-	ABDPlayerController* Controller = GetOwningPlayer<ABDPlayerController>();
-	UWorld* World = PlayerController->GetWorld();
+	
+}
 
-
-	AGameStateBase* TempGameState = World->GetGameState();
-	ABDGameState* GameState = Cast<ABDGameState>(TempGameState);
-	APawn* TempPawn = GetOwningPlayerPawn();
-	APlayerState* TempPlayerState = TempPawn->GetPlayerState();
-
-	ABDPlayerState* PlayerState = Cast<ABDPlayerState>(TempPlayerState);
-
-	if (GameState == nullptr || PlayerState == nullptr)
-		return;
-
-	if (LevelOrBuilding)
+void UPreInfoSlot::SetLocked(bool ALocked)
+{
+	if (ALocked)
 	{
-		if (GameState != nullptr)
-		{
-			if (GameState->LevelRewards >= LevelData.PreGameUnlockCost)
-			{
-				SetVisibility(ESlateVisibility::Visible);
-				SetRenderOpacity(1.0f);
-			}
-			else
-			{
-				SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-				SetRenderOpacity(0.5f);
-			}
-		}
+		SetRenderOpacity(0.5f);
+		SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+
 	}
 	else
 	{
-		if (BuildingData.PreGameUnlockCost > PlayerState->RemainingLevelRewards
-			|| PlayerState->Loadout.Buildings.Contains(BuildingData.Building)
-			|| GameState->LevelRewards < BuildingData.PreGameUnlockCost
-			|| !BuildingData.PreGameUnlockable)
-		{
-			SetVisibility(ESlateVisibility::SelfHitTestInvisible);
-			SetRenderOpacity(0.5f);
-		}
-		else
-		{
-			SetVisibility(ESlateVisibility::Visible);
-			SetRenderOpacity(1.0f);
-		}
+		SetRenderOpacity(1.0f);
+		SetVisibility(ESlateVisibility::Visible);
+
 	}
 }

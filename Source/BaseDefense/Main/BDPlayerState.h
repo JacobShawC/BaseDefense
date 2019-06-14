@@ -8,6 +8,7 @@
 #include "BDPlayerState.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FPlayerStateVariableUpdated);
+DECLARE_MULTICAST_DELEGATE_OneParam(FPlayerStateVariableOneParamUpdated, float);
 
 /**
  * 
@@ -32,17 +33,22 @@ public:
 
 	void SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove);
 
+	void RefreshRemainingLevelRewards();
+
+	void BeginPlay() override;
+
 private:
 public:
 
 	FPlayerStateVariableUpdated RemainingLevelRewardsUpdated;
 	FPlayerStateVariableUpdated LoadoutUpdated;
+	FPlayerStateVariableOneParamUpdated MoneyUpdated;
 	
 	UPROPERTY(Replicated)
 	FPlayerData PlayerData;
 
 	UPROPERTY(ReplicatedUsing = OnRep_Money)
-	float Money = 500;
+	float Money = 0;
 
 	UPROPERTY(ReplicatedUsing = OnRep_RemainingLevelRewards)	int RemainingLevelRewards = 0;
 

@@ -6,8 +6,8 @@
 #include "GameFramework/GameState.h"
 #include "MiniMapCapture.h"
 #include "StructLibrary.h"
+//#include "C:\Program Files\Epic Games\UE_4.22\Engine\Source\Runtime\AnimGraphRuntime\Public\KismetAnimationLibrary.h"
 #include "BDGameState.generated.h"
-
 DECLARE_MULTICAST_DELEGATE(FVariableUpdated);
 
 /**
@@ -27,14 +27,20 @@ public:
 	UFUNCTION()
 	void OnRep_LevelSaves();
 	UFUNCTION()
-	void OnRep_GameState(); 
+	void OnRep_CurrentState();
 	UFUNCTION()
 	void OnRep_SelectedLevel();
 	UFUNCTION()
 	void OnRep_SelectedLevelDifficulty();
 
+	UFUNCTION(Exec)
+	void SetLevelRewards(int ALevelRewards);
+
+	void StartGame();
 
 	float AddMoney(float AMoney);
+
+	void SetCurrentState(EGameState AState);
 
 	virtual void BeginPlay() override;
 
@@ -43,6 +49,8 @@ public:
 	void SetMapProperties(FVector APosition, float AWidth);
 
 	void RefreshLevelRewards();
+
+	EGameState GetCurrentState();
 public:
 	UPROPERTY()
 	TArray<TWeakObjectPtr<class ABuilding>> Buildings;
@@ -64,11 +72,13 @@ public:
 
 	FVariableUpdated LevelRewardsUpdated;
 	FVariableUpdated LevelSavesUpdated;
-	FVariableUpdated GameStateUpdated;
+	FVariableUpdated CurrentStateUpdated;
 	FVariableUpdated SelectedLevelUpdated;
 	FVariableUpdated SelectedLevelDifficultyUpdated;
 
 	UPROPERTY(ReplicatedUsing = OnRep_SelectedLevel)	ELevel SelectedLevel = ELevel::None;
+
+	class ABaseLevel* LevelActor = nullptr;
 	
 	UPROPERTY(ReplicatedUsing = OnRep_SelectedLevelDifficulty)	ELevelDifficulty SelectedLevelDifficulty = ELevelDifficulty::None;
 
@@ -76,9 +86,13 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_LevelSaves)	TMap<ELevel, FLevelSave> LevelSaves;
 
-	UPROPERTY(ReplicatedUsing = OnRep_GameState)	EGameState GameState = EGameState::PreGame;
+	int NumberOfPlayers = 1;
+
+	int WorldGridSize = 256;
+
+private:
+	UPROPERTY(ReplicatedUsing = OnRep_CurrentState)	EGameState CurrentState = EGameState::PreGame;
 
 protected:
-	class UBDGameInstance* GameInstance = nullptr;
 
 };

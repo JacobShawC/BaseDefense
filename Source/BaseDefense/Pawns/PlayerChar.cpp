@@ -47,7 +47,7 @@ APlayerChar::APlayerChar()
 	SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bAbsoluteRotation = true; // Don't want arm to rotate when character does
-	SpringArm->TargetArmLength = 800.f;
+	SpringArm->TargetArmLength = 1200.f;
 	SpringArm->RelativeRotation = FRotator(305.f, 0.f, 0.f);
 	SpringArm->bDoCollisionTest = false;
 

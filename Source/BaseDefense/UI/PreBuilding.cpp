@@ -15,7 +15,10 @@ void UPreBuilding::SetUp(FBuildingData ABuilding)
 	Image->SetBrushFromTexture(ABuilding.Thumbnail);
 	Description->SetText(FText::FromString(ABuilding.Description));
 	UnlockCost->SetText(FText::AsNumber(ABuilding.PreGameUnlockCost));
-	PurchaseCost->SetText(FText::AsNumber(ABuilding.PreGameCost));
+	if (ABuilding.LoadoutUpgrades.Contains(EBuildingUpgrade::PreLevel1))
+	{
+		PurchaseCost->SetText(FText::AsNumber(ABuilding.LoadoutUpgrades.Find(EBuildingUpgrade::PreLevel1)->Cost));
+	}
 
 	BuildingButton->OnClicked.AddDynamic(this, &UPreBuilding::OnButtonClicked);
 

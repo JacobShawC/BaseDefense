@@ -24,6 +24,7 @@
 #include "GameFramework/PlayerInput.h"
 #define COLLISION_BUILDABLE		ECC_GameTraceChannel1
 #define COLLISION_BUILDING		ECC_GameTraceChannel2
+#define COLLISION_MINABLE		ECC_GameTraceChannel7
 
 DEFINE_LOG_CATEGORY(BDPlayerController);
 //
@@ -90,7 +91,7 @@ void ABDPlayerController::BeginPlay()
 	{
 		if (GameState != nullptr)
 		{
-			GameState->GameStateUpdated.AddUObject(this, &ABDPlayerController::OnGameStateChanged);
+			GameState->CurrentStateUpdated.AddUObject(this, &ABDPlayerController::OnGameStateChanged);
 		}
 
 
@@ -188,12 +189,22 @@ void ABDPlayerController::ServerConstructBuilding_Implementation(EBuilding ABuil
 
 
 		FBuildingLocationInfo TraceInfo = GetLocationInfo(RoundedHit);
-		if (TraceInfo.Buildable && TraceInfo.ClearFromBuildings && TraceInfo.EvenSurface && TraceInfo.Reachable)
+		
+		bool Minable = true;
+
+		if (Data.BuildingType == EBuildingType::Farm && !TraceInfo.Mineable)
+		{
+			Minable = false;
+		}
+
+
+		if (TraceInfo.Buildable && TraceInfo.ClearFromBuildings && TraceInfo.EvenSurface && TraceInfo.Reachable && Minable)
 		{	
 			if (PlayerChar->CurrentAction == nullptr)
 			{
 				PlayerChar->ConstructAction->ConstructBuilding(Data, APosition);
 			}
+
 		}
 	}
 }
@@ -239,6 +250,7 @@ FBuildingLocationInfo ABDPlayerController::GetLocationInfo(FHitResult ATrace)
 
 	FHitResult BuildableHit = DoSingleTrace(ATrace.TraceStart, ATrace.Location, PlayerPawn, COLLISION_BUILDABLE);
 	FHitResult BuildingHit = DoSingleTrace(ATrace.TraceStart, ATrace.Location, PlayerPawn, COLLISION_BUILDING);
+	FHitResult MineableHit = DoSingleTrace(ATrace.TraceStart, ATrace.Location, PlayerPawn, COLLISION_MINABLE);
 	if (BuildableHit.GetActor())
 	{
 		LocationInfo.Buildable = true;
@@ -257,6 +269,15 @@ FBuildingLocationInfo ABDPlayerController::GetLocationInfo(FHitResult ATrace)
 		LocationInfo.ClearFromBuildings = true;
 	}
 
+	if (MineableHit.GetActor())
+	{
+		LocationInfo.Mineable = true;
+	}
+	else
+	{
+		LocationInfo.Mineable = false;
+	}
+
 	float HorizontalDistance = FVector::Dist2D(GetPawn()->GetActorLocation(), ATrace.Location);
 	float VerticalDistance = FGenericPlatformMath::Abs(ATrace.Location.Z - PawnLocation.Z);
 	if (VerticalDistance < PlayerData.BuildRangeVertical && HorizontalDistance < PlayerData.BuildRangeHorizontal)
@@ -270,6 +291,9 @@ FBuildingLocationInfo ABDPlayerController::GetLocationInfo(FHitResult ATrace)
 
 	return LocationInfo;
 }
+
+
+
 
 void ABDPlayerController::MakeGhost()
 {
@@ -362,7 +386,7 @@ void ABDPlayerController::MakeGhost()
 	if (BuildingGhost == nullptr)
 	{
 		BuildingGhost = GetWorld()->SpawnActor<ABuildingGhost>(RoundedHit.Location, FRotator(0.0f));
-		BuildingGhost->Initialise(GUIWidget->HotBar->GetSelectedBuilding(), RoundedInfo.Reachable, RoundedInfo.Buildable);
+		BuildingGhost->Initialise(GUIWidget->HotBar->GetSelectedBuilding(), RoundedInfo.Reachable, RoundedInfo.Buildable, RoundedInfo.Mineable);
 	}
 	else
 	{
@@ -376,6 +400,8 @@ void ABDPlayerController::MakeGhost()
 		BuildingGhost->SetBuilding(SelectedBuilding);
 		BuildingGhost->SetBuildable(RoundedInfo.Buildable);
 		BuildingGhost->SetReachable(RoundedInfo.Reachable);
+		BuildingGhost->SetMineable(RoundedInfo.Mineable);
+
 	}
 }
 
@@ -394,6 +420,7 @@ void ABDPlayerController::UpdateCommands()
 		}
 	}
 }
+
 
 int AddCost(FBuildingData ABuildingData, EBuildingUpgrade AnUpgrade)
 {
@@ -635,7 +662,7 @@ void ABDPlayerController::LoadoutPressed()
 	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
 	if (GameState != nullptr)
 	{
-		if (GameState->GameState == EGameState::PreGame)
+		if (GameState->GetCurrentState() == EGameState::PreGame)
 		{
 			//open loadout
 			if (LoadoutSelectorWidget == nullptr)
@@ -677,7 +704,7 @@ void ABDPlayerController::OnGameStateChanged()
 	if (GameState != nullptr)
 	{
 		//do something with game state
-		if (GameState->GameState != EGameState::PreGame && LoadoutSelectorWidget != nullptr)
+		if (GameState->GetCurrentState() != EGameState::PreGame && LoadoutSelectorWidget != nullptr)
 		{
 			LoadoutSelectorWidget->SetVisibility(ESlateVisibility::Collapsed);
 		}

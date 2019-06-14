@@ -11,12 +11,34 @@
 #include "Components/Image.h"
 #include "Components/CanvasPanel.h"
 #include "Components/CanvasPanelSlot.h"
+#include "PlayerChar.h"
+#include "Layout/Geometry.h"
+#include "Camera/CameraComponent.h"
+#include "GameFramework/SpringArmComponent.h"
 
 
 void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 {
 	Super::NativeTick(MyGeometry, DeltaTime);
 	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
+
+	float PlayerRelativeSize = 1;
+	float BuildingRelativeSize = 1;
+	float EnemyRelativeSize = 1;
+	if (MapWidth == 0)
+	{
+		MapWidth = State->OrthoWidth;
+		MapPosition = State->MapCapturePosition;
+	}
+	if (MapWidth != 0)
+	{
+		PlayerRelativeSize = 4000 / MapWidth * PlayerSize;
+		BuildingRelativeSize = 4000 / MapWidth * EnemySize;
+		EnemyRelativeSize = 4000 / MapWidth * BuildingSize;
+	}
+
+
+
 
 	for (auto Iterator = Buildings.CreateIterator(); Iterator; ++Iterator)
 	{
@@ -26,7 +48,6 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 			{
 				if (MapWidth == 0)
 				{
-
 					MapWidth = State->OrthoWidth;
 					MapPosition = State->MapCapturePosition;	
 				}
@@ -37,7 +58,7 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 				Image->SetColorAndOpacity(FLinearColor::Green);
 				BuildingsPanel->AddChild(Image);
 				UCanvasPanelSlot* CanvasPanelSlot = (UCanvasPanelSlot*)Image->Slot;
-				CanvasPanelSlot->SetSize(FVector2D(BuildingSize, BuildingSize));
+				CanvasPanelSlot->SetSize(FVector2D(BuildingRelativeSize, BuildingRelativeSize));
 				CanvasPanelSlot->SetPosition(GetCanvasLocation(Iterator->Key->GetActorLocation()));
 			}
 		}
@@ -53,19 +74,13 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		{
 			if (Iterator->Value == nullptr)
 			{
-				if (MapWidth == 0)
-				{
-
-					MapWidth = State->OrthoWidth;
-					MapPosition = State->MapCapturePosition;
-
-				}
+				
 				UImage* Image = NewObject<UImage>(UImage::StaticClass());
 				Iterator->Value = Image;
 				Image->SetColorAndOpacity(FLinearColor::Red);
 				EnemiesPanel->AddChild(Image);
 				UCanvasPanelSlot* CanvasPanelSlot = (UCanvasPanelSlot*)Image->Slot;
-				CanvasPanelSlot->SetSize(FVector2D(EnemySize, EnemySize));
+				CanvasPanelSlot->SetSize(FVector2D(EnemyRelativeSize, EnemyRelativeSize));
 				CanvasPanelSlot->SetPosition(GetCanvasLocation(Iterator->Key->GetActorLocation()));
 			}
 			else
@@ -119,7 +134,7 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 				Image->SetColorAndOpacity(FLinearColor::Yellow);
 				PlayersPanel->AddChild(Image);
 				UCanvasPanelSlot* CanvasPanelSlot = (UCanvasPanelSlot*)Image->Slot;
-				CanvasPanelSlot->SetSize(FVector2D(PlayerSize, PlayerSize));
+				CanvasPanelSlot->SetSize(FVector2D(PlayerRelativeSize, PlayerRelativeSize));
 				CanvasPanelSlot->SetPosition(GetCanvasLocation(Iterator->Key->GetActorLocation()));
 			}
 			else
@@ -154,12 +169,22 @@ FVector2D UMiniMap::GetCanvasLocation(FVector ALocation)
 
 	TempLoc = FVector2D(TempLoc.X + MapWidth / 2, -TempLoc.Y + MapWidth / 2);
 
-
+	// y = x / i * j - k / 2
+	// y + k/2 = x / i * j
+	// x = ((y + k/2 ) / j) * i
 	float Y = (TempLoc.X / MapWidth * WidgetSize - EnemySize / 2);
 	float X = (TempLoc.Y / MapWidth * WidgetSize - EnemySize / 2);
 
 	return FVector2D(X, Y);
 }
+
+FVector UMiniMap::GetWorldLocationFromCanvas(FVector2D ALocation)
+{
+	FVector ReturnVector;
+	return ReturnVector;
+
+}
+
 
 void UMiniMap::SetUp()
 {
@@ -168,6 +193,7 @@ void UMiniMap::SetUp()
 
 void UMiniMap::NativeConstruct()
 {
+	Super::NativeConstruct();
 
 	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 	if (State != nullptr)
@@ -193,6 +219,77 @@ void UMiniMap::NativeConstruct()
 			EnemyCharacters.Add(ATempEnemy, nullptr);
 
 		}
+	}
+}
+
+FReply UMiniMap::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	Super::NativeOnMouseButtonDown(InGeometry, InMouseEvent);
+
+	MiniMapClicked(InGeometry, InMouseEvent);
+
+	return FReply::Handled();
+}
+
+FReply UMiniMap::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	MiniMapReleased();
+	return FReply::Handled();
+
+}
+
+FReply UMiniMap::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	if (InMouseEvent.IsMouseButtonDown(FKey("LeftMouseButton")))
+	{
+		MiniMapClicked(InGeometry, InMouseEvent);
+	}
+
+
+	return FReply::Handled();
+}
+
+void UMiniMap::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
+{
+	MiniMapReleased();
+}
+
+void UMiniMap::MiniMapClicked(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+{
+	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
+
+
+	FVector2D MouseScreenPosition = InMouseEvent.GetScreenSpacePosition();
+
+	//from top left, x = to the left and y is down
+	FVector2D MouseWidgetPosition = InGeometry.AbsoluteToLocal(MouseScreenPosition);
+
+	MapWidth = State->OrthoWidth;
+	FVector2D MapCenter = State->MapCapturePosition;
+	//unreal uses y/x instead of x/y graph
+	FVector2D MapTopLeft = FVector2D(MapCenter.X + MapWidth / 2, MapCenter.Y - MapWidth / 2);
+	float MouseWorldChangeX = -((MouseWidgetPosition.Y / InGeometry.GetLocalSize().Y) * MapWidth);
+	float MouseWorldChangeY = (MouseWidgetPosition.X / InGeometry.GetLocalSize().X) * MapWidth;
+	FVector2D MouseWorldPosition = FVector2D(MapTopLeft.X + MouseWorldChangeX, MapTopLeft.Y + MouseWorldChangeY);
+	//GetWorldLocationFromCanvas();
+
+	APlayerChar* PlayerChar = Cast<APlayerChar>(GetOwningPlayerPawn());
+
+	if (PlayerChar != nullptr)
+	{
+		PlayerChar->Camera->SetWorldLocation(FVector(MouseWorldPosition.X - 550, MouseWorldPosition.Y, 800));
+	}
+}
+
+void UMiniMap::MiniMapReleased()
+{
+	APlayerChar* PlayerChar = Cast<APlayerChar>(GetOwningPlayerPawn());
+	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
+
+	if (PlayerChar != nullptr)
+	{
+		
+		PlayerChar->Camera->SetWorldLocation(PlayerChar->SpringArm->UnfixedCameraPosition);
 	}
 }
 

@@ -16,10 +16,12 @@ public:
 	// Sets default values for this actor's properties
 	ABuildingGhost();
 
-	void Initialise(EBuilding ABuilding, bool AReachable, bool ABuildable);
+	void Initialise(EBuilding ABuilding, bool AReachable, bool ABuildable, bool AMinable);
 
 	void SetReachable(bool AReachable);
 	void SetBuildable(bool ABuildable);
+	void SetMineable(bool AMineable);
+
 	void SetBuilding(EBuilding ABuilding);
 
 protected:

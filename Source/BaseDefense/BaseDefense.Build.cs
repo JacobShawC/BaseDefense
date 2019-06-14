@@ -11,11 +11,15 @@ public class BaseDefense : ModuleRules
         //PrivatePCHHeaderFile = "BaseDefense.h";
 
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "Slate", "OnlineSubsystemSteam", "SlateCore", "OnlineSubsystem", "OnlineSubsystemUtils", "NavigationSystem", "AnimationSharing", "Steamworks" });
+        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "UMG", "Slate", "OnlineSubsystemSteam", "SlateCore", "OnlineSubsystem", "OnlineSubsystemUtils", "NavigationSystem", "AnimationSharing", "Steamworks", "AnimGraphRuntime"});
 
-		PrivateDependencyModuleNames.AddRange(new string[] {  });
+
+        PrivateDependencyModuleNames.AddRange(new string[] {  });
 
         //DynamicallyLoadedModuleNames.Add("OnlineSubsystemSteam");
+
+        //DynamicallyLoadedModuleNames.AddRange(new string[] { "SimplexNoise" });
+
 
         PrivateIncludePaths.AddRange(
             new string[] {

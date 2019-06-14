@@ -95,7 +95,8 @@ private:
 	UFUNCTION()
 	void OnReadFriendsComplete(int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr);
 	void OnFindFriendSessionComplete(int32 LocalUserNum, bool bWasSuccessful, const TArray<FOnlineSessionSearchResult>& SearchResult);
-
+	void OnJoinSessionComplete(FName AServerName, EOnJoinSessionCompleteResult::Type AResult);
+	
 
 	FString DesiredServerName;
 	void CreateSession();

@@ -5,12 +5,19 @@
 
 void ALevel1::RunLevel()
 {
-	SpawnWave(EEnemy::Seaman, 1, 1, 2, 3);
-	SpawnWave(EEnemy::FirstMate, 2, 3, 2, 3);
 
-	SpawnWave(EEnemy::Seaman, 2, 3, 2, 10);
+	//Wave 1
+	SpawnWave(EEnemy::ElementalGolem, 1, 5, 0, 59);
 
-	SpawnWave(EEnemy::FemalePirate, 1, 3, 2, 17);
-	SpawnWave(EEnemy::FemalePirate, 2, 3, 2, 17);
+	//2
+	SpawnWave(EEnemy::ElementalGolem, 1, 10, 60, 119);
+	SpawnWave(EEnemy::FortGolem, 1, 10, 65, 119);
+	//3
+	SpawnWave(EEnemy::FortGolem, 1, 5, 120, 179);
+	//4
+	SpawnWave(EEnemy::FortGolem, 1, 10, 180, 239);
+	SpawnWave(EEnemy::MechanicalGolem, 1, 10, 185, 239);
+	//5
+	SpawnWave(EEnemy::MechanicalGolem, 1, 5, 240, 300);
 
 }

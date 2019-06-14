@@ -11,6 +11,25 @@
  */
 
 UENUM()
+enum class WorldGridType : uint8
+{
+	None 		UMETA(DisplayName = "None"),
+	Grass		UMETA(DisplayName = "Level1"),
+	Mud		UMETA(DisplayName = "Level1"),
+	Unbuildable 	UMETA(DisplayName = "Level2"),
+	Coal 	UMETA(DisplayName = "Level2"),
+	Iron 	UMETA(DisplayName = "Level2"),
+	Tree 		UMETA(DisplayName = "Level3"),
+	TallTree 		UMETA(DisplayName = "Level3"),
+	Rock 		UMETA(DisplayName = "Level4"),
+	TallRock 		UMETA(DisplayName = "Level4"),
+	Water 		UMETA(DisplayName = "Level4"),
+	Tower1 		UMETA(DisplayName = "Level5"),
+	Wall1 		UMETA(DisplayName = "Level6"),
+	House1 	UMETA(DisplayName = "Level6"),
+};
+
+UENUM()
 enum class ELevel : uint8
 {
 	None 		UMETA(DisplayName = "None"),
@@ -29,7 +48,9 @@ enum class EGameState : uint8
 	PreGame		UMETA(DisplayName = "PreGame"),
 	InProgress 	UMETA(DisplayName = "InProgress"),
 	PostGame 	UMETA(DisplayName = "PostGame"),
-	Paused 		UMETA(DisplayName = "Paused")
+	Lose 		UMETA(DisplayName = "Paused"),
+	Win 		UMETA(DisplayName = "Paused"),
+	Paused 		UMETA(DisplayName = "Paused"),
 };
 
 
@@ -73,6 +94,7 @@ UENUM()
 enum class EBuildingUpgrade : uint8
 {
 	None 		UMETA(DisplayName = "None"),
+	Level1		UMETA(DisplayName = "Level1"),
 	Level2		UMETA(DisplayName = "Level2"),
 	Level3 		UMETA(DisplayName = "Level3"),
 	Level4 		UMETA(DisplayName = "Level4"),
@@ -436,9 +458,12 @@ UENUM()
 enum class EEnemy : uint8
 {
 	None 			UMETA(DisplayName = "None"),
-	Seaman 	UMETA(DisplayName = "Seaman"),
-	FirstMate 	UMETA(DisplayName = "FirstMate"),
-	FemalePirate 	UMETA(DisplayName = "FemalePirate")
+	Seaman			UMETA(DisplayName = "Seaman"),
+	FirstMate 		UMETA(DisplayName = "FirstMate"),
+	FemalePirate 	UMETA(DisplayName = "FemalePirate"),
+	ElementalGolem 	UMETA(DisplayName = "ElementalGolem"),
+	FortGolem		UMETA(DisplayName = "FortGolem"),
+	MechanicalGolem UMETA(DisplayName = "MechanicalGolem"),
 };
 
 
@@ -526,9 +551,6 @@ struct FBuildingData
 	FString Description = "This probably needs a description";
 
 	UPROPERTY()
-	int PreGameCost = 0;
-
-	UPROPERTY()
 	int PreGameUnlockCost = 0;
 
 	UPROPERTY()
@@ -551,7 +573,11 @@ struct FLevelData
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY()
 	ELevel Level = ELevel::None;
+
+	UPROPERTY()
+	int StartingGold = 400;
 
 	UPROPERTY()
 	FString Name = "Needs a name";
@@ -669,6 +695,9 @@ struct FBuildingLocationInfo
 
 	UPROPERTY()
 	bool RoundedVector = false;
+
+	UPROPERTY()
+	bool Mineable = false;
 };
 
 
@@ -681,9 +710,12 @@ struct FLevelEvent
 	ELevelEvent Event = ELevelEvent::None;
 
 	UPROPERTY()
-	float StartTime = 0;
+	float StartSeconds = 0;
 
 	UPROPERTY()
-	float Duration = 0;
+	float EndSeconds = 0;
+
+	UPROPERTY()
+	float Frequency = 0;
 };
 
