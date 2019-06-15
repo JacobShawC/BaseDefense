@@ -38,7 +38,8 @@ ALevelGeneration::ALevelGeneration()
 	MudHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	GrassHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/PolygonFantasyRivals/Meshes/Props/SM_Prop_Tree_02.SM_Prop_Tree_02'"));
+	//static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/PolygonFantasyRivals/Meshes/Props/SM_Prop_Tree_02.SM_Prop_Tree_02'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/VertexAnimations/SM_Tree2_AnimVertTest_00.SM_Tree2_AnimVertTest_00'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rock(TEXT("StaticMesh'/Game/PolygonDungeons/Meshes/Environments/Rocks/SM_Env_Rock_Flat_Large_03.SM_Env_Rock_Flat_Large_03'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Mud(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube.1M_Cube'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Grass(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube_2.1M_Cube_2'"));
@@ -55,6 +56,7 @@ ALevelGeneration::ALevelGeneration()
 	IronHISMC->SetStaticMesh(Iron.Object);
 	CoalHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	IronHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	//IronHISMC->collision
 	//TreeHISMC->SetCullDistances(500, 501);
 	//RockHISMC->SetCullDistances(500, 501);
 	//GroundHISMC->SetCullDistances(500, 501);
@@ -96,10 +98,10 @@ void ALevelGeneration::BeginPlay()
 	TreeData.CutOff = 0.7;
 	//TreeData.BaseModelSize = FVector(3.75, 3.75, 3.75);
 	TreeData.ScaleWithHeigh = true;
-	TreeData.BaseModelSize = FVector(2, 2, 2);
-	TreeData.MaxModelSize = FVector(5, 5, 6);
-	TreeData.RandHeightVariance = 0.5;
-	TreeData.RandWidthVariance = 0.25;
+	TreeData.BaseModelSize = FVector(1, 1, 1);
+	TreeData.MaxModelSize = FVector(2, 2, 3);
+	TreeData.RandHeightVariance = 0.25;
+	TreeData.RandWidthVariance = 0.125;
 	TreeData.RandXYVariance = 0.5;
 	//TreeData.InvertPlacement = true;
 	TreeData.RotateRandomly = true;
