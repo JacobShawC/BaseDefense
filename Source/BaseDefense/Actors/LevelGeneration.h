@@ -5,7 +5,130 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "StructLibrary.h"
+#include "Runtime/AIModule/Public/GraphAStar.h"
+#include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
+
 #include "LevelGeneration.generated.h"
+
+//struct FASNode 
+//{
+//public:
+//
+//	int Index;
+//	bool Block;
+//
+//	TArray<int> NeighborList;
+//
+//	FASNode();
+//	FASNode(int AnIndex, bool ABlock)
+//	{
+//		Index = AnIndex;
+//		Block = ABlock;
+//	}
+//	FASNode(TArray<int> ANeighborList, int AnIndex, bool ABlock)
+//	{
+//		Index = AnIndex;
+//		Block = ABlock;
+//		NeighborList = ANeighborList;
+//	}
+//
+//
+//	bool operator == (const FASNode& Other) const
+//	{
+//		return (Index == Other.Index);
+//	}
+//};
+
+struct FASGraph
+{
+public:
+	typedef int FNodeRef;
+
+
+	TArray<uint8> Nodes;
+	int GridSize;
+
+	//TArray<FASNode> ASNodes;
+	
+	TArray<int> GetNeighbourList(FNodeRef NodeRef)  const
+	{
+		TArray<int> Neighbors;
+
+		int Quotiant = (NodeRef + 1) / GridSize;
+		int Remainder = (NodeRef + 1) % GridSize;
+
+		//Check can go up
+		if (Quotiant > 0 && Nodes[NodeRef - GridSize - 1] == 0)
+		{
+			Neighbors.Add(NodeRef - GridSize);
+		}
+
+		//check can go left
+		if (Remainder > 1 && Nodes[NodeRef - 2] == 0)
+		{
+			Neighbors.Add(NodeRef - 1);
+		}
+
+		//check can go right
+		if (Remainder < GridSize && Nodes[NodeRef] == 0)
+		{
+			Neighbors.Add(NodeRef + 1);
+		}
+
+		//check can go Down
+		if (Quotiant < GridSize && Nodes[NodeRef + GridSize - 1] == 0)
+		{
+			Neighbors.Add(NodeRef + GridSize);
+		}
+	}
+
+
+
+	int32 GetNeighbourCount(FNodeRef ANode)
+	{
+		return GetNeighbourList(ANode).Num();
+	}
+
+	FNodeRef GetNeighbour(const FNodeRef NodeRef, const int32 NeighbourIndex) const
+	{
+		return GetNeighbourList(NodeRef)[NeighbourIndex];
+	}
+
+};
+
+
+
+
+
+USTRUCT()
+struct FANode
+{
+	GENERATED_BODY()
+
+		int Index;
+	int ParentIndex;
+	int X;
+	int Y;
+
+	int G = 0;
+	int H = 0;
+	int F = 0;
+
+	FANode();
+	FANode(int AnIndex, int AParentIndex, int AnX, int AY)
+	{
+		Index = AnIndex;
+		ParentIndex = AParentIndex;
+
+		X = AnX;
+		Y = AY;
+	}
+
+	FORCEINLINE bool operator==(const FANode& Other) const
+	{
+		return (X == Other.X && Y == Other.Y);
+	}
+};
 
 
 USTRUCT()
@@ -43,10 +166,23 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
 	UFUNCTION(Exec)
-	void GenerateWorld();
+	void GenerateWorld(int ASeed);
+
+	int FindValidSeed();
 
 
+	TArray<FANode*> AStar(TArray<uint8> AMaze, int AMazeSize, int AStart, int AnEnd);
+	void GenerateGrids(int ASeed);
+
+	bool TestGrids();
+
+	void GenerateWorldFromGrids(int ASeed);
+
+	UFUNCTION()
+	void OnRep_SetSeed();
 
 	void SpawnMeshes(FGenerationData AGenerationData, TArray<WorldGridType> AFromGrid, TArray<float> AFromElevation);
 	void AddGridToGrid(TArray<float> AFromGrid, TArray<WorldGridType>& AToGrid, TArray<float>& AToElevation, float ACutOff, bool AMoreThan, WorldGridType AType);
@@ -57,6 +193,8 @@ public:
 
 	TArray<WorldGridType> TerrainGrid;
 	TArray<WorldGridType> GroundGrid;
+
+	TArray<WorldGridType> BuildingGrid;
 
 	TArray<float> TerrainElevation;
 	TArray<float> GroundElevation;
@@ -76,13 +214,35 @@ public:
 	float RockCutOff;*/
 
 	class UStaticMesh* TreeMesh = nullptr;
+
+	//UPROPERTY(replicated, VisibleAnywhere)
+	UPROPERTY(replicated, VisibleAnywhere)
 	class USceneComponent* SceneComponent = nullptr;
+	//UPROPERTY(replicated, VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* TreeHISMC = nullptr;
+	//UPROPERTY(replicated, VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* RockHISMC = nullptr;
+	//UPROPERTY(replicated, VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* MudHISMC = nullptr;
+	//UPROPERTY(replicated, VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* GrassHISMC = nullptr;
+	//UPROPERTY(replicated, VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* CoalHISMC = nullptr;
+	//UPROPERTY(replicated, VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* IronHISMC = nullptr;
 
-	bool HasSetUp = false;
+	UPROPERTY(ReplicatedUsing = OnRep_SetSeed)
+	int Seed = 0;
+
+	bool HasGenerated = false;
+
+
+
+	TMap<WorldGridType, FGenerationData> GenerationData;
 };

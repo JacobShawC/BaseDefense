@@ -48,7 +48,8 @@ APlayerChar::APlayerChar()
 	SpringArm->SetupAttachment(RootComponent);
 	SpringArm->bAbsoluteRotation = true; // Don't want arm to rotate when character does
 	SpringArm->TargetArmLength = 1200.f;
-	SpringArm->RelativeRotation = FRotator(305.f, 0.f, 0.f);
+	//SpringArm->RelativeRotation = FRotator(305.f, 0.f, 0.f);
+	SpringArm->RelativeRotation = FRotator(270.0f, 0.f, 0.f);
 	SpringArm->bDoCollisionTest = false;
 
 	//Set up mesh
@@ -113,13 +114,15 @@ APlayerChar::APlayerChar()
 
 	HealthComponent->SetNetAddressable(); // Make DSO components net addressable
 	HealthComponent->SetIsReplicated(true); // Enable replication by default
-
+	
 }
 
 // Called when the game starts or when spawned
 void APlayerChar::BeginPlay()
 {
 	Super::BeginPlay();
+	//GetCharacterMovement()->Deactivate();
+
 	GameInstance = Cast<UBDGameInstance>(GetGameInstance());
 	PlayerData = GameInstance->DefaultPlayerData;
 	UFloatingInfo* Widget = Cast<UFloatingInfo>(FloatingWidget->GetUserWidgetObject());
