@@ -48,12 +48,14 @@ ALevelGeneration::ALevelGeneration()
 	GrassHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("GrassHISMC"));
 	CoalHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("CoalHISMC"));
 	IronHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("IronHISMC"));
+	WaterHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("WaterHISMC"));
 	TreeHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	RockHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	MudHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	GrassHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	CoalHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	IronHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	WaterHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
 	TreeHISMC->SetWorldScale3D(FVector(1));
 	RockHISMC->SetWorldScale3D(FVector(1));
 	MudHISMC->SetWorldScale3D(FVector(1));
@@ -66,9 +68,12 @@ ALevelGeneration::ALevelGeneration()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rock(TEXT("StaticMesh'/Game/PolygonDungeons/Meshes/Environments/Rocks/SM_Env_Rock_Flat_Large_03.SM_Env_Rock_Flat_Large_03'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Mud(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube.1M_Cube'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Grass(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube_2.1M_Cube_2'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Water(TEXT("StaticMesh'/Game/Geometry/Meshes/WaterCube.WaterCube'"));
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Coal(TEXT("StaticMesh'/Game/Meshes/Coal.Coal'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Iron(TEXT("StaticMesh'/Game/Meshes/Iron.Iron'"));
+
+	GridSize = 100;
 
 
 	TreeHISMC->SetStaticMesh(Tree.Object);
@@ -77,6 +82,9 @@ ALevelGeneration::ALevelGeneration()
 	GrassHISMC->SetStaticMesh(Grass.Object);
 	CoalHISMC->SetStaticMesh(Coal.Object);
 	IronHISMC->SetStaticMesh(Iron.Object);
+
+	WaterHISMC->SetStaticMesh(Water.Object);
+
 	CoalHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	IronHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	//IronHISMC->collision
@@ -100,7 +108,7 @@ ALevelGeneration::ALevelGeneration()
 	GrassHISMC->InstanceEndCullDistance = Culling;
 	CoalHISMC->InstanceEndCullDistance = Culling;
 	IronHISMC->InstanceEndCullDistance = Culling;*/
-
+	 
 	/*TreeHISMC->SetCullDistance(Culling);
 	RockHISMC->SetCullDistance(Culling);
 	MudHISMC->SetCullDistance(Culling);
@@ -117,7 +125,7 @@ ALevelGeneration::ALevelGeneration()
 	CoalData.CutOff = 0.9;
 	//CoalData.BaseModelSize = FVector(3.75, 3.75, 3.75);
 	CoalData.ScaleWithHeigh = false;
-	CoalData.BaseModelSize = FVector(0.13, 0.13, 0.13);
+	CoalData.BaseModelSize = FVector(0.23, 0.23, 0.23);
 	//CoalData.InvertPlacement = true;
 	CoalData.RotateRandomly = true;
 
@@ -131,7 +139,7 @@ ALevelGeneration::ALevelGeneration()
 	IronData.CutOff = 0.9;
 	//IronData.BaseModelSize = FVector(3.75, 3.75, 3.75);
 	IronData.ScaleWithHeigh = false;
-	IronData.BaseModelSize = FVector(0.13, 0.13, 0.13);
+	IronData.BaseModelSize = FVector(0.23, 0.23, 0.23);
 	//IronData.InvertPlacement = true;
 	IronData.RotateRandomly = true;
 
@@ -142,15 +150,13 @@ ALevelGeneration::ALevelGeneration()
 	TreeData.HISM = TreeHISMC;
 	TreeData.Frequency = 7;
 	TreeData.CutOff = 0.7;
-	//TreeData.BaseModelSize = FVector(3.75, 3.75, 3.75);
 	TreeData.ScaleWithHeigh = true;
-	TreeData.BaseModelSize = FVector(1, 1, 1);
-	TreeData.MaxModelSize = FVector(2, 2, 3);
-	TreeData.RandHeightVariance = 0.25;
-	TreeData.RandWidthVariance = 0.125;
-	TreeData.RandXYVariance = 0.5;
-	//TreeData.InvertPlacement = true;
-	TreeData.RotateRandomly = true;
+	TreeData.BaseModelSize = FVector(2, 2, 2);
+	TreeData.MaxModelSize = FVector(4, 4, 6);
+	/*TreeData.RandHeightVariance = 0.5;
+	TreeData.RandWidthVariance = .25;
+	TreeData.RandXYVariance = 1;
+	TreeData.RotateRandomly = true;*/
 	GenerationData.Add(TreeData.Type, TreeData);
 
 	FGenerationData RockData;
@@ -160,11 +166,11 @@ ALevelGeneration::ALevelGeneration()
 	RockData.CutOff = 0.65;
 	RockData.ScaleWithHeigh = true;
 
-	RockData.BaseModelSize = FVector(0.1, 0.1, 0.5);
-	RockData.MaxModelSize = FVector(0.1, 0.1, 0.9);
-	RockData.RandHeightVariance = 0.2;
+	RockData.BaseModelSize = FVector(0.2, 0.2, 1);
+	RockData.MaxModelSize = FVector(0.2, 0.2, 1.8);
+	RockData.RandHeightVariance = 0.4;
 	RockData.RandWidthVariance = 0;
-	RockData.RandXYVariance = 0.1;
+	RockData.RandXYVariance = -.2;
 	RockData.RotateRandomly = true;
 	//RockData.InvertPlacement = true;
 	RockData.ZHeight = 0;
@@ -177,13 +183,13 @@ ALevelGeneration::ALevelGeneration()
 	MudData.Frequency = 7;
 	MudData.CutOff = -100;
 	MudData.ScaleWithHeigh = false;
-	MudData.BaseModelSize = FVector(0.5, 0.5, 1);
+	MudData.BaseModelSize = FVector(1, 1, 2);
 	MudData.RandHeightVariance = 0;
 	MudData.RandWidthVariance = 0;
 	MudData.RandXYVariance = 0;
 	//MudData.InvertPlacement = true;
 	MudData.RotateRandomly = false;
-	MudData.ZHeight = -50;
+	MudData.ZHeight = -100;
 	GenerationData.Add(MudData.Type, MudData);
 
 	FGenerationData GrassData;
@@ -192,27 +198,27 @@ ALevelGeneration::ALevelGeneration()
 	GrassData.Frequency = 7;
 	GrassData.CutOff = 0.05;
 	GrassData.ScaleWithHeigh = false;
-	GrassData.BaseModelSize = FVector(0.5, 0.5, 1);
+	GrassData.BaseModelSize = FVector(1, 1, 2);
 	GrassData.RandHeightVariance = 0;
 	GrassData.RandWidthVariance = 0;
 	GrassData.RandXYVariance = 0;
 	GrassData.RotateRandomly = false;
-	GrassData.ZHeight = -50;
+	GrassData.ZHeight = -100;
 	GenerationData.Add(GrassData.Type, GrassData);
 
 
 	FGenerationData WaterData;
 	WaterData.Type = WorldGridType::Water;
-	//WaterData.HISM = GrassHISMC;
+	WaterData.HISM = WaterHISMC;
 	WaterData.Frequency = 7;
 	WaterData.CutOff = 0.6;
 	WaterData.ScaleWithHeigh = false;
-	WaterData.BaseModelSize = FVector(0.5, 0.5, 1);
+	WaterData.BaseModelSize = FVector(1, 1, 2);
 	WaterData.RandHeightVariance = 0;
 	WaterData.RandWidthVariance = 0;
 	WaterData.RandXYVariance = 0;
 	WaterData.RotateRandomly = false;
-	WaterData.ZHeight = -50;
+	WaterData.ZHeight = 0;
 	GenerationData.Add(WaterData.Type, WaterData);
 
 
@@ -225,7 +231,7 @@ void ALevelGeneration::BeginPlay()
 
 	if (Role == ROLE_Authority)
 	{
-		Seed = FMath::RandRange((int32)1, (int32)99999);
+		Seed = FindValidSeed();
 		GenerateWorld(Seed);
 
 	}
@@ -242,6 +248,8 @@ int ALevelGeneration::FindValidSeed()
 	bool IsValidSeed = false;
 
 	int TempSeed = 0;
+	int SeedCount = 0;
+
 
 	while (IsValidSeed == false)
 	{
@@ -250,164 +258,54 @@ int ALevelGeneration::FindValidSeed()
 		GenerateGrids(TempSeed);
 
 		IsValidSeed = TestGrids();
+		SeedCount++;
 	}
-	
+	UE_LOG(LogTemp, Warning, TEXT("FindValidSeed seedcount: %i"), SeedCount);
+
 	return TempSeed;
 
 }
 
-TArray<int> GetPositionFromIndex(int ASize, int AnIndex)
+float ALevelGeneration::AStarPathLength(TArray<uint8> AMaze, int AMazeLength, int AStart, int AnEnd)
 {
-	TArray<int> ReturnArray;
-	int TempIndex = AnIndex;
-	int Remainder = TempIndex % (ASize);
-	int Quotient = TempIndex / (ASize);
-	ReturnArray.Add(Remainder);
-	ReturnArray.Add(Quotient);
-	return ReturnArray;
-}
+	FASGraph Graph;
+	Graph.Nodes = AMaze;
+	Graph.GridSize = AMazeLength;
+	FGraphAStar<FASGraph> GraphAStar = FGraphAStar<FASGraph>(Graph);
+	TArray<int32> OutPath;
 
-
-
-//Assume 
-TArray<FANode*> ALevelGeneration::AStar(TArray<uint8> AMaze, int AMazeSize, int AStart, int AnEnd)
-{
-	TMap<int, FANode*> NodeIndexes;
-	//Create start and end node
-	TArray<int> Position = GetPositionFromIndex(AMazeSize, AStart);
-	FANode StartNode = FANode(AStart, -1, Position[0], Position[1]);
-	NodeIndexes.Add(AStart, &StartNode);
-	Position = GetPositionFromIndex(AMazeSize, AnEnd);
-	FANode EndNode = FANode(-1, Position[0], Position[1]);
-	NodeIndexes.Add(AnEnd, &EndNode);
-
-	//Open and closed lists
-	TArray<FANode*> OpenList;
-	TArray<FANode*> ClosedList;
-
-
-	//Start the end node
-	OpenList.Add(&StartNode);
-
-
-	//Loop until we find the end
-	while (OpenList.Num() > 0)
-	{
-		//Get the current node
-		FANode* CurrentNode = OpenList[0];
-		int CurrentIndex = 0;
-
-		for (int i = 0; i < OpenList.Num(); i++)
-		{
-			FANode* TempNode = OpenList[i];
-
-			if (TempNode->F < CurrentNode->F)
-			{
-				CurrentNode = TempNode;
-				CurrentIndex = i;
-			}
-		}
-
-		//Pop the current off the list and add to closed list.
-		OpenList.RemoveAt(CurrentIndex);
-		ClosedList.Add(CurrentNode);
-
-		//Found the goal
-		if (*CurrentNode == EndNode)
-		{
-			TArray<FANode*> Path;
-			FANode* Current = CurrentNode;
-			//Add nodes in reverse order
-			while (Current != nullptr)
-			{
-				Path.Add(Current);
-
-				Current = Current->Parent[0];
-			}
-			Algo::Reverse(Path);
-
-			return Path;
-		}
-
-		//Generate ChildNodes
-
-		TArray<FANode*> ChildNodes;
-
-		//List adjacent node coordinates
-		TArray<int> AdjacentX;
-		AdjacentX.Add(0);
-		AdjacentX.Add(0);
-		AdjacentX.Add(-1);
-		AdjacentX.Add(1);
-		AdjacentX.Add(-1);
-		AdjacentX.Add(-1);
-		AdjacentX.Add(1);
-		AdjacentX.Add(1);
-		TArray<int> AdjacentY;
-		AdjacentY.Add(-1);
-		AdjacentY.Add(1);
-		AdjacentY.Add(0);
-		AdjacentY.Add(0);
-		AdjacentY.Add(-1);
-		AdjacentY.Add(1);
-		AdjacentY.Add(-1);
-		AdjacentY.Add(1);
-		for (int i = 0; i < AdjacentX.Num(); i++)
-		{
-			//Get Node position
-			FANode* NodePosition = CurrentNode;
-			NodePosition->X += AdjacentX[i];
-			NodePosition->Y += AdjacentY[i];
-
-			//Make sure within range
-			if (NodePosition->X > AMazeSize || NodePosition->X < 1 || NodePosition->Y > AMazeSize || NodePosition->Y < 1)
-				continue;
-
-			int Index = NodePosition->X + NodePosition->Y * AMazeSize - 1;
-
-			//Make sure walkable
-			if (AMaze[Index] != 0)
-				continue;
-
-			FANode NewNode = FANode(NodePosition, AdjacentX[i], AdjacentY[i]);
-
-			ChildNodes.Add(&NewNode);
-		}
-			
-
-		//Loop through ChildNodes
-		for (int i = 0; i < ChildNodes.Num(); i++)
-		{
-			//Child is on the closed list
-			for (int j = 0; j < ClosedList.Num(); j++)
-			{
-				if (*ChildNodes[i] == *ClosedList[j])
-					continue;
-
-				//Create f, g and h values
-				ChildNodes[i]->G = CurrentNode->G + 1;
-				ChildNodes[i]->H = (pow((ChildNodes[i]->X - EndNode.X), 2) + pow((ChildNodes[i]->Y - EndNode.Y), 2));
-				ChildNodes[i]->F = ChildNodes[i]->G + ChildNodes[i]->H;
-
-				for (int k = 0; k < OpenList.Num(); k++)
-				{
-					if (*ChildNodes[i] == *OpenList[k] && ChildNodes[i]->G > OpenList[k]->G)
-						continue;
-
-					OpenList.Add(ChildNodes[i]);
-				}
-			}
-		}
-	}
+	FQueryFilter Qf;
+	Qf.MapSize = AMazeLength;
+	Qf.Maze = AMaze;
+	GraphAStar.FindPath(AStart, AnEnd, Qf, OutPath);
 	
-	TArray<FANode*> CantReach;
-	return CantReach;
+	float Cost = 0;
+	if (OutPath.Num() > 0)
+	{
+		Cost = Qf.GetTraversalCost(OutPath[0], OutPath[OutPath.Num() - 1]);
 
+	}
+	if (OutPath.Num() > 0)
+	{
+		for (int i = 1; i < OutPath.Num(); i++)
+		{
+			Cost += Qf.GetTraversalCost(OutPath[i - 1], OutPath[i]);
+		}
+
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("AStarPathLength: %f"), Cost);
+
+
+	return Cost;
 }
+
+
 
 bool ALevelGeneration::TestGrids()
 {
 	//CreateNavGrid
+	
 
 	TArray<uint8> NavGrid;
 	int NavGridSize = WorldGridSize;
@@ -416,13 +314,19 @@ bool ALevelGeneration::TestGrids()
 	{
 		if (GroundGrid[i] == WorldGridType::Water)
 		{
-			NavGrid[i] = 0;
+			NavGrid[i] = 1;
 		}
 
 		if (TerrainGrid[i] == WorldGridType::Rock || TerrainGrid[i] == WorldGridType::Tree)
 		{
 			NavGrid[i] = 1;
 		}
+	}
+
+	if (NavGrid[0] == 1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TestGrids: False Start"));
+		return false;
 	}
 
 	//Resize navgrid to have empty borders
@@ -455,11 +359,26 @@ bool ALevelGeneration::TestGrids()
 
 	}
 
-	//Add top and bottom
-	BorderedNavGrid.AddZeroed(WorldGridSize + 2);
-	BorderedNavGrid.InsertZeroed(0, WorldGridSize + 2);
+	////Add top and bottom
+	//BorderedNavGrid.AddZeroed(WorldGridSize + 2);
+	//BorderedNavGrid.InsertZeroed(0, WorldGridSize + 2);
+	////Half of total grid size to get middle node.
+	//int MiddleNode = ((WorldGridSize + 2) * (WorldGridSize + 2)) / 2;
+	////int PathLength = AStarPathLength(BorderedNavGrid, NavGridSize + 2, 0, MiddleNode);
+	//float PathLength = AStarPathLength(BorderedNavGrid, NavGridSize + 2, 0, MiddleNode);
 
-	return false;
+	int MiddleNode = ((WorldGridSize) * (WorldGridSize)) / 2;
+
+	float PathLength = AStarPathLength(NavGrid, NavGridSize, 0, MiddleNode);
+
+	if (NavGrid[MiddleNode] == 1)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("TestGrids: NavGrid[MiddleNode] == 1"));
+		return false;
+	}
+
+	return (PathLength > 0);
+	//return (PathLength == 0);
 }
 
 void ALevelGeneration::GenerateGrids(int ASeed)
@@ -571,6 +490,7 @@ void ALevelGeneration::GenerateWorld(int ASeed)
 
 		SpawnMeshes(MudData, GroundGrid, GroundElevation);
 		SpawnMeshes(GrassData, GroundGrid, GroundElevation);
+		//SpawnMeshes(WaterData, GroundGrid, GroundElevation);
 		SpawnMeshes(TreeData, TerrainGrid, TerrainElevation);
 		SpawnMeshes(RockData, TerrainGrid, TerrainElevation);
 		HasGenerated = true;
@@ -607,8 +527,8 @@ void ALevelGeneration::SpawnMeshes(FGenerationData AGenerationData, TArray<World
 		{
 			int Remainder = i % WorldGridSize;
 			int Quotient = i / WorldGridSize;
-			int Y = Remainder * 50;
-			int X = Quotient * 50;
+			int Y = Remainder * GridSize;
+			int X = Quotient * GridSize;
 
 			float RandXY = 0;
 			float RandZ = 0;

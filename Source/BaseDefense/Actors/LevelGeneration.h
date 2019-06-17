@@ -7,7 +7,8 @@
 #include "StructLibrary.h"
 #include "Runtime/AIModule/Public/GraphAStar.h"
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
-
+#include "GenericPlatform/GenericPlatformMath.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "LevelGeneration.generated.h"
 
 //struct FASNode 
@@ -39,6 +40,9 @@
 //	}
 //};
 
+
+
+
 struct FASGraph
 {
 public:
@@ -48,86 +52,134 @@ public:
 	TArray<uint8> Nodes;
 	int GridSize;
 
+	static UObject* WorldContextObject;
+	static UWorld* InWorld;
+
 	//TArray<FASNode> ASNodes;
 	
-	TArray<int> GetNeighbourList(FNodeRef NodeRef)  const
+	TArray<int> GetNeighbourList(FNodeRef NodeRef) const
 	{
 		TArray<int> Neighbors;
+		//x value
+		int X = ((NodeRef) % GridSize) + 1;
+		//y value
+		int Y = (NodeRef) / GridSize + 1;
 
-		int Quotiant = (NodeRef + 1) / GridSize;
-		int Remainder = (NodeRef + 1) % GridSize;
+		bool Up = (Y > 1);
+		bool Down = (Y < GridSize);
+		bool Left = (X > 1);
+		bool Right = (X < GridSize);
 
-		//Check can go up
-		if (Quotiant > 0 && Nodes[NodeRef - GridSize - 1] == 0)
-		{
+
+		if (Up && Left && Nodes[NodeRef - GridSize - 1] == 0)
+			Neighbors.Add(NodeRef - GridSize - 1);
+
+		if (Up && Nodes[NodeRef - GridSize] == 0)
 			Neighbors.Add(NodeRef - GridSize);
-		}
 
-		//check can go left
-		if (Remainder > 1 && Nodes[NodeRef - 2] == 0)
-		{
-			Neighbors.Add(NodeRef - 1);
-		}
+		if (Up && Right && Nodes[NodeRef - GridSize + 1] == 0)
+			Neighbors.Add(NodeRef - GridSize + 1);
 
-		//check can go right
-		if (Remainder < GridSize && Nodes[NodeRef] == 0)
-		{
+
+		if (Right && Nodes[NodeRef + 1] == 0)
 			Neighbors.Add(NodeRef + 1);
-		}
 
-		//check can go Down
-		if (Quotiant < GridSize && Nodes[NodeRef + GridSize - 1] == 0)
-		{
+
+		if (Down && Right && Nodes[NodeRef + GridSize + 1] == 0)
+			Neighbors.Add(NodeRef + GridSize + 1);
+
+
+		if (Down && Nodes[NodeRef + GridSize] == 0)
 			Neighbors.Add(NodeRef + GridSize);
-		}
+
+		if (Down && Left && Nodes[NodeRef + GridSize - 1] == 0)
+			Neighbors.Add(NodeRef + GridSize - 1);
+
+		if (Left && Nodes[NodeRef - 1] == 0)
+			Neighbors.Add(NodeRef - 1);
+
+		return Neighbors;
 	}
 
 
-
-	int32 GetNeighbourCount(FNodeRef ANode)
+	int32 GetNeighbourCount(FNodeRef ANode) const
 	{
-		return GetNeighbourList(ANode).Num();
+		return (int32)GetNeighbourList(ANode).Num();
 	}
 
 	FNodeRef GetNeighbour(const FNodeRef NodeRef, const int32 NeighbourIndex) const
 	{
-		return GetNeighbourList(NodeRef)[NeighbourIndex];
+		return (int32)GetNeighbourList(NodeRef)[NeighbourIndex];
+	}
+
+	bool IsValidRef(FNodeRef NodeRef) const
+	{
+		return true;
 	}
 
 };
 
+class FQueryFilter {
+public:
 
+	int MapSize = 256;
+	TArray<uint8> Maze;
 
-
-
-USTRUCT()
-struct FANode
-{
-	GENERATED_BODY()
-
-		int Index;
-	int ParentIndex;
-	int X;
-	int Y;
-
-	int G = 0;
-	int H = 0;
-	int F = 0;
-
-	FANode();
-	FANode(int AnIndex, int AParentIndex, int AnX, int AY)
+	float GetHeuristicScale() const
 	{
-		Index = AnIndex;
-		ParentIndex = AParentIndex;
+		return 1;
+	}
+	float GetHeuristicCost(const FASGraph::FNodeRef StartNodeRef, const FASGraph::FNodeRef EndNodeRef) const
+	{
 
-		X = AnX;
-		Y = AY;
+		int StartX = (StartNodeRef + 1) % MapSize;
+		int StartY = (StartNodeRef + 1) / MapSize + 1;
+
+		int EndX = (EndNodeRef + 1) % MapSize;
+		int EndY = (EndNodeRef + 1) / MapSize + 1;
+
+
+
+
+		//dx = abs(node.x - goal.x)
+		int AbsX = FGenericPlatformMath::Abs(StartX - EndX);
+		//dy = abs(node.y - goal.y)
+		int AbsY = FGenericPlatformMath::Abs(StartY - EndY);
+
+		//Return the distance with the diagonal moves counting for 1.41
+		return (AbsX + AbsY) + (1.41 - 2) * UKismetMathLibrary::Min(AbsX, AbsY);
+
+	}
+	float GetTraversalCost(const FASGraph::FNodeRef StartNodeRef, const FASGraph::FNodeRef EndNodeRef) const
+	{
+		int StartX = (StartNodeRef + 1) % MapSize;
+		int StartY = (StartNodeRef + 1) / MapSize + 1;
+
+		int EndX = (EndNodeRef + 1) % MapSize;
+		int EndY = (EndNodeRef + 1) / MapSize + 1;
+
+
+
+
+		//dx = abs(node.x - goal.x)
+		int AbsX = FGenericPlatformMath::Abs(StartX - EndX);
+		//dy = abs(node.y - goal.y)
+		int AbsY = FGenericPlatformMath::Abs(StartY - EndY);
+
+		//Return the distance with the diagonal moves counting for 1.41
+		return (AbsX + AbsY) + (1.41 - 2) * UKismetMathLibrary::Min(AbsX, AbsY);
+	
+	}
+	bool IsTraversalAllowed(const FASGraph::FNodeRef NodeA, const FASGraph::FNodeRef NodeB) const
+	{
+		return (Maze[NodeB] != 1 && Maze[NodeA] != 1);
 	}
 
-	FORCEINLINE bool operator==(const FANode& Other) const
+	bool WantsPartialSolution() const
 	{
-		return (X == Other.X && Y == Other.Y);
+		return false;
 	}
+
 };
 
 
@@ -174,7 +226,7 @@ protected:
 	int FindValidSeed();
 
 
-	TArray<FANode*> AStar(TArray<uint8> AMaze, int AMazeSize, int AStart, int AnEnd);
+	float AStarPathLength(TArray<uint8> AMaze, int AMazeSize, int AStart, int AnEnd);
 	void GenerateGrids(int ASeed);
 
 	bool TestGrids();
@@ -201,6 +253,8 @@ public:
 
 
 	int WorldGridSize = 256;
+
+	int GridSize = 50;
 
 	UPROPERTY(EditAnywhere)
 	float Frequency = 1;
@@ -236,6 +290,10 @@ public:
 	//UPROPERTY(replicated, VisibleAnywhere)
 	UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* IronHISMC = nullptr;
+
+	UPROPERTY(VisibleAnywhere)
+	class UHierarchicalInstancedStaticMeshComponent* WaterHISMC = nullptr;
+
 
 	UPROPERTY(ReplicatedUsing = OnRep_SetSeed)
 	int Seed = 0;
