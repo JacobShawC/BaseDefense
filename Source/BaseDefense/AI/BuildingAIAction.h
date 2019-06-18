@@ -21,7 +21,8 @@ public:
 
 public:
 	UPROPERTY()
-	class ABuilding* Building = nullptr;
+	//TODO
+	//class ABuilding* Building = nullptr;
 
 	FBuildingData* BuildingData = nullptr;
 };

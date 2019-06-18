@@ -25,6 +25,9 @@ struct FBuildingInteraction
 {
 	GENERATED_USTRUCT_BODY()
 
+	UPROPERTY(VisibleAnywhere)
+	class APlayerChar* Interactor = nullptr;
+
 	UPROPERTY()
 	EBuildingInteractionType Type = EBuildingInteractionType::None;
 
