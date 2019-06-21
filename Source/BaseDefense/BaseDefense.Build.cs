@@ -32,7 +32,6 @@ public class BaseDefense : ModuleRules
                 "BaseDefense/Pawns",
                 "BaseDefense/UI",
                 "BaseDefense/AI",
-                "BaseDefense/PlayerActions",
                 "BaseDefense/Levels",
             }
         );

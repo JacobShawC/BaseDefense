@@ -41,4 +41,7 @@ public:
 	class AActor* CurrentTarget = nullptr;
 
 	int Overlapping = 0;
+
+	UPROPERTY(VisibleAnywhere)
+	class UBuildingAIAction* CurrentAction = nullptr;
 };

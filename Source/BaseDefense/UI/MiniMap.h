@@ -36,8 +36,10 @@ public:
 
 
 	void MiniMapClicked(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
-	void MiniMapReleased();
 	void Refresh();
+
+	UFUNCTION()
+	void SetMiniMap();
 
 	void RefreshMiniMapTexture();
 
@@ -71,7 +73,7 @@ public:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* MiniMapTexture = nullptr;
 
-	float MapWidth = 0;
+	float MapWidth = 256000;
 	FVector2D MapPosition;
 
 	float BuildingSize = 10;

@@ -11,36 +11,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "LevelGeneration.generated.h"
 
-//struct FASNode 
-//{
-//public:
-//
-//	int Index;
-//	bool Block;
-//
-//	TArray<int> NeighborList;
-//
-//	FASNode();
-//	FASNode(int AnIndex, bool ABlock)
-//	{
-//		Index = AnIndex;
-//		Block = ABlock;
-//	}
-//	FASNode(TArray<int> ANeighborList, int AnIndex, bool ABlock)
-//	{
-//		Index = AnIndex;
-//		Block = ABlock;
-//		NeighborList = ANeighborList;
-//	}
-//
-//
-//	bool operator == (const FASNode& Other) const
-//	{
-//		return (Index == Other.Index);
-//	}
-//};
-
-
+DECLARE_MULTICAST_DELEGATE(FWorldGenerated);
 
 
 struct FASGraph
@@ -221,7 +192,7 @@ protected:
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
 
 	UFUNCTION(Exec)
-	void GenerateWorld(int ASeed);
+	void GenerateWorld();
 
 	int FindValidSeed();
 
@@ -231,7 +202,8 @@ protected:
 
 	bool TestGrids();
 
-	void GenerateWorldFromGrids(int ASeed);
+
+	void MakeMiniMapTexture();
 
 	UFUNCTION()
 	void OnRep_SetSeed();
@@ -251,6 +223,7 @@ public:
 	TArray<float> TerrainElevation;
 	TArray<float> GroundElevation;
 
+	FWorldGenerated OnGenerateWorld;
 
 	int WorldGridSize = 256;
 
@@ -273,25 +246,25 @@ public:
 	UPROPERTY(replicated, VisibleAnywhere)
 	class USceneComponent* SceneComponent = nullptr;
 	//UPROPERTY(replicated, VisibleAnywhere)
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* TreeHISMC = nullptr;
 	//UPROPERTY(replicated, VisibleAnywhere)
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* RockHISMC = nullptr;
 	//UPROPERTY(replicated, VisibleAnywhere)
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* MudHISMC = nullptr;
 	//UPROPERTY(replicated, VisibleAnywhere)
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* GrassHISMC = nullptr;
 	//UPROPERTY(replicated, VisibleAnywhere)
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* CoalHISMC = nullptr;
 	//UPROPERTY(replicated, VisibleAnywhere)
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* IronHISMC = nullptr;
 
-	UPROPERTY(VisibleAnywhere)
+	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* WaterHISMC = nullptr;
 
 
@@ -300,7 +273,13 @@ public:
 
 	bool HasGenerated = false;
 
+	UPROPERTY(VisibleAnywhere)
+	class USceneCaptureComponent2D* CaptureComponent = nullptr;
+	UPROPERTY(VisibleAnywhere)
+	class UTextureRenderTarget2D* RenderTarget = nullptr;
 
+	UPROPERTY(VisibleAnywhere)
+		class UTexture2D* MiniMapTexture = nullptr;
 
 	TMap<WorldGridType, FGenerationData> GenerationData;
 };

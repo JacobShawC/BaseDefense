@@ -20,9 +20,8 @@ public:
 	virtual void Initialise(class ABuilding* ABuilding);
 
 public:
-	UPROPERTY()
-	//TODO
-	//class ABuilding* Building = nullptr;
+	
+	class ABuilding* Building = nullptr;
 
 	FBuildingData* BuildingData = nullptr;
 };

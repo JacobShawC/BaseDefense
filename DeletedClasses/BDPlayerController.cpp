@@ -464,7 +464,7 @@ void ABDPlayerController::ClearHUDWidgets_Implementation()
 	}
 }
 
-void ABDPlayerController::GetKeysForAction(FName AnActionName, TArray<FInputActionKeyMapping>& Bindings)
+void ABDPlayerController::GetKeysForAction(FName AnActionName, TArray<FInputActionKeyMapping>& ABindings)
 {
 	Bindings = PlayerInput->GetKeysForAction(AnActionName);
 }

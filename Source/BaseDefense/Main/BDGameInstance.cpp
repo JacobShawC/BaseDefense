@@ -62,10 +62,6 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FClassFinder<UUserWidget> FriendRowBP(TEXT("WidgetBlueprint'/Game/UI/FriendRowWidget.FriendRowWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> SaveRowBP(TEXT("WidgetBlueprint'/Game/UI/SaveRowWidget.SaveRowWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreGameBP(TEXT("WidgetBlueprint'/Game/UI/PreGameWidget.PreGameWidget_C'"));
-	static ConstructorHelpers::FClassFinder<UUserWidget> PreLevelBP(TEXT("WidgetBlueprint'/Game/UI/PreLevelWidget.PreLevelWidget_C'"));
-	static ConstructorHelpers::FClassFinder<UUserWidget> PreBuildingBP(TEXT("WidgetBlueprint'/Game/UI/PreBuildingWidget.PreBuildingWidget_C'"));
-	static ConstructorHelpers::FClassFinder<UUserWidget> PreInfoSlotBP(TEXT("WidgetBlueprint'/Game/UI/PreInfoSlotWidget.PreInfoSlotWidget_C'"));
-	static ConstructorHelpers::FClassFinder<UUserWidget> LoadoutSelectorBP(TEXT("WidgetBlueprint'/Game/UI/LoadoutSelectorWidget.LoadoutSelectorWidget_C'"));
 	
 	//Meshes
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
@@ -112,10 +108,6 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Widgets.Add("FriendRow", FriendRowBP.Class);
 	Widgets.Add("SaveRow", SaveRowBP.Class);
 	Widgets.Add("PreGame", PreGameBP.Class);
-	Widgets.Add("PreLevel", PreLevelBP.Class);
-	Widgets.Add("PreBuilding", PreBuildingBP.Class);
-	Widgets.Add("PreInfoSlot", PreInfoSlotBP.Class);
-	Widgets.Add("LoadoutSelector", LoadoutSelectorBP.Class);
 
 	Images.Add(EBuilding::Wall, BarrelImage.Object);
 	//----------------------------------------------------------------------------------------------------------

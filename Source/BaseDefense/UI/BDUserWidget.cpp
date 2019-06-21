@@ -40,21 +40,21 @@ void UBDUserWidget::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 	}
 
 }
-
-FReply UBDUserWidget::NativeOnMouseButtonDown(const FGeometry & InGeometry, const FPointerEvent & InMouseEvent)
-{
-
-	Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController())->SelectPressed();
-
-	return FReply::Handled();
-}
-
-FReply UBDUserWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
-{
-	Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController())->SelectReleased();
-
-	return FReply::Handled();
-}
+//
+//FReply UBDUserWidget::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+//{
+//
+//	Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController())->SelectPressed();
+//
+//	return FReply::Handled();
+//}
+//
+//FReply UBDUserWidget::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
+//{
+//	Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController())->SelectReleased();
+//
+//	return FReply::Handled();
+//}
 
 void UBDUserWidget::NativeOnInitialized()
 {

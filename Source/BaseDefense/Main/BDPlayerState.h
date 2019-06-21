@@ -8,6 +8,8 @@
 #include "BDPlayerState.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FPlayerStateVariableUpdated);
+
+
 DECLARE_MULTICAST_DELEGATE_OneParam(FPlayerStateVariableOneParamUpdated, float);
 
 /**

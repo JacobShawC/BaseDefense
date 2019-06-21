@@ -17,7 +17,9 @@
 #include "BDGameInstance.h"
 #include "StructLibrary.h"
 #include "BDPlayerState.h"
+#include "LevelGeneration.h"
 #include "Public/KismetAnimationLibrary.h"
+#include <GameFramework/Actor.h>
 
 
 void ABDGameState::GetMiniMap()
@@ -80,6 +82,9 @@ void ABDGameState::BeginPlay()
 	Super::BeginPlay();
 	if (Role == ROLE_Authority)
 	{
+		LevelGenerationActor = (ALevelGeneration*)GetWorld()->SpawnActor<ALevelGeneration>(ALevelGeneration::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+		OnRep_LevelGenerationActor();
+
 		for (APlayerState* AState : PlayerArray)
 		{
 			ABDPlayerState* ABDState = Cast<ABDPlayerState>(AState);
@@ -181,6 +186,7 @@ void ABDGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ABDGameState, SelectedLevelDifficulty);
 	DOREPLIFETIME(ABDGameState, LevelSaves);
 	DOREPLIFETIME(ABDGameState, CurrentState);
+	DOREPLIFETIME(ABDGameState, LevelGenerationActor);
 }
 void ABDGameState::OnRep_LevelRewards()
 {
@@ -205,6 +211,11 @@ void ABDGameState::OnRep_SelectedLevel()
 void ABDGameState::OnRep_SelectedLevelDifficulty()
 {
 	SelectedLevelDifficultyUpdated.Broadcast();
+}
+
+void ABDGameState::OnRep_LevelGenerationActor()
+{
+	LevelGenerationActorUpdated.Broadcast();
 }
 
 void ABDGameState::SetLevelRewards(int ALevelRewards)

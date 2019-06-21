@@ -77,10 +77,6 @@ void UBuildingAttackAIAction::Activate()
 	ShouldActivate = false;
 
 	Executing = false;
-	if (Building->CurrentAction == this)
-	{
-		Building->CurrentAction = nullptr;
-	}
 
 	Building->WhatDo();
 

@@ -19,20 +19,8 @@ class BASEDEFENSE_API UPreGame : public UUserWidget
 public:
 	void Setup();
 
-	void RefreshLevels();
 	
-	void SetUpLevelInformation(FLevelData ALevelData);
-
-	void RefreshInformation();
-
-	void RefreshLevelRewards();
-
-	void RefreshSelectedLevel();
-
-
-	void PreLevelClicked(class UPreLevel* ALevel);
-
-	void PreInfoSlotClicked(class UPreInfoSlot* AnInfoSlot);
+	
 
 private:
 	UFUNCTION()
@@ -60,34 +48,10 @@ protected:
 		class UButton* LeaveButton;
 
 	UPROPERTY(meta = (BindWidget))
-	class UUniformGridPanel* LevelsGridPanel;
-
-	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* InformationText;
-
-	UPROPERTY(meta = (BindWidget))
-		class UImage* InformationImage;
-
-	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* InformationTitle;
-
-	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* SelectedLevelText;
-
-	UPROPERTY(meta = (BindWidget))
 		class UTextBlock* SelectedDifficultyText;
-
-	UPROPERTY(meta = (BindWidget))
-	class UVerticalBox* InformationSlotBox;
 
 	class UBDGameInstance* GameInstance = nullptr;
 	class UBDSaveGame* CurrentSave = nullptr;
 
-	int LevelRewards = 0;
 
-	//Selected level
-	ELevel SelectedLevel = ELevel::None;
-
-	//Selected Build
-	FLoadout* SelectedBuild = nullptr;
 };

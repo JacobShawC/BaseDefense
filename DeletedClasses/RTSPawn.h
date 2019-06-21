@@ -44,7 +44,6 @@ private:
 	class UCameraComponent* Camera = nullptr;
 
 	FVector GetCameaPanDirection();
-	virtual void Tick(float DeltaSeconds) override;
 
 	void SelectPressed();
 

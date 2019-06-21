@@ -52,7 +52,6 @@ ABDGameMode::ABDGameMode()
 	PlayerControllerClass = ABDPlayerController::StaticClass();
 	PlayerStateClass = ABDPlayerState::StaticClass();
 	bUseSeamlessTravel = true;
-
 }
 
 void ABDGameMode::PostLogin(APlayerController * NewPlayer)

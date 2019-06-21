@@ -18,6 +18,12 @@
 #include "GenericPlatform/GenericPlatformMath.h"
 #include "SearchGraph.h"
 #include "Algo/Reverse.h"
+#include "Net/UnrealNetwork.h"
+#include <Components/SceneCaptureComponent2D.h>
+#include <Engine/TextureRenderTarget2D.h>
+#include <Engine/Texture2D.h>
+#include <UnrealMathSSE.h>
+#include <Engine/Engine.h>
 
 //#include "UObject/ConstructorHelpers.h"
 
@@ -27,14 +33,24 @@ ALevelGeneration::ALevelGeneration()
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 
 	bReplicates = true;
-
+	bAlwaysRelevant = true;
 
 	PrimaryActorTick.bCanEverTick = false;
 	this->SetActorScale3D(FVector(1));
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	SceneComponent->SetMobility(EComponentMobility::Static);
 	SetRootComponent(SceneComponent);
-	
+
+
+	CaptureComponent = CreateDefaultSubobject<USceneCaptureComponent2D>(TEXT("USceneCaptureComponent2D"));
+	CaptureComponent->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+	CaptureComponent->ProjectionType = ECameraProjectionMode::Orthographic;
+	CaptureComponent->OrthoWidth = 25600.0f;
+	CaptureComponent->SetWorldRotation(FRotator(-90, 0, 0));
+	CaptureComponent->SetWorldLocation(FVector(-12700, 12700, 500));
+	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
+	CaptureComponent->bCaptureOnMovement = false;
+	CaptureComponent->bCaptureEveryFrame = false;
 	//TreeHISMC
 	//RockHISMC
 	//MudHISMC
@@ -228,18 +244,14 @@ ALevelGeneration::ALevelGeneration()
 void ALevelGeneration::BeginPlay()
 {
 	Super::BeginPlay();
-
 	if (Role == ROLE_Authority)
 	{
 		Seed = FindValidSeed();
-		GenerateWorld(Seed);
 
-	}
-	else if (Role == ROLE_SimulatedProxy)
-	{
 		OnRep_SetSeed();
-	}
 
+	}
+	
 }
 
 
@@ -437,17 +449,70 @@ void ALevelGeneration::GenerateGrids(int ASeed)
 
 
 
-void ALevelGeneration::GenerateWorldFromGrids(int ASeed)
-{
-}
 
+void ALevelGeneration::MakeMiniMapTexture()
+{
+	TArray<FColor> RawData;
+	RawData.SetNum((WorldGridSize) * (WorldGridSize));
+
+
+	TArray<uint8> NavGrid;
+	int NavGridSize = WorldGridSize;
+	NavGrid.SetNum((NavGridSize) * (NavGridSize));
+
+
+	for (int i = 0; i < TerrainGrid.Num(); i++)
+	{
+		if (GroundGrid[i] == WorldGridType::Grass)
+		{
+			RawData[i] = FColor(0, 204, 0, 255);
+		}
+		if (GroundGrid[i] == WorldGridType::Mud)
+		{
+			RawData[i] = FColor(153, 76, 0, 255);
+		}
+
+
+		if (TerrainGrid[i] == WorldGridType::Water)
+		{
+			RawData[i] = FColor(0, 47, 141, 255);
+		}
+		if (TerrainGrid[i] == WorldGridType::Rock)
+		{
+			RawData[i] = FColor(128, 128, 128, 255);
+		}
+		if (TerrainGrid[i] == WorldGridType::Tree)
+		{
+			RawData[i] = FColor(51, 102, 0, 255);
+		}
+
+
+
+
+	}
+
+	MiniMapTexture = UTexture2D::CreateTransient(256, 256);
+	FTexture2DMipMap& Mip = MiniMapTexture->PlatformData->Mips[0];
+	void* Data = Mip.BulkData.Lock(LOCK_READ_WRITE);
+	FMemory::Memcpy(Data, RawData.GetData(), 256 * 256 * sizeof(FColor));
+	Mip.BulkData.Unlock();
+	MiniMapTexture->UpdateResource();
+}
 
 void ALevelGeneration::OnRep_SetSeed()
 {
+	ENetRole MyRole = Role;
 
-	if (Seed != 0)
+	if (Seed != 0 && HasGenerated == false)
 	{
-		GenerateWorld(Seed);
+		if (Role != ROLE_Authority)
+		{
+			//we have already done this on the host as part of finding a valid seed
+			GenerateGrids(Seed);
+		}
+		GenerateWorld();
+		MakeMiniMapTexture();
+		OnGenerateWorld.Broadcast();
 	}
 }
 
@@ -462,17 +527,9 @@ void ALevelGeneration::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(ALevelGeneration, GrassHISMC);
 	DOREPLIFETIME(ALevelGeneration, CoalHISMC);
 	DOREPLIFETIME(ALevelGeneration, IronHISMC);*/
-
-
-	//TreeHISMC
-//RockHISMC
-//MudHISMC
-//GrassHISMC
-//CoalHISMC
-//IronHISMC
 }
 
-void ALevelGeneration::GenerateWorld(int ASeed)
+void ALevelGeneration::GenerateWorld()
 {
 	if (HasGenerated == false)
 	{

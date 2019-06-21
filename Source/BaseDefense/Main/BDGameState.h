@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
-#include "MiniMapCapture.h"
 #include "StructLibrary.h"
 //#include "C:\Program Files\Epic Games\UE_4.22\Engine\Source\Runtime\AnimGraphRuntime\Public\KismetAnimationLibrary.h"
 #include "BDGameState.generated.h"
@@ -32,6 +31,9 @@ public:
 	void OnRep_SelectedLevel();
 	UFUNCTION()
 	void OnRep_SelectedLevelDifficulty();
+
+	UFUNCTION()
+	void OnRep_LevelGenerationActor();
 
 	UFUNCTION(Exec)
 	void SetLevelRewards(int ALevelRewards);
@@ -61,7 +63,6 @@ public:
 
 	TArray<class APlayerChar*> GetPlayerPawns();
 
-	TWeakObjectPtr<AMiniMapCapture> MiniMapCamera;
 
 	FBox WorldBounds;
 
@@ -75,6 +76,7 @@ public:
 	FVariableUpdated CurrentStateUpdated;
 	FVariableUpdated SelectedLevelUpdated;
 	FVariableUpdated SelectedLevelDifficultyUpdated;
+	FVariableUpdated LevelGenerationActorUpdated;
 
 	UPROPERTY(ReplicatedUsing = OnRep_SelectedLevel)	ELevel SelectedLevel = ELevel::None;
 
@@ -89,6 +91,8 @@ public:
 	int NumberOfPlayers = 1;
 
 	int WorldGridSize = 256;
+
+	UPROPERTY(ReplicatedUsing = OnRep_LevelGenerationActor)	class ALevelGeneration* LevelGenerationActor = nullptr;
 
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentState)	EGameState CurrentState = EGameState::PreGame;

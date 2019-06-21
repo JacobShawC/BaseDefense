@@ -15,17 +15,18 @@
 #include "Layout/Geometry.h"
 #include "Camera/CameraComponent.h"
 #include "GameFramework/SpringArmComponent.h"
-
+#include "LevelGeneration.h"
+#include <GenericPlatformMath.h>
 
 void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 {
 	Super::NativeTick(MyGeometry, DeltaTime);
 	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 
-	float PlayerRelativeSize = 1;
+	float PlayerRelativeSize = 10;
 	float BuildingRelativeSize = 1;
 	float EnemyRelativeSize = 1;
-	if (MapWidth == 0)
+	/*if (MapWidth == 0)
 	{
 		MapWidth = State->OrthoWidth;
 		MapPosition = State->MapCapturePosition;
@@ -35,7 +36,7 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 		PlayerRelativeSize = 4000 / MapWidth * PlayerSize;
 		BuildingRelativeSize = 4000 / MapWidth * EnemySize;
 		EnemyRelativeSize = 4000 / MapWidth * BuildingSize;
-	}
+	}*/
 
 
 
@@ -125,17 +126,21 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 				if (MapWidth == 0)
 				{
 
-					MapWidth = State->OrthoWidth;
 					MapPosition = State->MapCapturePosition;
 
 				}
 				UImage* Image = NewObject<UImage>(UImage::StaticClass());
+
 				Iterator->Value = Image;
 				Image->SetColorAndOpacity(FLinearColor::Yellow);
 				PlayersPanel->AddChild(Image);
 				UCanvasPanelSlot* CanvasPanelSlot = (UCanvasPanelSlot*)Image->Slot;
 				CanvasPanelSlot->SetSize(FVector2D(PlayerRelativeSize, PlayerRelativeSize));
-				CanvasPanelSlot->SetPosition(GetCanvasLocation(Iterator->Key->GetActorLocation()));
+				FVector2D RelativePosition = GetCanvasLocation(Iterator->Key->GetActorLocation());
+				float HalfImageSize = Image->GetCachedGeometry().GetLocalSize().X / 2;
+				//CanvasPanelSlot->SetPosition(RelativePosition);
+				CanvasPanelSlot->SetPosition(FVector2D(RelativePosition.Y - HalfImageSize, RelativePosition.X - HalfImageSize));
+
 			}
 			else
 			{
@@ -148,8 +153,11 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 				}
 
 				UCanvasPanelSlot* CanvasPanelSlot = (UCanvasPanelSlot*)Iterator->Value->Slot;
-
-				CanvasPanelSlot->SetPosition(GetCanvasLocation(Iterator->Key->GetActorLocation()));
+				FVector2D RelativePosition = GetCanvasLocation(Iterator->Key->GetActorLocation());
+				//CanvasPanelSlot->SetPosition(RelativePosition);
+				float HalfImageSize = Iterator->Value->GetCachedGeometry().GetLocalSize().X / 2;
+				//CanvasPanelSlot->SetPosition(RelativePosition);
+				CanvasPanelSlot->SetPosition(FVector2D(RelativePosition.Y - HalfImageSize, RelativePosition.X - HalfImageSize));
 			}
 		}
 		else
@@ -163,19 +171,23 @@ void UMiniMap::NativeTick(const FGeometry& MyGeometry, float DeltaTime)
 
 FVector2D UMiniMap::GetCanvasLocation(FVector ALocation)
 {
-	FVector2D TempLoc = FVector2D(ALocation);
-	TempLoc = FVector2D(TempLoc.X - MapPosition.X, TempLoc.Y - MapPosition.Y);
-	TempLoc = FVector2D(-TempLoc.X, -TempLoc.Y);
 
-	TempLoc = FVector2D(TempLoc.X + MapWidth / 2, -TempLoc.Y + MapWidth / 2);
+	FVector PercentLocation = FVector(-ALocation.X, ALocation.Y, 0);
+	//FVector PercentLocation = FVector(ALocation.Y, -ALocation.X, 0);
 
-	// y = x / i * j - k / 2
-	// y + k/2 = x / i * j
-	// x = ((y + k/2 ) / j) * i
-	float Y = (TempLoc.X / MapWidth * WidgetSize - EnemySize / 2);
-	float X = (TempLoc.Y / MapWidth * WidgetSize - EnemySize / 2);
+	PercentLocation = ALocation * (MiniMapTexture->GetCachedGeometry().GetLocalSize().X / 25600);
+	//TempLoc = FVector2D(TempLoc.X - MapPosition.X, TempLoc.Y - MapPosition.Y);
+	//TempLoc = FVector2D(-TempLoc.X, -TempLoc.Y);
 
-	return FVector2D(X, Y);
+	//TempLoc = FVector2D(TempLoc.X + MapWidth / 2, -TempLoc.Y + MapWidth / 2);
+
+	//// y = x / i * j - k / 2
+	//// y + k/2 = x / i * j
+	//// x = ((y + k/2 ) / j) * i
+	//float Y = (TempLoc.X / MapWidth * WidgetSize - EnemySize / 2);
+	//float X = (TempLoc.Y / MapWidth * WidgetSize - EnemySize / 2);
+	PercentLocation = FVector(FGenericPlatformMath::Abs(PercentLocation.X), FGenericPlatformMath::Abs(PercentLocation.Y), 0);
+	return FVector2D(PercentLocation);
 }
 
 FVector UMiniMap::GetWorldLocationFromCanvas(FVector2D ALocation)
@@ -196,11 +208,16 @@ void UMiniMap::NativeConstruct()
 	Super::NativeConstruct();
 
 	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
-	if (State != nullptr)
+	
+	if (State->LevelGenerationActor == nullptr)
 	{
-		State->SelectedLevelUpdated.AddUObject(this, &UMiniMap::RefreshMiniMapTexture);
-
+		State->LevelGenerationActorUpdated.AddUObject(this, &UMiniMap::SetMiniMap);
 	}
+	else
+	{
+		SetMiniMap();
+	}
+
 	if (State != nullptr)
 	{
 		Buildings.Empty();
@@ -233,7 +250,6 @@ FReply UMiniMap::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPoi
 
 FReply UMiniMap::NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
 {
-	MiniMapReleased();
 	return FReply::Handled();
 
 }
@@ -251,7 +267,6 @@ FReply UMiniMap::NativeOnMouseMove(const FGeometry& InGeometry, const FPointerEv
 
 void UMiniMap::NativeOnMouseLeave(const FPointerEvent& InMouseEvent)
 {
-	MiniMapReleased();
 }
 
 void UMiniMap::MiniMapClicked(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -277,19 +292,8 @@ void UMiniMap::MiniMapClicked(const FGeometry& InGeometry, const FPointerEvent& 
 
 	if (PlayerChar != nullptr)
 	{
-		PlayerChar->Camera->SetWorldLocation(FVector(MouseWorldPosition.X - 550, MouseWorldPosition.Y, 800));
-	}
-}
-
-void UMiniMap::MiniMapReleased()
-{
-	APlayerChar* PlayerChar = Cast<APlayerChar>(GetOwningPlayerPawn());
-	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
-
-	if (PlayerChar != nullptr)
-	{
-		
-		PlayerChar->Camera->SetWorldLocation(PlayerChar->SpringArm->UnfixedCameraPosition);
+		//PlayerChar->SetActorLocation(FVector(MouseWorldPosition.X - 550, MouseWorldPosition.Y, 800));
+		PlayerChar->SetActorLocation(FVector((-MouseWidgetPosition.Y / InGeometry.GetLocalSize().X) * 256 * 100, (MouseWidgetPosition.X / InGeometry.GetLocalSize().X ) * 256 * 100, 0));
 	}
 }
 
@@ -298,22 +302,20 @@ void UMiniMap::Refresh()
 
 }
 
-void UMiniMap::RefreshMiniMapTexture()
+void UMiniMap::SetMiniMap()
 {
-	UBDGameInstance* Instance = Cast<UBDGameInstance>(GetWorld()->GetGameInstance());
-
 	ABDGameState* State = Cast<ABDGameState>(GetWorld()->GetGameState());
 
-	if (State->SelectedLevel != ELevel::None)
+	if (!State->LevelGenerationActor->HasGenerated)
 	{
-		UTexture2D* Texture = Instance->Levels.Find(State->SelectedLevel)->Thumbnail;
-		if (Texture != nullptr)
-		{
-			MiniMapTexture->SetBrushFromTexture(Texture);
-		}
+		State->LevelGenerationActor->OnGenerateWorld.AddUObject(this, &UMiniMap::SetMiniMap);
 	}
-	
+	else
+	{
+		MiniMapTexture->SetBrushFromTexture(State->LevelGenerationActor->MiniMapTexture);
+	}
 }
+
 
 void UMiniMap::AddBuilding(TWeakObjectPtr<class ABuilding> ABuildingInput)
 {
