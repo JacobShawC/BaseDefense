@@ -10,6 +10,10 @@
 #include "BDPlayerController.h"
 #include <TimerManager.h>
 #include "Net/UnrealNetwork.h"
+#include "BDGameInstance.h"
+#include <UserWidget.h>
+#include "GUI.h"
+#include "Hotbar.h"
 
 // Sets default values
 APlayerChar::APlayerChar()
@@ -26,22 +30,22 @@ APlayerChar::APlayerChar()
 	Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
 	Camera->SetupAttachment(SceneComponent);
 
-	Camera->SetRelativeLocationAndRotation(FVector(-600, -600, 2000), FRotator(-70.f, 45.0f, 0));
-
-	//GetMovementComponent()->Deactivate();
-
-
+	//Camera->SetRelativeLocationAndRotation(FVector(-600, -600, 2000), FRotator(-70.f, 45.0f, 0));
+	Camera->SetRelativeLocationAndRotation(FVector(-600, -600, 2000), FRotator(-70.f,0, 0));
 }
 
 
 void APlayerChar::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
 {
-	// Set up gameplay key bindings
+	// Set up game play key bindings
 	check(PlayerInputComponent);
-	InputComponent->BindAction("Left Mouse", IE_Pressed, this, &APlayerChar::SelectPressed);
-	InputComponent->BindAction("Right Mouse", IE_Released, this, &APlayerChar::SelectReleased);
-	InputComponent->BindAction("Middle Mouse", IE_Pressed, this, &APlayerChar::SelectAltPressed);
-	InputComponent->BindAction("SelectAlt", IE_Released, this, &APlayerChar::SelectAltReleased);
+	InputComponent->BindAction("Left Mouse", IE_Pressed, this, &APlayerChar::LeftMousePressed);
+	InputComponent->BindAction("Left Mouse", IE_Released, this, &APlayerChar::LeftMouseReleased);
+	InputComponent->BindAction("Middle Mouse", IE_Pressed, this, &APlayerChar::MiddleMousePressed);
+	InputComponent->BindAction("Middle Mouse", IE_Released, this, &APlayerChar::MiddleMouseReleased);
+
+	InputComponent->BindAction("Right Mouse", IE_Pressed, this, &APlayerChar::RightMousePressed);
+	InputComponent->BindAction("Right Mouse", IE_Released, this, &APlayerChar::RightMouseReleased);
 
 	InputComponent->BindAction("Hotbar1", IE_Pressed, this, &APlayerChar::SelectHotbar<0>);
 	InputComponent->BindAction("Hotbar2", IE_Pressed, this, &APlayerChar::SelectHotbar<1>);
@@ -53,7 +57,6 @@ void APlayerChar::SetupPlayerInputComponent(class UInputComponent* PlayerInputCo
 	InputComponent->BindAction("Hotbar8", IE_Pressed, this, &APlayerChar::SelectHotbar<7>);
 	InputComponent->BindAction("Hotbar9", IE_Pressed, this, &APlayerChar::SelectHotbar<8>);
 	InputComponent->BindAction("Hotbar10", IE_Pressed, this, &APlayerChar::SelectHotbar<9>);
-
 	InputComponent->BindAction("Scroll Up", IE_Pressed, this, &APlayerChar::ScrollHotbar<false>);
 	InputComponent->BindAction("Scroll Down", IE_Pressed, this, &APlayerChar::ScrollHotbar<true>);
 }
@@ -65,8 +68,6 @@ void APlayerChar::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLif
 	DOREPLIFETIME(APlayerChar, PawnLocation);
 	DOREPLIFETIME(APlayerChar, PointerLocation);
 }
-
-
 
 void APlayerChar::BeginPlay()
 {
@@ -81,6 +82,9 @@ void APlayerChar::BeginPlay()
 		FTimerDelegate UpdatePositionsDelegate = FTimerDelegate::CreateUObject(this, &APlayerChar::UpdatePositions);
 		GetWorldTimerManager().SetTimer(UniqueHandle, UpdatePositionsDelegate, 0.1, true, 0.0f);
 	}
+
+	
+
 }
 
 //Update the server's representation of the client pawn location.
@@ -115,6 +119,8 @@ void APlayerChar::OnRep_PointerLocation()
 }
 
 
+
+
 //return the vector based on whether the mouse is at the edge of the screen.
 FVector APlayerChar::GetCameraPanDirection()
 {
@@ -137,29 +143,51 @@ FVector APlayerChar::GetCameraPanDirection()
 	}
 	if (MousePosX != -1)
 	{
-
-		if (MousePosX <= 0 + Edge && ActorLocation.Y > 0 && ActorLocation.X < 0)
+		if (MousePosX <= 0 + Edge)
 		{
 			CamDirectionX = -1;
 		}
 
-		if (MousePosX >= ScreenSizeX - Edge && ActorLocation.Y < 25400 && ActorLocation.X > -25400)
+		if (MousePosX >= ScreenSizeX - Edge)
 		{
 			CamDirectionX = 1;
 		}
 
-		if (MousePosY <= 0 + Edge && ActorLocation.X < 0 && ActorLocation.Y < 25400)
+		if (MousePosY <= 0 + Edge)
 		{
 			CamDirectionY = -1;
 		}
-		if (MousePosY >= ScreenSizeY - Edge && ActorLocation.X > -25400 && ActorLocation.Y > 0)
+		if (MousePosY >= ScreenSizeY - Edge)
 		{
 			CamDirectionY = 1;
 		}
+
+		if (MousePosX <= 0 + Edge)
+		{
+			CamDirectionX = -1;
+		}
+
+
 	}
 
 	FVector ReturnVector = FVector(CamDirectionX, CamDirectionY, 0);
 	return ReturnVector;
+}
+
+void APlayerChar::LeftMousePressed()
+{
+}
+
+void APlayerChar::LeftMouseReleased()
+{
+}
+
+void APlayerChar::RightMousePressed()
+{
+}
+
+void APlayerChar::RightMouseReleased()
+{
 }
 
 //Update the actors location based on mouse movement if we are the client's own pawn or the host's own pawn
@@ -174,28 +202,37 @@ void APlayerChar::Tick(float DeltaSeconds)
 
 		PanDirection = PanDirection.RotateAngleAxis(-45, FVector(0, 0, 1)); 
 		AddActorWorldOffset(PanDirection);
+
+		FVector ActorLocation = GetActorLocation();
+
+
+		//check if actor is hitting edge of map
+		if (ActorLocation.X > 0)
+		{
+			ActorLocation.X = 0;
+		}
+
+		if (ActorLocation.X < -25400)
+		{
+			ActorLocation.X = -25400;
+		}
+
+		if (ActorLocation.Y > 25400)
+		{
+			ActorLocation.Y = 25400;
+		}
+
+		if (ActorLocation.Y < 0)
+		{
+			ActorLocation.Y = 0;
+		}
+		SetActorLocation(ActorLocation);
 	}
 }
 
 
 
 
-
-void APlayerChar::SelectPressed()
-{
-}
-
-void APlayerChar::SelectReleased()
-{
-}
-
-void APlayerChar::SelectAltPressed()
-{
-}
-
-void APlayerChar::SelectAltReleased()
-{
-}
 
 
 void APlayerChar::MiddleMousePressed()
@@ -210,10 +247,19 @@ void APlayerChar::MiddleMouseReleased()
 
 void APlayerChar::ScrollHotbar(bool UpOrDown)
 {
+	ABDPlayerController* PlayerController = GetController<ABDPlayerController>();
+	if (PlayerController->GUIWidget != nullptr)
+	{
+		PlayerController->GUIWidget->HotBar->Scroll(UpOrDown);
+	}
 
 }
 
 void APlayerChar::SelectHotbar(int ASlot)
 {
-
+	ABDPlayerController* PlayerController = GetController<ABDPlayerController>();
+	if (PlayerController->GUIWidget != nullptr)
+	{
+		PlayerController->GUIWidget->HotBar->Select(ASlot);
+	}
 }

@@ -20,7 +20,8 @@ public:
 	//USlot(const FObjectInitializer & ObjectInitializer);
 	void Hovered();
 	void UnHovered();
-	
+	void ButtonClicked();
+
 	void SetCooldownText(FString AString);
 	void SetPriceText(FString AString);
 	void SetImage(class UTexture2D* AnImage);
@@ -40,6 +41,9 @@ public:
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Price;
+
+	UPROPERTY(meta = (BindWidget))
+	class UButton* SlotButton;
 
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* Cooldown;

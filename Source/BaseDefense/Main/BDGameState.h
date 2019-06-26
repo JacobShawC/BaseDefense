@@ -53,6 +53,8 @@ public:
 	void RefreshLevelRewards();
 
 	EGameState GetCurrentState();
+
+
 public:
 	UPROPERTY()
 	TArray<TWeakObjectPtr<class ABuilding>> Buildings;

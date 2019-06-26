@@ -52,6 +52,11 @@ void USlot::UnHovered()
 	}
 }
 
+void USlot::ButtonClicked()
+{
+
+}
+
 void USlot::SetCooldownText(FString AString)
 {
 	if (Cooldown)
@@ -124,6 +129,9 @@ void USlot::SetImageVisiblity(bool AHidden)
 void USlot::NativeOnInitialized()
 {
 	Super::NativeOnInitialized();
+	
+
+
 	if (AnimationsMap.Contains("HoverAnimationBP"))
 	{
 		HoverAnimation = *AnimationsMap.Find("HoverAnimationBP");

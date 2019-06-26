@@ -41,7 +41,6 @@ public:
 		bool Left = (X > 1);
 		bool Right = (X < GridSize);
 
-
 		if (Up && Left && Nodes[NodeRef - GridSize - 1] == 0)
 			Neighbors.Add(NodeRef - GridSize - 1);
 
@@ -159,7 +158,7 @@ struct FGenerationData
 {
 	GENERATED_BODY()
 
-	WorldGridType Type = WorldGridType::None;
+	EWorldGridType Type = EWorldGridType::None;
 	class UHierarchicalInstancedStaticMeshComponent* HISM = nullptr;
 	float CutOff = 1;
 	float Frequency = 1;
@@ -189,38 +188,55 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void Tick(float DeltaTime) override;
+
+
+	void SpawnEnemies();
+
+	void CreateCollisionCubes();
+
 	void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const;
+
+	FVector2D GetVectorFromNeighbors(TArray<uint8> ACollisionGrid, TArray<uint16> HeatMap, int AnIndex);
+	TArray<int> GetNeighbourList(TArray<uint8> CollisionGrid, TArray<bool> ACheckedMap, int AnIndex);
+	void WaveFrontAlgorithm();
 
 	UFUNCTION(Exec)
 	void GenerateWorld();
 
 	int FindValidSeed();
-
+	//Input the start index and then how long along and down you want the grid to be
+	TArray<EWorldGridType> GetGridPortion(TArray<EWorldGridType> AGrid, int AFromIndex, int AnXSize, int AYSize);
+	TArray<EWorldGridType> GetGridPortionAround(TArray<EWorldGridType> AGrid, int AFromIndex, int ASize);
+	int GetGridIndex(FVector APostion);
+	int GetGridIndex(int AnX, int AY);
 
 	float AStarPathLength(TArray<uint8> AMaze, int AMazeSize, int AStart, int AnEnd);
 	void GenerateGrids(int ASeed);
 
 	bool TestGrids();
 
+	void GenerateCollisionGrid();
 
 	void MakeMiniMapTexture();
 
 	UFUNCTION()
 	void OnRep_SetSeed();
 
-	void SpawnMeshes(FGenerationData AGenerationData, TArray<WorldGridType> AFromGrid, TArray<float> AFromElevation);
-	void AddGridToGrid(TArray<float> AFromGrid, TArray<WorldGridType>& AToGrid, TArray<float>& AToElevation, float ACutOff, bool AMoreThan, WorldGridType AType);
+	void SpawnMeshes(FGenerationData AGenerationData, TArray<EWorldGridType> AFromGrid, TArray<float> AFromElevation);
+	void AddGridToGrid(TArray<float> AFromGrid, TArray<EWorldGridType>& AToGrid, TArray<float>& AToElevation, float ACutOff, bool AMoreThan, EWorldGridType AType);
 	TArray<float> CreateSimplexGrid(int ASeed, int ASize, float AFrequency);
 	void Setup();
 
 public:	
 
-	TArray<WorldGridType> TerrainGrid;
-	TArray<WorldGridType> GroundGrid;
+	TArray<EWorldGridType> ResourcesGrid;
+	TArray<EWorldGridType> GroundGrid;
 
-	TArray<WorldGridType> BuildingGrid;
+	TArray<EWorldGridType> BuildingGrid;
+	TArray<FVector2D> VectorMap;
 
-	TArray<float> TerrainElevation;
+	TArray<float> ResourcesElevation;
 	TArray<float> GroundElevation;
 
 	FWorldGenerated OnGenerateWorld;
@@ -228,6 +244,10 @@ public:
 	int WorldGridSize = 256;
 
 	int GridSize = 50;
+
+	TArray<uint8> CollisionGrid;
+
+	TArray<class USphereComponent*> SphereComponents;
 
 	UPROPERTY(EditAnywhere)
 	float Frequency = 1;
@@ -281,5 +301,5 @@ public:
 	UPROPERTY(VisibleAnywhere)
 		class UTexture2D* MiniMapTexture = nullptr;
 
-	TMap<WorldGridType, FGenerationData> GenerationData;
+	TMap<EWorldGridType, FGenerationData> GenerationData;
 };

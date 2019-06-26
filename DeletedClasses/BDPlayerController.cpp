@@ -22,6 +22,8 @@
 #include "UObject/UObjectIterator.h"
 #include "PreGame.h"
 #include "GameFramework/PlayerInput.h"
+
+
 #define COLLISION_BUILDABLE		ECC_GameTraceChannel1
 #define COLLISION_BUILDING		ECC_GameTraceChannel2
 #define COLLISION_MINABLE		ECC_GameTraceChannel7

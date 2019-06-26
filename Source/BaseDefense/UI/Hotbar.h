@@ -36,7 +36,7 @@ public:
 
 
 	int SlotNum = 10;
-	int CurrentSelected = 0;
+	int CurrentSelected = -1;
 
 	bool HasInitialized = false;
 

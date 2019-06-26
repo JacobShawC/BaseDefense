@@ -10,6 +10,8 @@
 #include "Main/BDPlayerState.h"
 #include "Public/TimerManager.h"
 #include "Engine/World.h"
+#include "PlayerChar.h"
+#include "BDPlayerController.h"
 UHotbar::UHotbar(const FObjectInitializer& ObjectInitializer) :Super(ObjectInitializer)
 {
 }
@@ -67,17 +69,40 @@ void UHotbar::Refresh()
 	return;
 }
 
+
+
 void UHotbar::Select(int Select)
 {
-	if (HasInitialized && Slots.Num() > Select && Slots[CurrentSelected]->IsValidLowLevel() && Slots[Select]->IsValidLowLevel())
+	EBuilding SelectedBuilding = EBuilding::None;
+
+	if (Select == -1)
+	{
+		if (CurrentSelected != -1 && Slots.Num() > Select && Slots[CurrentSelected]->IsValidLowLevel())
+		{
+			Slots[CurrentSelected]->UnHovered();
+		}
+		CurrentSelected = Select;
+		SelectedBuilding = EBuilding::None;
+	}
+	else if (HasInitialized && Slots.Num() > Select && Slots[CurrentSelected]->IsValidLowLevel() && Slots[Select]->IsValidLowLevel())
 	{
 		Slots[CurrentSelected]->UnHovered();
 		Slots[Select]->Hovered();
 		CurrentSelected = Select;
+		;
 
-		return;
+		SelectedBuilding = Slots[CurrentSelected]->Building;
 	}
-	CurrentSelected = Select;
+
+
+	ABDPlayerController* Controller = nullptr;
+	Controller = Cast<ABDPlayerController>(GetWorld()->GetFirstPlayerController());
+
+	if (Controller != nullptr)
+	{
+		Controller->SelectedBuilding = SelectedBuilding;
+	}
+
 
 	return;
 }
@@ -106,7 +131,7 @@ void UHotbar::Scroll(bool UpDown)
 
 EBuilding UHotbar::GetSelectedBuilding()
 {
-	if (Slots.Num() > CurrentSelected && Slots[CurrentSelected])
+	if (CurrentSelected != -1 && Slots.Num() > CurrentSelected && Slots[CurrentSelected])
 	{
 		return Slots[CurrentSelected]->Building;
 	}

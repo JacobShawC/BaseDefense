@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "StructLibrary.h"
 #include "PlayerChar.generated.h"
+
+class APlayerController;
 
 UCLASS()
 class BASEDEFENSE_API APlayerChar : public APawn
@@ -29,37 +32,36 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION()
-		void OnRep_PawnLocation();
+	void OnRep_PawnLocation();
 
 	UFUNCTION()
-		void OnRep_PointerLocation();
+	void OnRep_PointerLocation();
+
+
 
 private:
 
 	UPROPERTY(VisibleAnywhere)
-		USceneComponent* SceneComponent = nullptr;
+	USceneComponent* SceneComponent = nullptr;
 	UPROPERTY(VisibleAnywhere)
-		USceneComponent* MouseSceneComponent = nullptr;
+	USceneComponent* MouseSceneComponent = nullptr;
 	UPROPERTY(VisibleAnywhere)
-		class UCameraComponent* Camera = nullptr;
+	class UCameraComponent* Camera = nullptr;
 
 	FVector GetCameraPanDirection();
+	void LeftMousePressed();
 
-	void SelectPressed();
+	void LeftMouseReleased();
 
-	void SelectReleased();
+	void RightMousePressed();
 
-	void SelectAltPressed();
-
-	void SelectAltReleased();
+	void RightMouseReleased();
 
 	void MiddleMousePressed();
+	void MiddleMouseReleased();
 
 	void UpdatePositions();
 
-
-
-	void MiddleMouseReleased();
 	void ScrollHotbar(bool UpOrDown);
 
 	template<bool UpOrDown>
@@ -67,7 +69,6 @@ private:
 	{
 		ScrollHotbar(UpOrDown);
 	}
-	void SelectHotbar(int ASlot);
 
 	template<int32 ASlot>
 	void SelectHotbar()
@@ -77,13 +78,17 @@ private:
 
 	float CamSpeed = 100;
 
+	TArray<EBuilding> HotbarBuildings;
 
+	UPROPERTY()
+	class UGUI* GUIWidget = nullptr;
 public:
+	void SelectHotbar(int ASlot);
 
 	UPROPERTY(ReplicatedUsing = OnRep_PawnLocation)
-		FVector PawnLocation;
+	FVector PawnLocation;
 
 	UPROPERTY(ReplicatedUsing = OnRep_PointerLocation)
-		FVector PointerLocation;
+	FVector PointerLocation;
 
 };

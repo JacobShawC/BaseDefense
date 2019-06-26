@@ -11,7 +11,7 @@
  */
 
 UENUM()
-enum class WorldGridType : uint8
+enum class EWorldGridType : uint8
 {
 	None 		UMETA(DisplayName = "None"),
 	Grass		UMETA(DisplayName = "Level1"),
@@ -499,6 +499,16 @@ struct FBuildingData
 	
 	UPROPERTY()
 	ETeam Team = ETeam::None;
+
+	UPROPERTY()
+	int BuildingSizeX = 1;
+
+	UPROPERTY()
+	int BuildingSizeY = 1;
+
+	UPROPERTY()
+	EWorldGridType MustBeOn = EWorldGridType::None;
+
 
 	UPROPERTY()
 	class UStaticMesh* Mesh = nullptr;

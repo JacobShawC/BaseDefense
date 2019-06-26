@@ -16,8 +16,8 @@ class BASEDEFENSE_API UBDUserWidget : public UUserWidget, public IInteraction
 {
 	GENERATED_BODY()
 public:
-	virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
-	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;
+	/*virtual void NativeOnMouseEnter(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
+	virtual void NativeOnMouseLeave(const FPointerEvent& InMouseEvent) override;*/
 	/*virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent) override;
 	virtual FReply NativeOnMouseButtonUp(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);*/
 	void NativeOnInitialized() override;

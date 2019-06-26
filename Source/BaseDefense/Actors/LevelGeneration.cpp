@@ -23,7 +23,12 @@
 #include <Engine/TextureRenderTarget2D.h>
 #include <Engine/Texture2D.h>
 #include <UnrealMathSSE.h>
+#include "Kismet/KismetSystemLibrary.h"
 #include <Engine/Engine.h>
+#include <Components/SphereComponent.h>
+#include <Components/PrimitiveComponent.h>
+#include "PhysicalMaterials/PhysicalMaterial.h"
+#include <Components/BoxComponent.h>
 
 //#include "UObject/ConstructorHelpers.h"
 
@@ -35,7 +40,7 @@ ALevelGeneration::ALevelGeneration()
 	bReplicates = true;
 	bAlwaysRelevant = true;
 
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	this->SetActorScale3D(FVector(1));
 	SceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("SceneComponent"));
 	SceneComponent->SetMobility(EComponentMobility::Static);
@@ -79,7 +84,6 @@ ALevelGeneration::ALevelGeneration()
 	CoalHISMC->SetWorldScale3D(FVector(1));
 	IronHISMC->SetWorldScale3D(FVector(1));
 
-	//static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/PolygonFantasyRivals/Meshes/Props/SM_Prop_Tree_02.SM_Prop_Tree_02'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/VertexAnimations/SM_Tree2_AnimVertTest_00.SM_Tree2_AnimVertTest_00'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rock(TEXT("StaticMesh'/Game/PolygonDungeons/Meshes/Environments/Rocks/SM_Env_Rock_Flat_Large_03.SM_Env_Rock_Flat_Large_03'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Mud(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube.1M_Cube'"));
@@ -103,6 +107,11 @@ ALevelGeneration::ALevelGeneration()
 
 	CoalHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	IronHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TreeHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	RockHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MudHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GrassHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
 	//IronHISMC->collision
 	int Culling = 10000;
 	TreeHISMC->SetMobility(EComponentMobility::Static);
@@ -135,7 +144,7 @@ ALevelGeneration::ALevelGeneration()
 
 
 	FGenerationData CoalData;
-	CoalData.Type = WorldGridType::Coal;
+	CoalData.Type = EWorldGridType::Coal;
 	CoalData.HISM = CoalHISMC;
 	CoalData.Frequency = 10;
 	CoalData.CutOff = 0.9;
@@ -149,7 +158,7 @@ ALevelGeneration::ALevelGeneration()
 
 
 	FGenerationData IronData;
-	IronData.Type = WorldGridType::Iron;
+	IronData.Type = EWorldGridType::Iron;
 	IronData.HISM = IronHISMC;
 	IronData.Frequency = 10;
 	IronData.CutOff = 0.9;
@@ -162,7 +171,7 @@ ALevelGeneration::ALevelGeneration()
 	GenerationData.Add(IronData.Type, IronData);
 
 	FGenerationData TreeData;
-	TreeData.Type = WorldGridType::Tree;
+	TreeData.Type = EWorldGridType::Tree;
 	TreeData.HISM = TreeHISMC;
 	TreeData.Frequency = 7;
 	TreeData.CutOff = 0.7;
@@ -176,7 +185,7 @@ ALevelGeneration::ALevelGeneration()
 	GenerationData.Add(TreeData.Type, TreeData);
 
 	FGenerationData RockData;
-	RockData.Type = WorldGridType::Rock;
+	RockData.Type = EWorldGridType::Rock;
 	RockData.HISM = RockHISMC;
 	RockData.Frequency = 7;
 	RockData.CutOff = 0.65;
@@ -187,14 +196,14 @@ ALevelGeneration::ALevelGeneration()
 	RockData.RandHeightVariance = 0.4;
 	RockData.RandWidthVariance = 0;
 	RockData.RandXYVariance = -.2;
-	RockData.RotateRandomly = true;
+	//RockData.RotateRandomly = true;
 	//RockData.InvertPlacement = true;
 	RockData.ZHeight = 0;
 	GenerationData.Add(RockData.Type, RockData);
 
 
 	FGenerationData MudData;
-	MudData.Type = WorldGridType::Mud;
+	MudData.Type = EWorldGridType::Mud;
 	MudData.HISM = MudHISMC;
 	MudData.Frequency = 7;
 	MudData.CutOff = -100;
@@ -209,7 +218,7 @@ ALevelGeneration::ALevelGeneration()
 	GenerationData.Add(MudData.Type, MudData);
 
 	FGenerationData GrassData;
-	GrassData.Type = WorldGridType::Grass;
+	GrassData.Type = EWorldGridType::Grass;
 	GrassData.HISM = GrassHISMC;
 	GrassData.Frequency = 7;
 	GrassData.CutOff = 0.05;
@@ -224,7 +233,7 @@ ALevelGeneration::ALevelGeneration()
 
 
 	FGenerationData WaterData;
-	WaterData.Type = WorldGridType::Water;
+	WaterData.Type = EWorldGridType::Water;
 	WaterData.HISM = WaterHISMC;
 	WaterData.Frequency = 7;
 	WaterData.CutOff = 0.6;
@@ -247,13 +256,94 @@ void ALevelGeneration::BeginPlay()
 	if (Role == ROLE_Authority)
 	{
 		Seed = FindValidSeed();
-
+		WaveFrontAlgorithm();
 		OnRep_SetSeed();
+		CreateCollisionCubes();
+
+		SpawnEnemies();
 
 	}
 	
 }
 
+void ALevelGeneration::Tick(float DeltaTime)
+{
+	for (USphereComponent* Sphere : SphereComponents)
+	{
+		FVector Location = Sphere->GetComponentLocation();
+		int X = (int)-Location.X / GridSize;
+		int Y = (int)Location.Y / GridSize;
+
+		int Index = Y * WorldGridSize + X;
+		if (Index < VectorMap.Num() - 1 && Index > 0)
+		{
+			float ForceAmount = 1000;
+			Sphere->AddForce(FVector(-VectorMap[Index].X * ForceAmount, VectorMap[Index].Y * ForceAmount, 0));
+		}
+
+		
+	}
+}
+
+void ALevelGeneration::SpawnEnemies()
+{
+	int Number = 0;
+	for (int i = 0; i < CollisionGrid.Num(); i++)
+	{
+		if (CollisionGrid[i] != 1)
+		{
+			int X = (i % WorldGridSize) * GridSize;
+			//y value
+			int Y = (i / WorldGridSize) * GridSize;
+
+			USphereComponent * SphereComponent = NewObject<USphereComponent>(this);
+			//SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
+			SphereComponent->GetBodyInstance()->bLockZTranslation = true;
+			SphereComponent->GetBodyInstance()->bLockXRotation = true;
+			SphereComponent->GetBodyInstance()->bLockYRotation = true;
+			SphereComponent->GetBodyInstance()->bLockZRotation = true;
+			SphereComponent->SetLinearDamping(0.5f);
+
+			UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
+			PhysMat->Friction = 0;
+			SphereComponent->SetPhysMaterialOverride(PhysMat);
+			SphereComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+			SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
+			SphereComponent->SetSimulatePhysics(true);
+			SphereComponent->SetWorldLocation(FVector(-X, Y, 50));
+			SphereComponent->SetHiddenInGame(false);
+			SphereComponent->RegisterComponent();
+			SphereComponents.Add(SphereComponent);
+			Number++;
+		}
+		if (Number == 2000) break;
+	}
+}
+
+void ALevelGeneration::CreateCollisionCubes()
+{
+	for (int i = 0; i < CollisionGrid.Num(); i++)
+	{
+		if (CollisionGrid[i] == 1)
+		{
+			int X = (i % WorldGridSize) * GridSize;
+			//y value
+			int Y = (i / WorldGridSize) * GridSize;
+
+			UBoxComponent * BoxComponent = NewObject<UBoxComponent>(this);
+			UPhysicalMaterial * PhysMat = NewObject<UPhysicalMaterial>(this);
+			BoxComponent->SetBoxExtent(FVector(50.0f));
+			PhysMat->Friction = 0;
+			BoxComponent->SetPhysMaterialOverride(PhysMat);
+			BoxComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+			BoxComponent->SetCollisionResponseToAllChannels(ECR_Block);
+			BoxComponent->SetSimulatePhysics(false);
+			BoxComponent->SetWorldLocation(FVector(-X, Y, 50));
+			BoxComponent->SetHiddenInGame(false);
+			BoxComponent->RegisterComponent();
+		}
+	}
+}
 
 int ALevelGeneration::FindValidSeed()
 {
@@ -276,6 +366,46 @@ int ALevelGeneration::FindValidSeed()
 
 	return TempSeed;
 
+}
+
+//We dont deal with cases where the buildings are near the edge of a grid because we dont allow buildings to be built near the edges
+TArray<EWorldGridType> ALevelGeneration::GetGridPortion(TArray<EWorldGridType> AGrid, int AFromIndex, int AnXSize, int AYSize)
+{
+	TArray<EWorldGridType> ReturnArray;
+
+	for (int i = 0; i < AYSize; i++)
+	{
+		for (int j = 0; j < AnXSize; j++)
+		{
+			int CurrentIndex = AFromIndex + i * WorldGridSize + j;
+
+			ReturnArray.Add(AGrid[CurrentIndex]);
+		}
+	}
+	return ReturnArray;
+}
+
+//inputting size 1 would get the 8 tiles around the AFromIndex and also the index itself
+TArray<EWorldGridType> ALevelGeneration::GetGridPortionAround(TArray<EWorldGridType> AGrid, int AFromIndex, int ASize)
+{
+	int InputFromIndex = AFromIndex - ASize - ASize * WorldGridSize;
+	int InputSize = 1 + ASize * 2;
+	return GetGridPortion(AGrid, InputFromIndex, InputSize, InputSize);
+}
+
+int ALevelGeneration::GetGridIndex(FVector APostion)
+{
+	int X = 0;
+	int Y = 0;
+	X = (int)-APostion.X / GridSize;
+	Y = (int)APostion.Y / GridSize;
+
+	return Y * WorldGridSize + X;
+}
+
+int ALevelGeneration::GetGridIndex(int AnX, int AY)
+{
+	return WorldGridSize * AY + AnX;
 }
 
 float ALevelGeneration::AStarPathLength(TArray<uint8> AMaze, int AMazeLength, int AStart, int AnEnd)
@@ -319,71 +449,21 @@ bool ALevelGeneration::TestGrids()
 	//CreateNavGrid
 	
 
-	TArray<uint8> NavGrid;
-	int NavGridSize = WorldGridSize;
-	NavGrid.SetNum((NavGridSize) * (NavGridSize));
-	for (int i = 0; i < TerrainGrid.Num(); i++)
-	{
-		if (GroundGrid[i] == WorldGridType::Water)
-		{
-			NavGrid[i] = 1;
-		}
+	GenerateCollisionGrid();
 
-		if (TerrainGrid[i] == WorldGridType::Rock || TerrainGrid[i] == WorldGridType::Tree)
-		{
-			NavGrid[i] = 1;
-		}
-	}
-
-	if (NavGrid[0] == 1)
+	if (CollisionGrid[0] == 1)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("TestGrids: False Start"));
 		return false;
 	}
 
-	//Resize navgrid to have empty borders
 
-	//NavGrid.SetNum(0, NavGridSize + 1);
+	int MiddleNode = ((WorldGridSize) * (WorldGridSize)) / 2 + (WorldGridSize / 2);
 
-	TArray<uint8> BorderedNavGrid = NavGrid;
+	//float PathLength = AStarPathLength(CollisionGrid, CollisionGrid.Num(), 0, MiddleNode);
+	float PathLength = AStarPathLength(CollisionGrid, WorldGridSize, 0, MiddleNode);
 
-
-	int BorderedIndex = 0;
-	for (int i = 0; i < NavGrid.Num(); i++)
-	{
-		int Remainder = i % WorldGridSize;
-
-		//Add left border
-		if (Remainder == 0)
-		{
-			BorderedNavGrid.Insert(0, BorderedIndex);
-			BorderedIndex++;
-		}
-
-		//Add right border
-		if (Remainder == WorldGridSize - 1)
-		{
-			BorderedNavGrid.Insert(0, BorderedIndex + 1);
-			BorderedIndex++;
-		}
-
-		BorderedIndex++;
-
-	}
-
-	////Add top and bottom
-	//BorderedNavGrid.AddZeroed(WorldGridSize + 2);
-	//BorderedNavGrid.InsertZeroed(0, WorldGridSize + 2);
-	////Half of total grid size to get middle node.
-	//int MiddleNode = ((WorldGridSize + 2) * (WorldGridSize + 2)) / 2;
-	////int PathLength = AStarPathLength(BorderedNavGrid, NavGridSize + 2, 0, MiddleNode);
-	//float PathLength = AStarPathLength(BorderedNavGrid, NavGridSize + 2, 0, MiddleNode);
-
-	int MiddleNode = ((WorldGridSize) * (WorldGridSize)) / 2;
-
-	float PathLength = AStarPathLength(NavGrid, NavGridSize, 0, MiddleNode);
-
-	if (NavGrid[MiddleNode] == 1)
+	if (CollisionGrid[MiddleNode] == 1)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("TestGrids: NavGrid[MiddleNode] == 1"));
 		return false;
@@ -393,20 +473,39 @@ bool ALevelGeneration::TestGrids()
 	//return (PathLength == 0);
 }
 
+void ALevelGeneration::GenerateCollisionGrid()
+{
+	TArray<uint8> NewGrid;
+	NewGrid.SetNum((WorldGridSize) * (WorldGridSize));
+	CollisionGrid = NewGrid;
+	for (int i = 0; i < ResourcesGrid.Num(); i++)
+	{
+		if (GroundGrid[i] == EWorldGridType::Water)
+		{
+			CollisionGrid[i] = 1;
+		}
+
+		if (ResourcesGrid[i] == EWorldGridType::Rock || ResourcesGrid[i] == EWorldGridType::Tree)
+		{
+			CollisionGrid[i] = 1;
+		}
+	}
+}
+
 void ALevelGeneration::GenerateGrids(int ASeed)
 {
-	TerrainGrid.Empty();
-	TerrainElevation.Empty();
+	ResourcesGrid.Empty();
+	ResourcesElevation.Empty();
 	GroundGrid.Empty();
 	GroundElevation.Empty();
 
-	FGenerationData CoalData = (*GenerationData.Find(WorldGridType::Coal));
-	FGenerationData IronData = (*GenerationData.Find(WorldGridType::Iron));
-	FGenerationData TreeData = (*GenerationData.Find(WorldGridType::Tree));
-	FGenerationData RockData = (*GenerationData.Find(WorldGridType::Rock));
-	FGenerationData WaterData = (*GenerationData.Find(WorldGridType::Water));
-	FGenerationData MudData = (*GenerationData.Find(WorldGridType::Mud));
-	FGenerationData GrassData = (*GenerationData.Find(WorldGridType::Grass));
+	FGenerationData CoalData = (*GenerationData.Find(EWorldGridType::Coal));
+	FGenerationData IronData = (*GenerationData.Find(EWorldGridType::Iron));
+	FGenerationData TreeData = (*GenerationData.Find(EWorldGridType::Tree));
+	FGenerationData RockData = (*GenerationData.Find(EWorldGridType::Rock));
+	FGenerationData WaterData = (*GenerationData.Find(EWorldGridType::Water));
+	FGenerationData MudData = (*GenerationData.Find(EWorldGridType::Mud));
+	FGenerationData GrassData = (*GenerationData.Find(EWorldGridType::Grass));
 
 	TArray<float> CoalGrid = CreateSimplexGrid(ASeed, WorldGridSize, CoalData.Frequency);
 	TArray<float> IronGrid = CreateSimplexGrid(ASeed + 1, WorldGridSize, IronData.Frequency);
@@ -425,16 +524,16 @@ void ALevelGeneration::GenerateGrids(int ASeed)
 
 
 	//Coal
-	AddGridToGrid(CoalGrid, TerrainGrid, TerrainElevation, CoalData.CutOff, true, CoalData.Type);
+	AddGridToGrid(CoalGrid, ResourcesGrid, ResourcesElevation, CoalData.CutOff, true, CoalData.Type);
 
 	//Iron
-	AddGridToGrid(IronGrid, TerrainGrid, TerrainElevation, IronData.CutOff, true, IronData.Type);
+	AddGridToGrid(IronGrid, ResourcesGrid, ResourcesElevation, IronData.CutOff, true, IronData.Type);
 
 	//Trees
-	AddGridToGrid(TreeGrid, TerrainGrid, TerrainElevation, TreeData.CutOff, true, TreeData.Type);
+	AddGridToGrid(TreeGrid, ResourcesGrid, ResourcesElevation, TreeData.CutOff, true, TreeData.Type);
 
 	//Rocks
-	AddGridToGrid(RockGrid, TerrainGrid, TerrainElevation, RockData.CutOff, true, RockData.Type);
+	AddGridToGrid(RockGrid, ResourcesGrid, ResourcesElevation, RockData.CutOff, true, RockData.Type);
 
 	//Mud
 	AddGridToGrid(TreeGrid, GroundGrid, GroundElevation, MudData.CutOff, true, MudData.Type);
@@ -442,9 +541,9 @@ void ALevelGeneration::GenerateGrids(int ASeed)
 	//Grass
 	AddGridToGrid(TreeGrid, GroundGrid, GroundElevation, GrassData.CutOff, true, GrassData.Type);
 
-	//Water affects both ground and terrain
+	//Water affects both ground and Resources
 	AddGridToGrid(WaterGrid, GroundGrid, GroundElevation, WaterData.CutOff, true, WaterData.Type);
-	AddGridToGrid(WaterGrid, TerrainGrid, GroundElevation, WaterData.CutOff, true, WaterData.Type);
+	AddGridToGrid(WaterGrid, ResourcesGrid, GroundElevation, WaterData.CutOff, true, WaterData.Type);
 }
 
 
@@ -461,27 +560,27 @@ void ALevelGeneration::MakeMiniMapTexture()
 	NavGrid.SetNum((NavGridSize) * (NavGridSize));
 
 
-	for (int i = 0; i < TerrainGrid.Num(); i++)
+	for (int i = 0; i < ResourcesGrid.Num(); i++)
 	{
-		if (GroundGrid[i] == WorldGridType::Grass)
+		if (GroundGrid[i] == EWorldGridType::Grass)
 		{
 			RawData[i] = FColor(0, 204, 0, 255);
 		}
-		if (GroundGrid[i] == WorldGridType::Mud)
+		if (GroundGrid[i] == EWorldGridType::Mud)
 		{
 			RawData[i] = FColor(153, 76, 0, 255);
 		}
 
 
-		if (TerrainGrid[i] == WorldGridType::Water)
+		if (ResourcesGrid[i] == EWorldGridType::Water)
 		{
 			RawData[i] = FColor(0, 47, 141, 255);
 		}
-		if (TerrainGrid[i] == WorldGridType::Rock)
+		if (ResourcesGrid[i] == EWorldGridType::Rock)
 		{
 			RawData[i] = FColor(128, 128, 128, 255);
 		}
-		if (TerrainGrid[i] == WorldGridType::Tree)
+		if (ResourcesGrid[i] == EWorldGridType::Tree)
 		{
 			RawData[i] = FColor(51, 102, 0, 255);
 		}
@@ -529,34 +628,253 @@ void ALevelGeneration::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& Out
 	DOREPLIFETIME(ALevelGeneration, IronHISMC);*/
 }
 
+FVector2D ALevelGeneration::GetVectorFromNeighbors(TArray<uint8> ACollisionGrid, TArray<uint16> HeatMap, int AnIndex)
+{
+	FVector2D ReturnVector;
+	//x value
+	int X = (AnIndex % WorldGridSize) + 1;
+	//y value
+	int Y = (AnIndex) / WorldGridSize + 1;
+
+	bool Up = (Y < WorldGridSize);
+	bool Down = (Y > 1);
+	bool Left = (X > 1);
+	bool Right = (X < WorldGridSize);
+
+	int UpInt = 0;
+	int DownInt = 0;
+	int LeftInt = 0;
+	int RightInt = 0;
+
+
+	int UpIndex = AnIndex + WorldGridSize;
+
+	if (Up && ACollisionGrid[UpIndex] == 0)
+	{
+		UpInt = HeatMap[UpIndex];
+	}
+	else
+	{
+		UpInt = HeatMap[AnIndex];
+	}
+
+	int RightIndex = AnIndex + 1;
+	if (Right && ACollisionGrid[RightIndex] == 0)
+	{
+		RightInt = HeatMap[RightIndex];
+	}
+	else
+	{
+		RightInt = HeatMap[AnIndex];
+	}
+
+	int DownIndex = AnIndex - WorldGridSize;
+	if (Down && ACollisionGrid[DownIndex] == 0)
+	{
+		DownInt = HeatMap[DownIndex];
+	}
+	else
+	{
+		DownInt = HeatMap[AnIndex];
+	}
+
+	int LeftIndex = AnIndex - 1;
+	if (Left && ACollisionGrid[LeftIndex] == 0)
+	{
+		LeftInt = HeatMap[LeftIndex];
+	}
+	else
+	{
+		LeftInt = HeatMap[AnIndex];
+	}
+
+	if (UpInt == DownInt && LeftInt == RightInt)
+	{
+		if (UpInt < HeatMap[AnIndex])
+		{
+			DownInt--;
+		}
+		else if (LeftInt < HeatMap[AnIndex])
+		{
+			LeftInt--;
+		}
+	}
+
+
+	ReturnVector.X = LeftInt - RightInt;
+	ReturnVector.Y = DownInt - UpInt;
+
+	ReturnVector = ReturnVector.GetSafeNormal();
+
+	//Check if local optima occurs by checking if we are walking into a wall. if we are then just walk up or right.
+	//Left and right https://gamedevelopment.tutsplus.com/tutorials/understanding-goal-based-vector-field-pathfinding--gamedev-9007
+	if (((ReturnVector.X == -1 && (!Left || ACollisionGrid[AnIndex - 1] == 1)) || (ReturnVector.X == 1 && (!Right || ACollisionGrid[AnIndex + 1] == 1))) && ReturnVector.Y == 0)
+	{
+		ReturnVector.X = 0;
+		ReturnVector.Y = 1;
+	}
+	//check up and down
+	else if (((ReturnVector.Y == -1 && (!Down || ACollisionGrid[DownIndex] == 1)) || (ReturnVector.Y == 1 && (!Up || ACollisionGrid[UpIndex] == 1))) && ReturnVector.X == 0)
+	{
+		ReturnVector.X = 1;
+		ReturnVector.Y = 0;
+	}
+
+
+
+	return ReturnVector;
+}
+
+
+TArray<int> ALevelGeneration::GetNeighbourList(TArray<uint8> ACollisionGrid, TArray<bool> ACheckedMap, int AnIndex)
+{
+	TArray<int> Neighbors;
+	//x value
+	int X = (AnIndex % WorldGridSize) + 1;
+	//y value
+	int Y = (AnIndex) / WorldGridSize + 1;
+
+	bool Up = (Y > 1);
+	bool Down = (Y < WorldGridSize);
+	bool Left = (X > 1);
+	bool Right = (X < WorldGridSize);
+
+	
+
+	if (Up && ACollisionGrid[AnIndex - WorldGridSize] == 0)
+	{
+		int ReturnIndex = AnIndex - WorldGridSize;
+		if (!ACheckedMap[ReturnIndex])
+		{
+			Neighbors.Add(AnIndex - WorldGridSize);
+		}
+	}
+
+	if (Right && ACollisionGrid[AnIndex + 1] == 0)
+	{
+		int ReturnIndex = AnIndex + 1;
+		if (!ACheckedMap[ReturnIndex])
+		{
+			Neighbors.Add(ReturnIndex);
+		}
+	}
+
+	if (Down && ACollisionGrid[AnIndex + WorldGridSize] == 0)
+	{
+		int ReturnIndex = AnIndex + WorldGridSize;
+		if (!ACheckedMap[ReturnIndex])
+		{
+			Neighbors.Add(ReturnIndex);
+		}
+	}
+
+	if (Left && ACollisionGrid[AnIndex - 1] == 0)
+	{
+		int ReturnIndex = AnIndex - 1;
+		if (!ACheckedMap[ReturnIndex])
+		{
+			Neighbors.Add(ReturnIndex);
+		}
+	}
+
+	return Neighbors;
+}
+
+void ALevelGeneration::WaveFrontAlgorithm()
+{
+	TArray<int> ShouldCheckBucket;
+	TArray<bool> CheckedMap;
+
+	TArray<uint16> HeatMap;
+	HeatMap.SetNum(WorldGridSize* WorldGridSize);
+	CheckedMap.SetNum(WorldGridSize * WorldGridSize);
+	int MiddleNode = (WorldGridSize * WorldGridSize) / 2 + (WorldGridSize / 2);
+	HeatMap[MiddleNode] = 0;
+
+	ShouldCheckBucket.Add(MiddleNode);
+
+
+	while (ShouldCheckBucket.Num() > 0)
+	{
+		int X = ShouldCheckBucket[0];
+		ShouldCheckBucket.RemoveAt(0);
+			
+
+		CheckedMap[X] = true;
+		//get the neighbors that havent been checked and arent collsion.
+		TArray<int> Neighbors = GetNeighbourList(CollisionGrid, CheckedMap, X);
+		//Update heatmap for neighbors
+		for (int i = 0; i < Neighbors.Num(); i++)
+		{
+			if (!ShouldCheckBucket.Contains(Neighbors[i]))
+			{
+				HeatMap[Neighbors[i]] = HeatMap[X] + 1;
+				ShouldCheckBucket.Add(Neighbors[i]);
+			}
+		}
+	}
+	for (int i = 0; i < CollisionGrid.Num(); i++)
+	{
+		if (CollisionGrid[i] == 0)
+		{
+			VectorMap.Add(GetVectorFromNeighbors(CollisionGrid, HeatMap, i));
+		}
+		else
+		{
+			VectorMap.Add(FVector2D(0, 0));
+		}
+	}
+
+	/*int Count = 0;
+	for (int i = 0; i < VectorMap.Num(); i++)
+	{
+		int Remainder = i % WorldGridSize;
+		int Quotient = i / WorldGridSize;
+		int X = Remainder * GridSize;
+		int Y = Quotient * GridSize;
+
+		FVector LineStart = FVector(-X , Y, 1);
+		FVector LineEnd = FVector(-X -VectorMap[i].X * 50, Y + VectorMap[i].Y * 50, 1);
+		UKismetSystemLibrary::DrawDebugArrow(this, LineStart, LineEnd, 200, FLinearColor(FColor::Green), 1000.0f, 4.0f);
+		Count++;
+		if (Count == 10000)
+		{
+			break;
+		}
+	}*/
+
+
+
+}
+
 void ALevelGeneration::GenerateWorld()
 {
 	if (HasGenerated == false)
 	{
 		
-		FGenerationData CoalData = (*GenerationData.Find(WorldGridType::Coal));
-		FGenerationData IronData = (*GenerationData.Find(WorldGridType::Iron));
-		FGenerationData TreeData = (*GenerationData.Find(WorldGridType::Tree));
-		FGenerationData RockData = (*GenerationData.Find(WorldGridType::Rock));
-		FGenerationData WaterData = (*GenerationData.Find(WorldGridType::Water));
-		FGenerationData MudData = (*GenerationData.Find(WorldGridType::Mud));
-		FGenerationData GrassData = (*GenerationData.Find(WorldGridType::Grass));
+		FGenerationData CoalData = (*GenerationData.Find(EWorldGridType::Coal));
+		FGenerationData IronData = (*GenerationData.Find(EWorldGridType::Iron));
+		FGenerationData TreeData = (*GenerationData.Find(EWorldGridType::Tree));
+		FGenerationData RockData = (*GenerationData.Find(EWorldGridType::Rock));
+		FGenerationData WaterData = (*GenerationData.Find(EWorldGridType::Water));
+		FGenerationData MudData = (*GenerationData.Find(EWorldGridType::Mud));
+		FGenerationData GrassData = (*GenerationData.Find(EWorldGridType::Grass));
 
-		SpawnMeshes(CoalData, TerrainGrid, TerrainElevation);
-		SpawnMeshes(IronData, TerrainGrid, TerrainElevation);
+		SpawnMeshes(CoalData, ResourcesGrid, ResourcesElevation);
+		SpawnMeshes(IronData, ResourcesGrid, ResourcesElevation);
 
 		SpawnMeshes(MudData, GroundGrid, GroundElevation);
 		SpawnMeshes(GrassData, GroundGrid, GroundElevation);
 		//SpawnMeshes(WaterData, GroundGrid, GroundElevation);
-		SpawnMeshes(TreeData, TerrainGrid, TerrainElevation);
-		SpawnMeshes(RockData, TerrainGrid, TerrainElevation);
+		SpawnMeshes(TreeData, ResourcesGrid, ResourcesElevation);
+		SpawnMeshes(RockData, ResourcesGrid, ResourcesElevation);
 		HasGenerated = true;
 	}
 
 }
 
 
-void ALevelGeneration::SpawnMeshes(FGenerationData AGenerationData, TArray<WorldGridType> AFromGrid, TArray<float> AFromElevation)
+void ALevelGeneration::SpawnMeshes(FGenerationData AGenerationData, TArray<EWorldGridType> AFromGrid, TArray<float> AFromElevation)
 {
 
 	int Count = 0;
@@ -584,8 +902,8 @@ void ALevelGeneration::SpawnMeshes(FGenerationData AGenerationData, TArray<World
 		{
 			int Remainder = i % WorldGridSize;
 			int Quotient = i / WorldGridSize;
-			int Y = Remainder * GridSize;
-			int X = Quotient * GridSize;
+			int X = Remainder * GridSize;
+			int Y = Quotient * GridSize;
 
 			float RandXY = 0;
 			float RandZ = 0;
@@ -644,7 +962,7 @@ void ALevelGeneration::SpawnMeshes(FGenerationData AGenerationData, TArray<World
 
 }
 
-void ALevelGeneration::AddGridToGrid(TArray<float> AFromGrid, TArray<WorldGridType>& AToGrid, TArray<float>& AToElevation, float ACutOff, bool AMoreThan, WorldGridType AType)
+void ALevelGeneration::AddGridToGrid(TArray<float> AFromGrid, TArray<EWorldGridType>& AToGrid, TArray<float>& AToElevation, float ACutOff, bool AMoreThan, EWorldGridType AType)
 {
 	int AboveCounter = 0;
 	int BelowCounter = 0;
