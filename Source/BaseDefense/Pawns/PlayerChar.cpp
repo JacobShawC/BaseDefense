@@ -31,7 +31,7 @@ APlayerChar::APlayerChar()
 	Camera->SetupAttachment(SceneComponent);
 
 	//Camera->SetRelativeLocationAndRotation(FVector(-600, -600, 2000), FRotator(-70.f, 45.0f, 0));
-	Camera->SetRelativeLocationAndRotation(FVector(-600, -600, 2000), FRotator(-70.f,0, 0));
+	Camera->SetRelativeLocationAndRotation(FVector(-600, -600, 2000), FRotator(-70.f, 45.0f, 0));
 }
 
 
@@ -72,7 +72,7 @@ void APlayerChar::GetLifetimeReplicatedProps(TArray< FLifetimeProperty >& OutLif
 void APlayerChar::BeginPlay()
 {
 	Super::BeginPlay();
-
+	SetActorLocation(FVector(-12750.0f, 12750.0f, 0));
 	SetActorTickEnabled(true);
 
 	// if we are a client pawn we want to set up the updating of our pawn positions ever 0.1 seconds

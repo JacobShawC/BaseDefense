@@ -41,6 +41,8 @@ enum class ELevel : uint8
 	Level6 		UMETA(DisplayName = "Level6"),
 };
 
+
+
 UENUM()
 enum class EGameState : uint8
 {
@@ -627,6 +629,40 @@ struct FLevelData
 };
 
 USTRUCT()
+struct FIMInstance {
+	GENERATED_USTRUCT_BODY()
+
+	uint32 Index;
+	FIMInstance()
+	{
+
+	}
+	FIMInstance(uint32 AnIndex)
+	{
+		Index = AnIndex;
+	}
+};
+
+USTRUCT()
+struct FUnitData
+{
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	float Size = 1;
+
+	UPROPERTY()
+	FIMInstance Instance;
+
+
+	UPROPERTY()
+	float PushForce = 1;
+
+	UPROPERTY()
+	class UStaticMesh* Mesh = nullptr;
+};
+
+USTRUCT()
 struct FEnemyData
 {
 	GENERATED_USTRUCT_BODY()
@@ -644,10 +680,14 @@ struct FEnemyData
 	float MovementSpeed = 0;
 
 	UPROPERTY()
-	class USkeletalMesh* Mesh = nullptr;
-	
+	float Size = 1;
+
 	UPROPERTY()
-	class UAnimBlueprintGeneratedClass* Anim = nullptr;
+	float PushForce = 1;
+
+	UPROPERTY()
+	class UStaticMesh* Mesh = nullptr;
+	
 
 	UPROPERTY()
 	float Bounty = 0;

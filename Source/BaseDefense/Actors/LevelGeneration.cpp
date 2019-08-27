@@ -29,13 +29,14 @@
 #include <Components/PrimitiveComponent.h>
 #include "PhysicalMaterials/PhysicalMaterial.h"
 #include <Components/BoxComponent.h>
+#include <UnrealMathUtility.h>
 
 //#include "UObject/ConstructorHelpers.h"
 
 // Sets default values
 ALevelGeneration::ALevelGeneration()
 {
- 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
+	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 
 	bReplicates = true;
 	bAlwaysRelevant = true;
@@ -56,39 +57,47 @@ ALevelGeneration::ALevelGeneration()
 	CaptureComponent->CaptureSource = ESceneCaptureSource::SCS_FinalColorLDR;
 	CaptureComponent->bCaptureOnMovement = false;
 	CaptureComponent->bCaptureEveryFrame = false;
-	//TreeHISMC
-	//RockHISMC
-	//MudHISMC
-	//GrassHISMC
-	//CoalHISMC
-	//IronHISMC
+	bAlwaysRelevant = true;
+	NetUpdateFrequency = 2;
 
+	TArray<UHierarchicalInstancedStaticMeshComponent*> HISMs;
 	TreeHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("TreeHISMC"));
+	HISMs.Add(TreeHISMC);
 	RockHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("RockHISMC"));
+	HISMs.Add(RockHISMC);
 	MudHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("MudHISMC"));
+	HISMs.Add(MudHISMC);
 	GrassHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("GrassHISMC"));
+	HISMs.Add(GrassHISMC);
 	CoalHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("CoalHISMC"));
+	HISMs.Add(CoalHISMC);
 	IronHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("IronHISMC"));
+	HISMs.Add(IronHISMC);
 	WaterHISMC = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("WaterHISMC"));
-	TreeHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	RockHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	MudHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	GrassHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	CoalHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	IronHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	WaterHISMC->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	TreeHISMC->SetWorldScale3D(FVector(1));
-	RockHISMC->SetWorldScale3D(FVector(1));
-	MudHISMC->SetWorldScale3D(FVector(1));
-	GrassHISMC->SetWorldScale3D(FVector(1));
-	CoalHISMC->SetWorldScale3D(FVector(1));
-	IronHISMC->SetWorldScale3D(FVector(1));
+	HISMs.Add(WaterHISMC);
+	FortGolemHISM = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("FortGolemHISM"));
+	HISMs.Add(FortGolemHISM);
 
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/VertexAnimations/SM_Tree2_AnimVertTest_00.SM_Tree2_AnimVertTest_00'"));
+	//GlobalSettings
+	for (auto Component : HISMs)
+	{
+		Component->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
+		Component->SetWorldScale3D(FVector(1));
+
+		Component->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		Component->SetMobility(EComponentMobility::Movable);
+
+	}
+
+
+	//static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/VertexAnimations/SM_Tree2_AnimVertTest_00.SM_Tree2_AnimVertTest_00'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/PolygonFantasyRivals/Meshes/Props/SM_Prop_Tree_02.SM_Prop_Tree_02'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Rock(TEXT("StaticMesh'/Game/PolygonDungeons/Meshes/Environments/Rocks/SM_Env_Rock_Flat_Large_03.SM_Env_Rock_Flat_Large_03'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Mud(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube.1M_Cube'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Grass(TEXT("StaticMesh'/Game/Geometry/Meshes/1M_Cube_2.1M_Cube_2'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Water(TEXT("StaticMesh'/Game/Geometry/Meshes/WaterCube.WaterCube'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FortGolem(TEXT("StaticMesh'/Game/VertexAnimations/SK_BR_Character_FortGolem_2_Test9.SK_BR_Character_FortGolem_2_Test9'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> TestCube(TEXT("StaticMesh'/Game/Geometry/Meshes/TestCube.TestCube'"));
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Coal(TEXT("StaticMesh'/Game/Meshes/Coal.Coal'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Iron(TEXT("StaticMesh'/Game/Meshes/Iron.Iron'"));
@@ -102,24 +111,25 @@ ALevelGeneration::ALevelGeneration()
 	GrassHISMC->SetStaticMesh(Grass.Object);
 	CoalHISMC->SetStaticMesh(Coal.Object);
 	IronHISMC->SetStaticMesh(Iron.Object);
-
+	FortGolemHISM->SetStaticMesh(FortGolem.Object);
+	//FortGolemHISM->SetStaticMesh(TestCube.Object);
 	WaterHISMC->SetStaticMesh(Water.Object);
 
-	CoalHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	/*CoalHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	IronHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	TreeHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	RockHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	MudHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	GrassHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	GrassHISMC->SetCollisionEnabled(ECollisionEnabled::NoCollision);*/
 
 	//IronHISMC->collision
 	int Culling = 10000;
-	TreeHISMC->SetMobility(EComponentMobility::Static);
+	/*TreeHISMC->SetMobility(EComponentMobility::Static);
 	RockHISMC->SetMobility(EComponentMobility::Static);
 	MudHISMC->SetMobility(EComponentMobility::Static);
 	GrassHISMC->SetMobility(EComponentMobility::Static);
 	CoalHISMC->SetMobility(EComponentMobility::Static);
-	IronHISMC->SetMobility(EComponentMobility::Static);
+	IronHISMC->SetMobility(EComponentMobility::Static);*/
 	/*TreeHISMC->InstanceStartCullDistance = Culling;
 	RockHISMC->InstanceStartCullDistance = Culling;
 	MudHISMC->InstanceStartCullDistance = Culling;
@@ -140,9 +150,9 @@ ALevelGeneration::ALevelGeneration()
 	GrassHISMC->SetCullDistance(Culling);
 	CoalHISMC->SetCullDistance(Culling);
 	IronHISMC->SetCullDistance(Culling);*/
-
-
-
+	//MudHISMC->InstanceEndCullDistance = 100;
+	//MudHISMC->bEnableDensityScaling = 1;
+	//MudHISMC->SetCullDistance(40000);
 	FGenerationData CoalData;
 	CoalData.Type = EWorldGridType::Coal;
 	CoalData.HISM = CoalHISMC;
@@ -176,8 +186,8 @@ ALevelGeneration::ALevelGeneration()
 	TreeData.Frequency = 7;
 	TreeData.CutOff = 0.7;
 	TreeData.ScaleWithHeigh = true;
-	TreeData.BaseModelSize = FVector(2, 2, 2);
-	TreeData.MaxModelSize = FVector(4, 4, 6);
+	TreeData.BaseModelSize = FVector(6, 6, 6);
+	TreeData.MaxModelSize = FVector(12, 12, 18);
 	/*TreeData.RandHeightVariance = 0.5;
 	TreeData.RandWidthVariance = .25;
 	TreeData.RandXYVariance = 1;
@@ -191,8 +201,8 @@ ALevelGeneration::ALevelGeneration()
 	RockData.CutOff = 0.65;
 	RockData.ScaleWithHeigh = true;
 
-	RockData.BaseModelSize = FVector(0.2, 0.2, 1);
-	RockData.MaxModelSize = FVector(0.2, 0.2, 1.8);
+	RockData.BaseModelSize = FVector(0.15, 0.15, 0.6);
+	RockData.MaxModelSize = FVector(0.15, 0.15, 1);
 	RockData.RandHeightVariance = 0.4;
 	RockData.RandWidthVariance = 0;
 	RockData.RandXYVariance = -.2;
@@ -256,32 +266,198 @@ void ALevelGeneration::BeginPlay()
 	if (Role == ROLE_Authority)
 	{
 		Seed = FindValidSeed();
+		UE_LOG(LogTemp, Warning, TEXT("FindValidSeed Seed: %i"), Seed);
+
 		WaveFrontAlgorithm();
 		OnRep_SetSeed();
 		CreateCollisionCubes();
 
 		SpawnEnemies();
-
 	}
-	
 }
 
-void ALevelGeneration::Tick(float DeltaTime)
+void ALevelGeneration::OnRep_UpdatePositions()
 {
-	for (USphereComponent* Sphere : SphereComponents)
+	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+
+	//float ServerTime = GameState->GetServerWorldTimeSeconds();
+	float CurrentTime = GameState->GetGameTimeSinceCreation();
+
+	FEnemyKeyframe Keyframe = FEnemyKeyframe(EnemyPositions, CurrentTime);
+	CurrentEnemyFrame = Keyframe;
+}
+
+void ALevelGeneration::UpdateClientEnemies(float DeltaTime)
+{
+	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+
+
+
+	//float ServerTime = GameState->GetServerWorldTimeSeconds();
+	float CurrentTime = GameState->GetGameTimeSinceCreation();
+
+	float DelayedTime = CurrentTime - 1.0f - DeltaTime;
+	float DifferenceTime = CurrentEnemyFrame.Time - DelayedTime;
+
+	float PercentTime = DeltaTime / DifferenceTime;
+	//Clear the old frames apart from the previous one.
+
+	int HISMDifference = FortGolemHISM->GetInstanceCount() < CurrentEnemyFrame.EnemyPositions.Num();
+
+	if (HISMDifference < 0)
 	{
-		FVector Location = Sphere->GetComponentLocation();
-		int X = (int)-Location.X / GridSize;
-		int Y = (int)Location.Y / GridSize;
+		for (int i = 0; i < HISMDifference; i++)
+		{
+			FortGolemHISM->RemoveInstance(FortGolemHISM->GetInstanceCount() - 1);
+		}
+	}
+
+	if (HISMDifference > 0)
+	{
+		FortGolemHISM->AddInstance(FTransform());
+	}
+
+	if (CurrentEnemyFrame.Time > DelayedTime)
+	{
+		for (int i = 0; i < CurrentEnemyFrame.EnemyPositions.Num(); i++)
+		{
+			
+			FTransform InstanceTransform;
+			FortGolemHISM->GetInstanceTransform(i, InstanceTransform);
+			FVector CurrentPosition = InstanceTransform.GetLocation();
+			FVector GoalPosition = FVector(CurrentEnemyFrame.EnemyPositions[i]);
+
+			FRotator CurrentRotation = InstanceTransform.GetRotation().Rotator() + FRotator(0, 90, 0);
+			FRotator GoalRotation = UKismetMathLibrary::FindLookAtRotation(CurrentPosition, GoalPosition);
+			FRotator NewRotation = CurrentRotation;
+			NewRotation.Yaw = CurrentRotation.Yaw + (GoalRotation.Yaw - CurrentRotation.Yaw) * DeltaTime - 90;
+
+
+			//FVector Location = FMath::Lerp(FVector(CurrentEnemyFrame.EnemyPositions[i]), InstanceTransform.GetLocation(), PercentTime * 100);
+			FVector Location = FMath::Lerp(CurrentPosition, GoalPosition, PercentTime);
+			FTransform NewTransform;
+			NewTransform.SetLocation(Location);
+			NewTransform.SetRotation(FQuat(NewRotation));
+			FortGolemHISM->UpdateInstanceTransform(i, NewTransform, false, false, false);
+
+			/*if (i == 5)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("UpdateClientEnemies tick time: CurrentTime %f EnemyFrameTime %f DeltaTime %f DelayedTime %f DifferenceTime %f PercentTime %f CurrentPosition %s GoalPosition %s Location %s DifferenceInPos %s"), CurrentTime, CurrentEnemyFrame.Time, DeltaTime, DelayedTime, DifferenceTime, PercentTime, *CurrentPosition.ToString(), *GoalPosition.ToString(), *Location.ToString(), *FVector(CurrentPosition - Location).ToString());
+
+			}*/
+		}
+	}
+
+
+
+
+}
+
+
+void ALevelGeneration::UpdateEnemies(float DeltaTime)
+{
+	float Count = 0;
+	bool LastOne = false;
+	for (int i = 0; i < SphereComponents.Num(); i++)
+	{
+		Count += 0.003;
+		if (i == SphereComponents.Num() - 1)
+		{
+			LastOne = true;
+		}
+		FTransform Trans;
+		FVector Location = SphereComponents[i]->GetComponentLocation();
+
+		int X = -Location.X / (float)GridSize;
+		int Y = Location.Y / (float)GridSize;
 
 		int Index = Y * WorldGridSize + X;
 		if (Index < VectorMap.Num() - 1 && Index > 0)
 		{
-			float ForceAmount = 1000;
-			Sphere->AddForce(FVector(-VectorMap[Index].X * ForceAmount, VectorMap[Index].Y * ForceAmount, 0));
+
+			float ForceAmount = 80;
+			SphereComponents[i]->AddForce(FVector(-VectorMap[Index].X * ForceAmount, VectorMap[Index].Y * ForceAmount, 0));
+
+			FTransform InstanceTransform;
+			FortGolemHISM->GetInstanceTransform(i, InstanceTransform, true);
+
+			//FVector Location = SphereComponents[i]->GetComponentLocation();
+			FRotator CurrentRotation = InstanceTransform.GetRotation().Rotator();
+			FRotator Rotation = CurrentRotation;
+			FVector ComponentVelocity = SphereComponents[i]->GetComponentVelocity();
+			FVector Scale;
+			if (ComponentVelocity.Size() > 45)
+			{
+				//Set scale to 5 when faster than 10 velocity.
+				Scale = FVector(2);
+			}
+			else
+			{
+				//Set scale to for less than 10 speed.
+				Scale = FVector(1);
+			}
+
+			FRotator VelocityRotation = ComponentVelocity.Rotation() + FRotator(0, -90, 0);
+			Rotation.Yaw = Rotation.Yaw + (VelocityRotation.Yaw - CurrentRotation.Yaw) * DeltaTime * FMath::Clamp(ComponentVelocity.Size(), 0.0f, 100.0f) / 100;
+
+			//FVector Scale = FVector(1 + (FMath::Clamp(ComponentVelocity.Size(), 0.0f, 100.0f) / 100) + 1);
+			//FVector Scale = FVector(1 + GetWorld()->TimeSeconds / 200);
+
+			Trans.SetLocation(Location);
+			Trans.SetRotation(FQuat(Rotation));
+			Trans.SetScale3D(Scale);
+			/*if (i == 50)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Velocity of enemy index found: %f, %f"), ComponentVelocity.Size(), UGameplayStatics::GetRealTimeSeconds(GetWorld()));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Velocity of enemy: %i"), SphereComponents.Num());
+			}*/
+			//FortGolemHISM->UpdateInstanceTransform(i, Trans, false, LastOne, false);
+			FortGolemHISM->UpdateInstanceTransform(i, Trans, false, false, false);
+
+			if (EnemyPositions.Num() - 1 > i)
+			{
+				EnemyPositions[i] = FVector_NetQuantize(Location);
+			}
+			else
+			{
+				EnemyPositions.Insert(FVector_NetQuantize(Location), i);
+			}
+			
 		}
 
-		
+	}
+	FortGolemHISM->BuildTreeIfOutdated(true, true);
+	FortGolemHISM->MarkRenderStateDirty();
+
+	//FVector ComponentVelocity = SphereComponents[i]->GetComponentVelocity();
+	//FRotator VelocityRotation = ComponentVelocity.Rotation();
+
+	//Rotation.Yaw += DeltaTime;
+	//Rotation.Yaw = Rotation.Yaw + (VelocityRotation.Yaw - CurrentRotation.Yaw) * DeltaTime * FMath::Clamp(ComponentVelocity.Size(), 0.0f, 100.0f)/ 100;
+	//Rotation.Yaw = Rotation.Yaw + (VelocityRotation.Yaw - CurrentRotation.Yaw) * DeltaTime;
+
+	
+
+
+
+}
+
+void ALevelGeneration::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	if (Role == ROLE_Authority)
+	{
+		UpdateEnemies(DeltaTime);
+	}
+	else
+	{
+		UpdateClientEnemies(DeltaTime);
+		UE_LOG(LogTemp, Warning, TEXT("CLIENT"));
+
 	}
 }
 
@@ -292,28 +468,56 @@ void ALevelGeneration::SpawnEnemies()
 	{
 		if (CollisionGrid[i] != 1)
 		{
-			int X = (i % WorldGridSize) * GridSize;
-			//y value
-			int Y = (i / WorldGridSize) * GridSize;
+			//int X = (i % WorldGridSize) * GridSize;
+			////y value
+			//int Y = (i / WorldGridSize) * GridSize;
+
+			int Remainder = i % WorldGridSize;
+			int Quotient = i / WorldGridSize;
+			int X = Remainder * GridSize + GridSize / 2;
+			int Y = Quotient * GridSize + GridSize / 2;
 
 			USphereComponent * SphereComponent = NewObject<USphereComponent>(this);
 			//SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
 			SphereComponent->GetBodyInstance()->bLockZTranslation = true;
+			SphereComponent->GetBodyInstance()->SetEnableGravity(false);
 			SphereComponent->GetBodyInstance()->bLockXRotation = true;
 			SphereComponent->GetBodyInstance()->bLockYRotation = true;
 			SphereComponent->GetBodyInstance()->bLockZRotation = true;
-			SphereComponent->SetLinearDamping(0.5f);
+			SphereComponent->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
+			SphereComponent->GetBodyInstance()->SetMassScale(0.1);
+			SphereComponent->GetBodyInstance()->SetUseCCD(false);
 
+
+			SphereComponent->SetLinearDamping(0.5f);
+			
+			SphereComponent->SetWorldScale3D(FVector(0.7f));
 			UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
 			PhysMat->Friction = 0;
 			SphereComponent->SetPhysMaterialOverride(PhysMat);
 			SphereComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 			SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
 			SphereComponent->SetSimulatePhysics(true);
-			SphereComponent->SetWorldLocation(FVector(-X, Y, 50));
-			SphereComponent->SetHiddenInGame(false);
+			SphereComponent->SetWorldLocation(FVector(-X, Y, 15));
+			//SphereComponent->SetHiddenInGame(false);
 			SphereComponent->RegisterComponent();
 			SphereComponents.Add(SphereComponent);
+
+			FTransform Trans = FTransform(FRotator(0), FVector(0));
+
+
+			
+			FortGolemHISM->AddInstance(FTransform(Trans));
+			if (EnemyPositions.Num() - 1 > i)
+			{
+				//EnemyPositions[i] = FVector_NetQuantize(Trans.GetLocation());
+			}
+			else
+			{
+				//EnemyPositions.Insert(FVector_NetQuantize(Trans.GetLocation()), i);
+				EnemyPositions.AddUninitialized();
+			}
+
 			Number++;
 		}
 		if (Number == 2000) break;
@@ -326,9 +530,14 @@ void ALevelGeneration::CreateCollisionCubes()
 	{
 		if (CollisionGrid[i] == 1)
 		{
-			int X = (i % WorldGridSize) * GridSize;
-			//y value
-			int Y = (i / WorldGridSize) * GridSize;
+			//int X = (i % WorldGridSize) * GridSize;
+			////y value
+			//int Y = (i / WorldGridSize) * GridSize;
+
+			int Remainder = i % WorldGridSize;
+			int Quotient = i / WorldGridSize;
+			int X = Remainder * GridSize + GridSize / 2;
+			int Y = Quotient * GridSize + GridSize / 2;
 
 			UBoxComponent * BoxComponent = NewObject<UBoxComponent>(this);
 			UPhysicalMaterial * PhysMat = NewObject<UPhysicalMaterial>(this);
@@ -339,7 +548,7 @@ void ALevelGeneration::CreateCollisionCubes()
 			BoxComponent->SetCollisionResponseToAllChannels(ECR_Block);
 			BoxComponent->SetSimulatePhysics(false);
 			BoxComponent->SetWorldLocation(FVector(-X, Y, 50));
-			BoxComponent->SetHiddenInGame(false);
+			//BoxComponent->SetHiddenInGame(false);
 			BoxComponent->RegisterComponent();
 		}
 	}
@@ -601,7 +810,6 @@ void ALevelGeneration::MakeMiniMapTexture()
 void ALevelGeneration::OnRep_SetSeed()
 {
 	ENetRole MyRole = Role;
-
 	if (Seed != 0 && HasGenerated == false)
 	{
 		if (Role != ROLE_Authority)
@@ -616,11 +824,13 @@ void ALevelGeneration::OnRep_SetSeed()
 }
 
 
+
 void ALevelGeneration::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME(ALevelGeneration, Seed);
+	DOREPLIFETIME(ALevelGeneration, EnemyPositions);
 	/*DOREPLIFETIME(ALevelGeneration, RockHISMC);
 	DOREPLIFETIME(ALevelGeneration, MudHISMC);
 	DOREPLIFETIME(ALevelGeneration, GrassHISMC);
@@ -830,8 +1040,8 @@ void ALevelGeneration::WaveFrontAlgorithm()
 	{
 		int Remainder = i % WorldGridSize;
 		int Quotient = i / WorldGridSize;
-		int X = Remainder * GridSize;
-		int Y = Quotient * GridSize;
+		int X = Remainder * GridSize + GridSize / 2;
+		int Y = Quotient * GridSize + GridSize / 2;
 
 		FVector LineStart = FVector(-X , Y, 1);
 		FVector LineEnd = FVector(-X -VectorMap[i].X * 50, Y + VectorMap[i].Y * 50, 1);
@@ -902,8 +1112,8 @@ void ALevelGeneration::SpawnMeshes(FGenerationData AGenerationData, TArray<EWorl
 		{
 			int Remainder = i % WorldGridSize;
 			int Quotient = i / WorldGridSize;
-			int X = Remainder * GridSize;
-			int Y = Quotient * GridSize;
+			int X = Remainder * GridSize + GridSize / 2;
+			int Y = Quotient * GridSize + GridSize / 2;
 
 			float RandXY = 0;
 			float RandZ = 0;

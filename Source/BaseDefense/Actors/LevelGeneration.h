@@ -9,11 +9,25 @@
 #include "Runtime/Engine/Classes/Kismet/GameplayStatics.h"
 #include "GenericPlatform/GenericPlatformMath.h"
 #include "Kismet/KismetMathLibrary.h"
+#include <Engine/NetSerialization.h>
 #include "LevelGeneration.generated.h"
 
 DECLARE_MULTICAST_DELEGATE(FWorldGenerated);
 
+struct FEnemyKeyframe
+{
+	TArray<FVector_NetQuantize> EnemyPositions;
+	float Time;
+	FEnemyKeyframe()
+	{
 
+	}
+	FEnemyKeyframe(TArray<FVector_NetQuantize> AnEnemyPositions, float ACurrentTime)
+	{
+		EnemyPositions = AnEnemyPositions;
+		Time = ACurrentTime;
+	}
+};
 struct FASGraph
 {
 public:
@@ -223,6 +237,12 @@ protected:
 	UFUNCTION()
 	void OnRep_SetSeed();
 
+	UFUNCTION()
+	void OnRep_UpdatePositions();
+
+	void UpdateClientEnemies(float DeltaTime);
+	void UpdateEnemies(float DeltaTime);
+
 	void SpawnMeshes(FGenerationData AGenerationData, TArray<EWorldGridType> AFromGrid, TArray<float> AFromElevation);
 	void AddGridToGrid(TArray<float> AFromGrid, TArray<EWorldGridType>& AToGrid, TArray<float>& AToElevation, float ACutOff, bool AMoreThan, EWorldGridType AType);
 	TArray<float> CreateSimplexGrid(int ASeed, int ASize, float AFrequency);
@@ -265,26 +285,14 @@ public:
 	//UPROPERTY(replicated, VisibleAnywhere)
 	UPROPERTY(replicated, VisibleAnywhere)
 	class USceneComponent* SceneComponent = nullptr;
-	//UPROPERTY(replicated, VisibleAnywhere)
-	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* TreeHISMC = nullptr;
-	//UPROPERTY(replicated, VisibleAnywhere)
-	//UPROPERTY(VisibleAnywhere)
+	class UHierarchicalInstancedStaticMeshComponent* FortGolemHISM = nullptr;
 	class UHierarchicalInstancedStaticMeshComponent* RockHISMC = nullptr;
-	//UPROPERTY(replicated, VisibleAnywhere)
-	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* MudHISMC = nullptr;
-	//UPROPERTY(replicated, VisibleAnywhere)
-	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* GrassHISMC = nullptr;
-	//UPROPERTY(replicated, VisibleAnywhere)
-	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* CoalHISMC = nullptr;
-	//UPROPERTY(replicated, VisibleAnywhere)
-	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* IronHISMC = nullptr;
 
-	//UPROPERTY(VisibleAnywhere)
 	class UHierarchicalInstancedStaticMeshComponent* WaterHISMC = nullptr;
 
 
@@ -302,4 +310,9 @@ public:
 		class UTexture2D* MiniMapTexture = nullptr;
 
 	TMap<EWorldGridType, FGenerationData> GenerationData;
+
+	UPROPERTY(ReplicatedUsing = OnRep_UpdatePositions)
+	TArray<FVector_NetQuantize> EnemyPositions;
+	TArray<FEnemyKeyframe> EnemyKeyframes;
+	FEnemyKeyframe CurrentEnemyFrame;
 };
