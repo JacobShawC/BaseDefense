@@ -7,7 +7,7 @@ public class BaseDefense : ModuleRules
 	public BaseDefense(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
-
+        bEnableUndefinedIdentifierWarnings = false;
         //PrivatePCHHeaderFile = "BaseDefense.h";
 
 

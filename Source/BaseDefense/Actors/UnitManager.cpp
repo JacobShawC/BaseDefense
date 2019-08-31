@@ -14,6 +14,9 @@ AUnitManager::AUnitManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	FEnemyUnitData SlowZombieData;
+	//SlowZombieData.
+	//EnemyDataMap
 
 }
 
@@ -21,13 +24,13 @@ AUnitManager::AUnitManager()
 void AUnitManager::BeginPlay()
 {
 	Super::BeginPlay();
+	int Test = 8;
 	if (Role == ROLE_Authority)
 	{
 		AHISMManager* WalkingZombieHISM = (AHISMManager*)GetWorld()->SpawnActor<AHISMManager>(AHISMManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
 		AHISMManager* BigZombieHISM = (AHISMManager*)GetWorld()->SpawnActor<AHISMManager>(AHISMManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
-		HISMManagers.Add(ETest::WalkingZombie, WalkingZombieHISM);
-		HISMManagers.Add(ETest::BigZombie, BigZombieHISM);
-
+		HISMManagers.Add(EEnemy::SlowZombie, WalkingZombieHISM);
+		HISMManagers.Add(EEnemy::BigZombie, BigZombieHISM);
 
 		ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
 		LevelGenerationActor = GameState->LevelGenerationActor;
@@ -43,9 +46,36 @@ void AUnitManager::BeginPlay()
 	}
 }
 
-void AUnitManager::SpawnActor(FUnitData AUnit)
+void AUnitManager::SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform)
 {
 
+	//USphereComponent* SphereComponent = NewObject<USphereComponent>(this);
+	////SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
+	//SphereComponent->GetBodyInstance()->bLockZTranslation = true;
+	//SphereComponent->GetBodyInstance()->SetEnableGravity(false);
+	//SphereComponent->GetBodyInstance()->bLockXRotation = true;
+	//SphereComponent->GetBodyInstance()->bLockYRotation = true;
+	//SphereComponent->GetBodyInstance()->bLockZRotation = true;
+	//SphereComponent->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
+	//SphereComponent->GetBodyInstance()->SetMassScale(0.1);
+	//SphereComponent->GetBodyInstance()->SetUseCCD(false);
+
+
+	//SphereComponent->SetLinearDamping(0.5f);
+
+	//SphereComponent->SetWorldScale3D(FVector(0.7f));
+	//UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
+	//PhysMat->Friction = 0;
+	//SphereComponent->SetPhysMaterialOverride(PhysMat);
+	//SphereComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	//SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
+	//SphereComponent->SetSimulatePhysics(true);
+	//SphereComponent->SetWorldLocation(FVector(-X, Y, 15));
+	////SphereComponent->SetHiddenInGame(false);
+	//SphereComponent->RegisterComponent();
+	//SphereComponents.Add(SphereComponent);
+
+	//FTransform Trans = FTransform(FRotator(0), FVector(0));
 }
 
 void AUnitManager::TestSpawn()
@@ -121,9 +151,9 @@ void AUnitManager::TestSpawn()
 }
 
 // Called every frame
-void AUnitManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-}
+//void AUnitManager::Tick(float DeltaTime)
+//{
+//	Super::Tick(DeltaTime);
+//
+//}
 

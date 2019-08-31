@@ -19,42 +19,40 @@ void AHISMManager::FinishUpdates()
 }
 
 //We can only delete the last instance so therefore we swap the chosen actor with the last actor and then delete the last actor.
-void AHISMManager::DestroyIM(uint32 AnActorID)
+void AHISMManager::DestroyIM(uint32 AUnitID)
 {
-	FIMInstance ActorInstance = IDToInstanceMapping[AnActorID];
-	uint32 LastActorID = IDBuffer[IDBuffer.Num() - 1];
+	FIMInstance ActorInstance = IDToInstanceMapping[AUnitID];
+	uint32 LastUnitID = IDBuffer[IDBuffer.Num() - 1];
 
 	//Delete the last instance
-	uint32 LastInstanceIndex = IDToInstanceMapping[LastActorID].Index;
+	uint32 LastInstanceIndex = IDToInstanceMapping[LastUnitID].Index;
 	MeshPool->RemoveInstance(LastInstanceIndex);
 
 
 
 	//Swap the mappings' instance id
-	IDBuffer[ActorInstance.Index] = LastActorID;
-	IDToInstanceMapping[LastActorID] = ActorInstance;
+	IDBuffer[ActorInstance.Index] = LastUnitID;
+	IDToInstanceMapping[LastUnitID] = ActorInstance;
 
 	//Delete the new mapping.
-	IDToInstanceMapping.Remove(AnActorID);
+	IDToInstanceMapping.Remove(AUnitID);
 
 	//Delete the last ID in the buffer.
 	IDBuffer.RemoveAt(IDBuffer[IDBuffer.Num() - 1]);
 
 }
 
-uint32 AHISMManager::SpawnIM(FTransform AnInitialTransform)
+void AHISMManager::SpawnIM(uint32 AUnitID, FTransform AnInitialTransform)
 {
-	ActorIDCount++;
 
-	IDBuffer.Add(ActorIDCount);
+	IDBuffer.Add(AUnitID);
 	int32 InstanceIndex = MeshPool->AddInstanceWorldSpace(AnInitialTransform);
-	IDToInstanceMapping.Add(ActorIDCount, FIMInstance(InstanceIndex));
-	return ActorIDCount;
+	IDToInstanceMapping.Add(AUnitID, FIMInstance(InstanceIndex));
 }	
 
-void AHISMManager::TransformIM(uint32 AnActorID, FTransform ATransform)
+void AHISMManager::TransformIM(uint32 AUnitID, FTransform ATransform)
 {
-	uint32 InstanceIndex = IDToInstanceMapping[AnActorID].Index;
+	uint32 InstanceIndex = IDToInstanceMapping[AUnitID].Index;
 	IDBuffer.Add(InstanceIndex);
 	MeshPool->UpdateInstanceTransform(InstanceIndex, ATransform, true, false, false);
 }

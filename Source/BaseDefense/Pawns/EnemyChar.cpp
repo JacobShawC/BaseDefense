@@ -120,11 +120,9 @@ void AEnemyChar::Initialise(EEnemy AnEnemy)
 	if (GameInstance)
 	{
 		EnemyData = *GameInstance->Enemies.Find(AnEnemy);
-		
 		GetMesh()->SetSkeletalMesh(EnemyData.Mesh, true);
 		//GetMesh()->AnimClass = EnemyData.Anim;
 		GetMesh()->SetAnimInstanceClass(EnemyData.Anim);
-
 		//Animation sharing
 		/*UAnimationSharingManager* AnimSharingManager = UAnimationSharingManager::GetAnimationSharingManager(GetWorld());
 		if (AnimSharingManager == nullptr)
@@ -259,6 +257,7 @@ void AEnemyChar::OnMouseEnter(UPrimitiveComponent * TouchedComponent)
 
 void AEnemyChar::OnMouseLeave(UPrimitiveComponent * TouchedComponent)
 {
+	int test = 3;
 	if (FloatingWidget)
 	{
 		FloatingWidget->SetVisibility(false);

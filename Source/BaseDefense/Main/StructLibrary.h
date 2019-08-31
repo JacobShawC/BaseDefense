@@ -307,6 +307,8 @@ enum class EAttackRule : uint8
 	HighestHealth		UMETA(DisplayName = "HighestHealth")
 };
 
+
+
 USTRUCT()
 struct FLevelSave
 {
@@ -459,10 +461,14 @@ struct FAttack
 UENUM()
 enum class EEnemy : uint8
 {
-	None 			UMETA(DisplayName = "None"),
-	Seaman			UMETA(DisplayName = "Seaman"),
-	FirstMate 		UMETA(DisplayName = "FirstMate"),
-	FemalePirate 	UMETA(DisplayName = "FemalePirate"),
+	None,
+	SlowZombie,
+	FastZombie,
+	BigZombie,
+	RangedZombie,
+	Seaman,
+	FirstMate,
+	FemalePirate,
 	ElementalGolem 	UMETA(DisplayName = "ElementalGolem"),
 	FortGolem		UMETA(DisplayName = "FortGolem"),
 	MechanicalGolem UMETA(DisplayName = "MechanicalGolem"),
@@ -673,6 +679,8 @@ struct FEnemyData
 	UPROPERTY()
 	EEnemy Enemy = EEnemy::None;
 
+
+
 	UPROPERTY()
 	float MaxHealth = 0;
 
@@ -686,8 +694,13 @@ struct FEnemyData
 	float PushForce = 1;
 
 	UPROPERTY()
-	class UStaticMesh* Mesh = nullptr;
-	
+	class USkeletalMesh* Mesh = nullptr;
+
+	UPROPERTY()
+	class UStaticMesh* StaticMesh = nullptr;
+
+	UPROPERTY()
+	class UAnimBlueprintGeneratedClass* Anim = nullptr;
 
 	UPROPERTY()
 	float Bounty = 0;

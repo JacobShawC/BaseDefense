@@ -27,14 +27,18 @@ protected:
 	void FinishUpdates();
 
 protected:
-	uint32 ActorIDCount = 0;
+	
 	TArray<uint32> IDBuffer;
 
+
+
 public:
+
+
 	TMap<uint32, FIMInstance> IDToInstanceMapping;
 
-	void DestroyIM(uint32 AnActorID);
+	void DestroyIM(uint32 AUnitID);
 
-	uint32 SpawnIM(FTransform AnInitialTransform);
-	void TransformIM(uint32 AnActorID, FTransform ATransform);
+	void SpawnIM(uint32 AUnitID, FTransform AnInitialTransform);
+	void TransformIM(uint32 AUnitID, FTransform ATransform);
 };

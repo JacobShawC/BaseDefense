@@ -9,12 +9,20 @@
 #include "UnitManager.generated.h"
 
 
-UENUM()
-enum class ETest : uint8
+
+USTRUCT()
+struct FEnemyUnitData
 {
-	None,
-	WalkingZombie,
-	BigZombie,
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	EEnemy UnitType = EEnemy::None;
+
+	UPROPERTY()
+	class USphereComponent* Sphere = nullptr;
+
+	UPROPERTY()
+	bool RequiresSource = false;
 };
 
 UCLASS()
@@ -22,28 +30,32 @@ class BASEDEFENSE_API AUnitManager : public AActor
 {
 	GENERATED_BODY()
 	
-public:	
+public:
 	// Sets default values for this actor's properties
 	AUnitManager();
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	void SpawnActor(FUnitData AUnit);
+	uint32 UnitIDCount = 0;
+	void SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform);
 
 	void TestSpawn();
-	TMap<class USphereComponent*, FUnitData> UnitMap;
+
+	TMap<uint32, FEnemyUnitData> ActorIDMap;
+
+	TMap<EEnemy, TArray<FEnemyUnitData*>> EnemyTypeMap;
+	TMap<EEnemy, FEnemyUnitData> EnemyDataMap;
+
+
 
 protected:
 	class ALevelGeneration* LevelGenerationActor = nullptr;
-public:	
+public:
 	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-
+	//virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY()
-	TMap<ETest, AHISMManager*> HISMManagers;
+	TMap<EEnemy, AHISMManager*> HISMManagers;
 
 };
