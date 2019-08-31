@@ -17,12 +17,13 @@ struct FEnemyUnitData
 
 	UPROPERTY()
 	EEnemy UnitType = EEnemy::None;
+	
+	UPROPERTY()
+	uint32 UnitID;
 
 	UPROPERTY()
 	class USphereComponent* Sphere = nullptr;
 
-	UPROPERTY()
-	bool RequiresSource = false;
 };
 
 UCLASS()
@@ -39,10 +40,12 @@ protected:
 	virtual void BeginPlay() override;
 	uint32 UnitIDCount = 0;
 	void SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform);
+	
+	void ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount);
 
 	void TestSpawn();
 
-	TMap<uint32, FEnemyUnitData> ActorIDMap;
+	TMap<uint32, FEnemyUnitData> UnitIDMap;
 
 	TMap<EEnemy, TArray<FEnemyUnitData*>> EnemyTypeMap;
 	TMap<EEnemy, FEnemyUnitData> EnemyDataMap;

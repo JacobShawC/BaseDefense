@@ -46,34 +46,45 @@ void AUnitManager::BeginPlay()
 	}
 }
 
+void AUintManager::ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount)
+{
+	
+}
+
 void AUnitManager::SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform)
 {
 
-	//USphereComponent* SphereComponent = NewObject<USphereComponent>(this);
-	////SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
-	//SphereComponent->GetBodyInstance()->bLockZTranslation = true;
-	//SphereComponent->GetBodyInstance()->SetEnableGravity(false);
-	//SphereComponent->GetBodyInstance()->bLockXRotation = true;
-	//SphereComponent->GetBodyInstance()->bLockYRotation = true;
-	//SphereComponent->GetBodyInstance()->bLockZRotation = true;
-	//SphereComponent->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
-	//SphereComponent->GetBodyInstance()->SetMassScale(0.1);
-	//SphereComponent->GetBodyInstance()->SetUseCCD(false);
+	USphereComponent* SphereComponent = NewObject<USphereComponent>(this);
+	//SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
+	SphereComponent->GetBodyInstance()->bLockZTranslation = true;
+	SphereComponent->GetBodyInstance()->SetEnableGravity(false);
+	SphereComponent->GetBodyInstance()->bLockXRotation = true;
+	SphereComponent->GetBodyInstance()->bLockYRotation = true;
+	SphereComponent->GetBodyInstance()->bLockZRotation = true;
+	SphereComponent->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
+	SphereComponent->GetBodyInstance()->SetMassScale(0.1);
+	SphereComponent->GetBodyInstance()->SetUseCCD(false);
 
 
-	//SphereComponent->SetLinearDamping(0.5f);
+	SphereComponent->SetLinearDamping(0.5f);
 
-	//SphereComponent->SetWorldScale3D(FVector(0.7f));
-	//UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
-	//PhysMat->Friction = 0;
-	//SphereComponent->SetPhysMaterialOverride(PhysMat);
-	//SphereComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	//SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
-	//SphereComponent->SetSimulatePhysics(true);
-	//SphereComponent->SetWorldLocation(FVector(-X, Y, 15));
-	////SphereComponent->SetHiddenInGame(false);
-	//SphereComponent->RegisterComponent();
-	//SphereComponents.Add(SphereComponent);
+	SphereComponent->SetWorldScale3D(FVector(0.7f));
+	UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
+	PhysMat->Friction = 0;
+	SphereComponent->SetPhysMaterialOverride(PhysMat);
+	SphereComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
+	SphereComponent->SetSimulatePhysics(true);
+	SphereComponent->SetWorldLocation(FVector(-X, Y, 15));
+	//SphereComponent->SetHiddenInGame(false);
+	SphereComponent->RegisterComponent();
+	FEnemyUnitData EnemyUnit;
+	EnemyUnit.UnitType = AUnit;
+	EnemyUnit.Sphere = SphereComponent;
+	EnemyTypeMap[AUnit].Add(EnemyUnit);
+	++UnitIDCount;
+	EnemyUnit.UnitID = UnitIDCount;
+	UnitIDMap.Add(UnitIDCount, EnemyUnit);
 
 	//FTransform Trans = FTransform(FRotator(0), FVector(0));
 }
