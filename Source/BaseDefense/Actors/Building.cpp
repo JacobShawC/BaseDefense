@@ -3,4 +3,5 @@
 
 void ABuilding::WhatDo()
 {
+	int Test = 1;
 }
