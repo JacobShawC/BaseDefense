@@ -20,8 +20,7 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
-	UPROPERTY()
-	class UHierarchicalInstancedStaticMeshComponent* MeshPool;
+	
 
 
 	void FinishUpdates();
@@ -41,4 +40,7 @@ public:
 
 	void SpawnIM(uint32 AUnitID, FTransform AnInitialTransform);
 	void TransformIM(uint32 AUnitID, FTransform ATransform);
+
+	UPROPERTY()
+	class UHierarchicalInstancedStaticMeshComponent* MeshPool;
 };

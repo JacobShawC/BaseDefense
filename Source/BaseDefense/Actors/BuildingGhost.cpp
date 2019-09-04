@@ -94,6 +94,7 @@ void ABuildingGhost::SetMineable(bool AMineable)
 
 void ABuildingGhost::SetBuilding(EBuilding ABuilding)
 {
+	int test = 0;
 	if (ABuilding != Building || !Initialised)
 	{
 		Building = ABuilding;

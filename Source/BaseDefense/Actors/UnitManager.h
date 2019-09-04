@@ -45,9 +45,13 @@ protected:
 
 	void TestSpawn();
 
+	void Tick(float DeltaTime);
+
+	void UpdateHISMPositions();
+
 	TMap<uint32, FEnemyUnitData> UnitIDMap;
 
-	TMap<EEnemy, TArray<FEnemyUnitData*>> EnemyTypeMap;
+	TMap<EEnemy, TArray<FEnemyUnitData>> EnemyTypeMap;
 	TMap<EEnemy, FEnemyUnitData> EnemyDataMap;
 
 

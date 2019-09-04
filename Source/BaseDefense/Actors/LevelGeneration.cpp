@@ -367,7 +367,7 @@ void ALevelGeneration::UpdateEnemies(float DeltaTime)
 		}
 		FTransform Trans;
 		FVector Location = SphereComponents[i]->GetComponentLocation();
-
+		Location = FVector(Location.X, Location.Y, 0.0f);
 		int X = -Location.X / (float)GridSize;
 		int Y = Location.Y / (float)GridSize;
 
@@ -403,7 +403,9 @@ void ALevelGeneration::UpdateEnemies(float DeltaTime)
 			//FVector Scale = FVector(1 + (FMath::Clamp(ComponentVelocity.Size(), 0.0f, 100.0f) / 100) + 1);
 			//FVector Scale = FVector(1 + GetWorld()->TimeSeconds / 200);
 
+			//Trans.SetLocation(FVector(Location.X, Location.Y, 0));
 			Trans.SetLocation(Location);
+
 			Trans.SetRotation(FQuat(Rotation));
 			Trans.SetScale3D(Scale);
 			/*if (i == 50)
@@ -429,8 +431,8 @@ void ALevelGeneration::UpdateEnemies(float DeltaTime)
 		}
 
 	}
-	FortGolemHISM->BuildTreeIfOutdated(true, true);
-	FortGolemHISM->MarkRenderStateDirty();
+	//FortGolemHISM->BuildTreeIfOutdated(true, true);
+	//FortGolemHISM->MarkRenderStateDirty();
 
 	//FVector ComponentVelocity = SphereComponents[i]->GetComponentVelocity();
 	//FRotator VelocityRotation = ComponentVelocity.Rotation();
@@ -498,7 +500,7 @@ void ALevelGeneration::SpawnEnemies()
 			SphereComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 			SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
 			SphereComponent->SetSimulatePhysics(true);
-			SphereComponent->SetWorldLocation(FVector(-X, Y, 15));
+			SphereComponent->SetWorldLocation(FVector(-X, Y, 100));
 			//SphereComponent->SetHiddenInGame(false);
 			SphereComponent->RegisterComponent();
 			SphereComponents.Add(SphereComponent);
