@@ -253,6 +253,15 @@ enum class EPlayerAction : uint8
 	Selling 		UMETA(DisplayName = "Selling"),
 };
 
+UENUM()
+enum class EUnitAction : uint8
+{
+	None,
+	Pathing,
+	Attacking,
+
+};
+
 
 UENUM()
 enum class ETeam : uint8
@@ -474,6 +483,22 @@ enum class EEnemy : uint8
 	MechanicalGolem UMETA(DisplayName = "MechanicalGolem"),
 };
 
+UENUM()
+enum class EUnit : uint8
+{
+	None,
+	SlowZombie,
+	FastZombie,
+	BigZombie,
+	RangedZombie,
+	Seaman,
+	FirstMate,
+	FemalePirate,
+	ElementalGolem,
+	FortGolem,
+	MechanicalGolem,
+};
+
 
 
 USTRUCT()
@@ -648,6 +673,33 @@ struct FIMInstance {
 		Index = AnIndex;
 	}
 };
+USTRUCT()
+struct FUnitInstance
+{
+	UPROPERTY()
+	FIMInstance Instance;
+
+	UPROPERTY()
+	EUnit UnitType;
+
+	UPROPERTY()
+	class USphereComponent* Sphere = nullptr;
+
+	UPROPERTY()
+	uint32 PathingDestination;
+
+	UPROPERTY()
+	uint32 CurrentLocation;
+
+	UPROPERTY()
+	EAction CurrentAction;
+
+	UPROPERTY()
+	float Size = 1;
+
+	UPROPERTY()
+	float PushForce = 1;
+};
 
 USTRUCT()
 struct FUnitData
@@ -655,17 +707,48 @@ struct FUnitData
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
+	ETeam Team = ETeam::None;
+
+	UPROPERTY()
 	float Size = 1;
 
 	UPROPERTY()
-	FIMInstance Instance;
-
+	EUnit Type;
 
 	UPROPERTY()
 	float PushForce = 1;
 
 	UPROPERTY()
-	class UStaticMesh* Mesh = nullptr;
+	class UStaticMesh* UnitMesh = nullptr;
+
+	UPROPERTY()
+	class UStaticMesh* ProjectileMesh = nullptr;
+
+	UPROPERTY()
+	FString Name = "NoName";
+
+	UPROPERTY()
+	float MaxHealth = 0;
+
+	UPROPERTY()
+	float MovementSpeed = 0;
+
+	UPROPERTY()
+	float PushForce = 0;
+
+	UPROPERTY()
+	float AttackDamage = 0;
+
+	UPROPERTY()
+	float AttackTime = 1;
+
+	UPROPERTY()
+	float ProjectileSpeed = 0;
+
+
+	UPROPERTY()
+	float Bounty = 0;
+
 };
 
 USTRUCT()

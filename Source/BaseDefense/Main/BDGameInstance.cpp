@@ -260,6 +260,49 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	//----------------------------------------------------------------------------------------------------------
 	//Enemies
 	//----------------------------------------------------------------------------------------------------------
+
+	//Slow Zombie
+	FUnitData SlowZombie;
+	SlowZombie.Name = "Zombie";
+	SlowZombie.Size = 1;
+	SlowZombie.Type = EUnit::SlowZombie;
+	SlowZombie.PushForce = 1;
+	//SlowZombie.Mesh =
+	SlowZombie.MaxHealth = 100;
+	SlowZombie.MovementSpeed = 10;
+	SlowZombie.PushForce = 100;
+	SlowZombie.Bounty = 100;
+
+	UPROPERTY()
+		EUnit Type;
+
+	UPROPERTY()
+		float PushForce = 1;
+
+	UPROPERTY()
+		class UStaticMesh* Mesh = nullptr;
+
+	UPROPERTY()
+		FString Name = "NoName";
+
+	UPROPERTY()
+		float MaxHealth = 0;
+
+	UPROPERTY()
+		float MovementSpeed = 0;
+
+	UPROPERTY()
+		float PushForce = 1;
+
+	UPROPERTY()
+		class USkeletalMesh* Mesh = nullptr;
+
+	UPROPERTY()
+		class UStaticMesh* StaticMesh = nullptr;
+
+	UPROPERTY()
+		float Bounty = 0;
+
 	//Seaman
 	FEnemyData SeamanData;
 	SeamanData.Name = "Small Zombie";

@@ -4,6 +4,7 @@
 #include "UnitManager.h"
 #include "BDGameState.h"
 #include "LevelGeneration.h"
+#include "UBDGameInstance"
 #include <Engine/World.h>
 #include "HISMManager.h"
 #include <Components/SphereComponent.h>
@@ -14,24 +15,25 @@ AUnitManager::AUnitManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-	FEnemyUnitData SlowZombieData;
-	//SlowZombieData.
-	//EnemyDataMap
 
 }
 
 // Called when the game starts or when spawned
+
+//When the game starts we set up all of the HISM managers.
 void AUnitManager::BeginPlay()
 {
 	Super::BeginPlay();
-	int Test = 8;
+
+	UBDGameInstance* GameInstance = nullptr;
+	GameInstance = GetWorld()->GetGameInstance<UBDGameInstance>();
+	if (GameInstance != nullptr)
+	{
+		UnitDataMap = GameInstance->Units;
+	}
+	SetupAllHISMS();
 	if (Role == ROLE_Authority)
 	{
-		AHISMManager* WalkingZombieHISM = (AHISMManager*)GetWorld()->SpawnActor<AHISMManager>(AHISMManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
-		AHISMManager* BigZombieHISM = (AHISMManager*)GetWorld()->SpawnActor<AHISMManager>(AHISMManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
-		HISMManagers.Add(EEnemy::SlowZombie, WalkingZombieHISM);
-		HISMManagers.Add(EEnemy::BigZombie, BigZombieHISM);
-
 		ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
 		LevelGenerationActor = GameState->LevelGenerationActor;
 
@@ -45,19 +47,38 @@ void AUnitManager::BeginPlay()
 		}
 	}
 }
-
+//applies a force in a direction to a unit in a specific unit, takes the unit id.
 void AUnitManager::ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount)
 {
-	FEnemyUnitData* UnitData = nullptr;
+	FUnitInstance* UnitInstance = nullptr;
 	UnitData = UnitIDMap.Find(AUnitID);
 	if (UnitData != nullptr)
 	{
 		UnitData->Sphere->AddForce(Direction * AnAmount);
+
 	}
 }
-
-void AUnitManager::SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform)
+//Goes through the unit data map on the gameinstance and spawns a hism manager for each one.
+void AUnitManager::SetupAllHISMS()
 {
+	for (auto& AUnitData : UnitDataMap)
+	{
+		SetupHISM(AUnitData.Value);
+	}
+}
+//Spawns a HISM Manager and adds it to the Manager map.
+void AUnitManager::SetupHISM(FUnitData AUnitData)
+{
+	AHISMManager* HISM = (AHISMManager*)GetWorld()->SpawnActor<AHISMManager>(AHISMManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+	HISMManagers.Add(AUnitData.UnitType, HISM);
+}
+
+
+void AUnitManager::SpawnUnit(EUnit AUnit, FTransform AnInitialTransform)
+{
+	FUnitData* UnitData = UnitDataMap[AUnit];
+
+
 	USphereComponent* SphereComponent = NewObject<USphereComponent>(this);
 	//SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
 	SphereComponent->GetBodyInstance()->bLockZTranslation = true;
@@ -71,7 +92,7 @@ void AUnitManager::SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform)
 
 	SphereComponent->SetLinearDamping(0.5f);
 
-	SphereComponent->SetWorldScale3D(FVector(0.7f));
+	SphereComponent->SetWorldScale3D(FVector(UnitData->Size));
 	UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
 	PhysMat->Friction = 0;
 	SphereComponent->SetPhysMaterialOverride(PhysMat);
@@ -81,36 +102,155 @@ void AUnitManager::SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform)
 	SphereComponent->SetWorldTransform(AnInitialTransform);
 	SphereComponent->SetHiddenInGame(true);
 	SphereComponent->RegisterComponent();
-	FEnemyUnitData EnemyUnit;
-	EnemyUnit.UnitType = AUnit;
-	EnemyUnit.Sphere = SphereComponent;
-	EnemyTypeMap[AUnit].Add(EnemyUnit);
+	FUnitInstance Unit;
+	Unit.UnitType = AUnit;
+	Unit.PushForce = UnitData->PushForce;
+	Unit.Size = UnitData->PushForce;
+	Unit.Sphere = SphereComponent;
+	UnitTypeMap[AUnit].Add(Unit);
 	++UnitIDCount;
-	EnemyUnit.UnitID = UnitIDCount;
-	UnitIDMap.Add(EnemyUnit.UnitID, EnemyUnit);
+	Unit.UnitID = UnitIDCount;
+	UnitIDMap.Add(Unit.UnitID, Unit);
 
 	AHISMManager* HISMManager = *HISMManagers.Find(AUnit);
 
 	if (HISMManager != nullptr)
 	{
-		HISMManager->SpawnIM(EnemyUnit.UnitID, AnInitialTransform);
+		HISMManager->SpawnIM(Unit.UnitID, AnInitialTransform);
 	}
 }
 
 void AUnitManager::TestSpawn()
 {
 }
-
+//Apply pathfinding forces, update HISM positions and update multiplayer data.
 void AUnitManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateHISMPositions();
 }
+//ai ideas.
+//rules
+//actions
+//triggers
+//data driven
+//could be priority list:
+//1. walk to location
+//2. attack team ally
 
+void AUnitManager::PerformActions()
+{
+	for (auto& AnElem : UnitTypeMap)
+	{
+		FUnitData* UnitData = nullptr;
+		UnitData = UnitDataMap.Find(AnElem.Key);
+
+		if (UnitData != nullptr)
+		{
+			for (int i = 0; i < AnElem.Value.Num(); i++)
+			{
+				switch (AnElem.Value[i])
+				{
+					case EUnitAction::None: break;
+					case EUnitAction::Pathing: PathTowardsPoint();
+					case EUnitAction::Attacking: break;
+
+				}
+			}
+		}
+
+		AHISMManager* HISMManager = nullptr;
+		HISMManager = HISMManagers[AnElem.Key];
+
+		if (HISMManager != nullptr)
+		{
+			for (int i = 0; i < AnElem.Value.Num(); i++)
+			{
+				HISMManager->TransformIM(AnElem.Value[i].UnitID, AnElem.Value[i].Sphere->GetComponentTransform());
+				int test = 888;
+			}
+		}
+
+	}
+}
+void AUnitManager::PathTowardsPosition(FUnitInstance AnInstance)
+{
+	if (LevelGenerationActor != nullptr)
+	{
+		FTransform Trans;
+		FVector Location = AnInstance.Sphere->GetComponentLocation();
+		Location = FVector(Location.X, Location.Y, 0.0f);
+		int GridSize = LevelGenerationActor->GridSize;
+
+		int X = -Location.X / (float)GridSize;
+		int Y = Location.Y / (float)GridSize;
+
+		int Index = Y * WorldGridSize + X;
+		if (Index < VectorMap.Num() - 1 && Index > 0)
+		{
+
+			float ForceAmount = 80;
+			SphereComponents[i]->AddForce(FVector(-VectorMap[Index].X * ForceAmount, VectorMap[Index].Y * ForceAmount, 0));
+
+			FTransform InstanceTransform;
+			FortGolemHISM->GetInstanceTransform(i, InstanceTransform, true);
+
+			//FVector Location = SphereComponents[i]->GetComponentLocation();
+			FRotator CurrentRotation = InstanceTransform.GetRotation().Rotator();
+			FRotator Rotation = CurrentRotation;
+			FVector ComponentVelocity = SphereComponents[i]->GetComponentVelocity();
+			FVector Scale;
+			if (ComponentVelocity.Size() > 45)
+			{
+				//Set scale to 5 when faster than 10 velocity.
+				Scale = FVector(2);
+			}
+			else
+			{
+				//Set scale to for less than 10 speed.
+				Scale = FVector(1);
+			}
+
+			FRotator VelocityRotation = ComponentVelocity.Rotation() + FRotator(0, -90, 0);
+			Rotation.Yaw = Rotation.Yaw + (VelocityRotation.Yaw - CurrentRotation.Yaw) * DeltaTime * FMath::Clamp(ComponentVelocity.Size(), 0.0f, 100.0f) / 100;
+
+			//FVector Scale = FVector(1 + (FMath::Clamp(ComponentVelocity.Size(), 0.0f, 100.0f) / 100) + 1);
+			//FVector Scale = FVector(1 + GetWorld()->TimeSeconds / 200);
+
+			//Trans.SetLocation(FVector(Location.X, Location.Y, 0));
+			Trans.SetLocation(Location);
+
+			Trans.SetRotation(FQuat(Rotation));
+			Trans.SetScale3D(Scale);
+			/*if (i == 50)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Velocity of enemy index found: %f, %f"), ComponentVelocity.Size(), UGameplayStatics::GetRealTimeSeconds(GetWorld()));
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("Velocity of enemy: %i"), SphereComponents.Num());
+			}*/
+			//FortGolemHISM->UpdateInstanceTransform(i, Trans, false, LastOne, false);
+			FortGolemHISM->UpdateInstanceTransform(i, Trans, false, false, false);
+
+			if (EnemyPositions.Num() - 1 > i)
+			{
+				EnemyPositions[i] = FVector_NetQuantize(Location);
+			}
+			else
+			{
+				EnemyPositions.Insert(FVector_NetQuantize(Location), i);
+			}
+
+		}
+	}
+	
+}
 //We go though every unit's sphere and update the instances position via their HISM manager.
 void AUnitManager::UpdateHISMPositions()
 {
-	for (auto& AnElem : EnemyTypeMap)
+	for (auto& AnElem : UnitTypeMap)
 	{
 		AHISMManager* HISMManager = nullptr;
 		HISMManager = HISMManagers[AnElem.Key];

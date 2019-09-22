@@ -10,22 +10,6 @@
 
 
 
-USTRUCT()
-struct FEnemyUnitData
-{
-	GENERATED_USTRUCT_BODY()
-
-	UPROPERTY()
-	EEnemy UnitType = EEnemy::None;
-	
-	UPROPERTY()
-	uint32 UnitID;
-
-	UPROPERTY()
-	class USphereComponent* Sphere = nullptr;
-
-};
-
 UCLASS()
 class BASEDEFENSE_API AUnitManager : public AActor
 {
@@ -39,9 +23,16 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 	uint32 UnitIDCount = 0;
-	void SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform);
+	void SpawnUnit(EUnit AUnit, FTransform AnInitialTransform);
 	
 	void ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount);
+
+	void SetupAllHISMS();
+
+	void SetupHISM(FUnitData AUnitData);
+
+	void PerformActions();
+	void PathTowardsPosition(FUnitInstance AnInstance);
 
 	void TestSpawn();
 
@@ -49,10 +40,11 @@ protected:
 
 	void UpdateHISMPositions();
 
-	TMap<uint32, FEnemyUnitData> UnitIDMap;
+	TMap<uint32, FUnitInstance> UnitIDMap;
 
-	TMap<EEnemy, TArray<FEnemyUnitData>> EnemyTypeMap;
-	TMap<EEnemy, FEnemyUnitData> EnemyDataMap;
+	TMap<EUnit, TArray<FUnitInstance>> UnitTypeMap;
+	TMap<EUnit, TArray<FUnitData>> UnitDataMap;
+	TMap<EUnit, FUnitData> UnitDataMap;
 
 
 
@@ -63,6 +55,6 @@ public:
 	//virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY()
-	TMap<EEnemy, AHISMManager*> HISMManagers;
+	TMap<EUnit, AHISMManager*> HISMManagers;
 
 };
