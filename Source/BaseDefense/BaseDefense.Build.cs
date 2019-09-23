@@ -1,12 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 using UnrealBuildTool;
-
 public class BaseDefense : ModuleRules
 {
 	public BaseDefense(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
+        PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
         bEnableUndefinedIdentifierWarnings = false;
         //PrivatePCHHeaderFile = "BaseDefense.h";
 
@@ -35,6 +34,8 @@ public class BaseDefense : ModuleRules
                 "BaseDefense/Levels",
             }
         );
+
+
 
         // Uncomment if you are using Slate UI
         // PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });

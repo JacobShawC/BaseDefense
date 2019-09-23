@@ -650,23 +650,72 @@ struct FIMInstance {
 };
 
 USTRUCT()
-struct FUnitData
+struct FUnitDefault
 {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
-	float Size = 1;
+	uint32 UnitID;
+	UPROPERTY()
+		int Team = 0;
+	UPROPERTY()
+		class USphereComponent* Sphere = nullptr;
 
 	UPROPERTY()
-	FIMInstance Instance;
-
-
-	UPROPERTY()
-	float PushForce = 1;
+		float MaxHealth = 0;
 
 	UPROPERTY()
-	class UStaticMesh* Mesh = nullptr;
+		float MoveSpeed = 0;
+
+	UPROPERTY()
+		float TurnSpeed = 0;
+
+	UPROPERTY()
+		float Size = 1;
+
+	UPROPERTY()
+		float AttackDamage = 0;
+
+	UPROPERTY()
+		float AttackSpeed = 0;
+
+	UPROPERTY()
+		float AttackRange = 0;
 };
+
+USTRUCT()
+struct FUnitDefault
+{
+	GENERATED_USTRUCT_BODY()
+
+		UPROPERTY()
+		uint32 UnitID;
+
+	UPROPERTY()
+		class USphereComponent* Sphere = nullptr;
+
+	UPROPERTY()
+		float MaxHealth = 0;
+
+	UPROPERTY()
+		float MoveSpeed = 0;
+
+	UPROPERTY()
+		float TurnSpeed = 0;
+
+	UPROPERTY()
+		float Size = 1;
+
+	UPROPERTY()
+		float AttackDamage = 0;
+
+	UPROPERTY()
+		float AttackSpeed = 0;
+
+	UPROPERTY()
+		float AttackRange = 0;
+};
+
 
 USTRUCT()
 struct FEnemyData

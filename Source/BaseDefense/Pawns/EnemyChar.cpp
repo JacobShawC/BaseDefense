@@ -257,7 +257,6 @@ void AEnemyChar::OnMouseEnter(UPrimitiveComponent * TouchedComponent)
 
 void AEnemyChar::OnMouseLeave(UPrimitiveComponent * TouchedComponent)
 {
-	int test = 3;
 	if (FloatingWidget)
 	{
 		FloatingWidget->SetVisibility(false);

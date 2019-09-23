@@ -20,10 +20,11 @@
 MSVC_PRAGMA(warning(push))
 MSVC_PRAGMA(warning(disable : ALL_CODE_ANALYSIS_WARNINGS))
 #endif    // USING_CODE_ANALYSIS
+#pragma warning(disable:4996)
 
-#include "ThirdParty/Steamworks/Steamv139/sdk/public/steam/steam_api.h"
-#include "ThirdParty/Steamworks/Steamv139/sdk/public/steam/isteamuser.h"
-#include "ThirdParty/Steamworks/Steamv139/sdk/public/steam/isteamfriends.h"
+#include "ThirdParty/Steamworks/Steamv142/sdk/public/steam/steam_api.h"
+#include "ThirdParty/Steamworks/Steamv142/sdk/public/steam/isteamuser.h"
+#include "ThirdParty/Steamworks/Steamv142/sdk/public/steam/isteamfriends.h"
 
 #if USING_CODE_ANALYSIS
 MSVC_PRAGMA(warning(pop))

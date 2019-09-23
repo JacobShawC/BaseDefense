@@ -38,17 +38,17 @@ void AHISMManager::DestroyIM(uint32 AUnitID)
 	IDToInstanceMapping.Remove(AUnitID);
 
 	//Delete the last ID in the buffer.
-	IDBuffer.RemoveAt(IDBuffer[IDBuffer.Num() - 1]);
+	IDBuffer.RemoveAt(IDBuffer.Num() - 1);
 
 }
 
 void AHISMManager::SpawnIM(uint32 AUnitID, FTransform AnInitialTransform)
 {
-
+	//Add the unit to the idbuffer (which mirrors the HISM instances)
 	IDBuffer.Add(AUnitID);
 	int32 InstanceIndex = MeshPool->AddInstanceWorldSpace(AnInitialTransform);
 	IDToInstanceMapping.Add(AUnitID, FIMInstance(InstanceIndex));
-}	
+}
 
 void AHISMManager::TransformIM(uint32 AUnitID, FTransform ATransform)
 {

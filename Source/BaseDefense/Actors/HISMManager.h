@@ -20,9 +20,6 @@ public:
 
 protected:
 	// Called when the game starts or when spawned
-	
-
-
 	void FinishUpdates();
 
 protected:
@@ -33,7 +30,7 @@ protected:
 
 public:
 
-
+	void SetStaticMesh();
 	TMap<uint32, FIMInstance> IDToInstanceMapping;
 
 	void DestroyIM(uint32 AUnitID);

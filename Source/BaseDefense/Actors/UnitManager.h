@@ -9,20 +9,37 @@
 #include "UnitManager.generated.h"
 
 
-
 USTRUCT()
-struct FEnemyUnitData
+struct FUnitData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	EEnemy UnitType = EEnemy::None;
-	
 	UPROPERTY()
 	uint32 UnitID;
 
 	UPROPERTY()
 	class USphereComponent* Sphere = nullptr;
+
+	UPROPERTY()
+	float MaxHealth;
+
+	UPROPERTY()
+	float MoveSpeed;
+
+	UPROPERTY()
+	float TurnSpeed;
+
+	UPROPERTY()
+	float Size;
+
+	UPROPERTY()
+	float AttackDamage;
+
+	UPROPERTY()
+	float AttackSpeed;
+
+	UPROPERTY()
+	float AttackRange;
 
 };
 
@@ -35,24 +52,17 @@ public:
 	// Sets default values for this actor's properties
 	AUnitManager();
 
-protected:
+public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-	uint32 UnitIDCount = 0;
-	void SpawnEnemyUnit(EEnemy AUnit, FTransform AnInitialTransform);
-	
-	void ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount);
+	uint32 UnitIDCounter = 0;
 
-	void TestSpawn();
+	class USphereComponent* CreateSphere(FTransform AnInitialTransform);
+
 
 	void Tick(float DeltaTime);
 
-	void UpdateHISMPositions();
 
-	TMap<uint32, FEnemyUnitData> UnitIDMap;
-
-	TMap<EEnemy, TArray<FEnemyUnitData>> EnemyTypeMap;
-	TMap<EEnemy, FEnemyUnitData> EnemyDataMap;
 
 
 
@@ -62,7 +72,6 @@ public:
 	// Called every frame
 	//virtual void Tick(float DeltaTime) override;
 
-	UPROPERTY()
-	TMap<EEnemy, AHISMManager*> HISMManagers;
+	
 
 };
