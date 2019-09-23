@@ -9,6 +9,7 @@
 #include "UnitManager.generated.h"
 
 
+<<<<<<< HEAD
 USTRUCT()
 struct FUnitData
 {
@@ -42,6 +43,8 @@ struct FUnitData
 	float AttackRange;
 
 };
+=======
+>>>>>>> 9027e835f44aee79149949402f10503ec882f74b
 
 UCLASS()
 class BASEDEFENSE_API AUnitManager : public AActor
@@ -55,14 +58,38 @@ public:
 public:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+<<<<<<< HEAD
 	uint32 UnitIDCounter = 0;
 
 	class USphereComponent* CreateSphere(FTransform AnInitialTransform);
+=======
+	uint32 UnitIDCount = 0;
+	void SpawnUnit(EUnit AUnit, FTransform AnInitialTransform);
+	
+	void ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount);
+
+	void SetupAllHISMS();
+
+	void SetupHISM(FUnitData AUnitData);
+
+	void PerformActions();
+	void PathTowardsPosition(FUnitInstance AnInstance);
+
+	void TestSpawn();
+>>>>>>> 9027e835f44aee79149949402f10503ec882f74b
 
 
 	void Tick(float DeltaTime);
 
+<<<<<<< HEAD
 
+=======
+	TMap<uint32, FUnitInstance> UnitIDMap;
+
+	TMap<EUnit, TArray<FUnitInstance>> UnitTypeMap;
+	TMap<EUnit, TArray<FUnitData>> UnitDataMap;
+	TMap<EUnit, FUnitData> UnitDataMap;
+>>>>>>> 9027e835f44aee79149949402f10503ec882f74b
 
 
 
@@ -72,6 +99,11 @@ public:
 	// Called every frame
 	//virtual void Tick(float DeltaTime) override;
 
+<<<<<<< HEAD
 	
+=======
+	UPROPERTY()
+	TMap<EUnit, AHISMManager*> HISMManagers;
+>>>>>>> 9027e835f44aee79149949402f10503ec882f74b
 
 };

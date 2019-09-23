@@ -118,6 +118,7 @@ public:
 	TMap<EBuilding, class UTexture2D*> Images;
 	TMap<EBuilding, FBuildingData> Buildings;
 	TMap<EEnemy, FEnemyData> Enemies;
+	TMap<EUnit, FUnitData>Units;
 	TMap<ELevel, FLevelData> Levels;
 	FPlayerData DefaultPlayerData;
 	UPROPERTY()
