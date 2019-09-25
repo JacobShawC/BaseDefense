@@ -102,7 +102,7 @@ ALevelGeneration::ALevelGeneration()
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Coal(TEXT("StaticMesh'/Game/Meshes/Coal.Coal'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Iron(TEXT("StaticMesh'/Game/Meshes/Iron.Iron'"));
 
-	GridSize = 100;
+	GridPositionSize = 100;
 
 
 	TreeHISMC->SetStaticMesh(Tree.Object);
@@ -368,8 +368,8 @@ void ALevelGeneration::UpdateEnemies(float DeltaTime)
 		FTransform Trans;
 		FVector Location = SphereComponents[i]->GetComponentLocation();
 		Location = FVector(Location.X, Location.Y, 0.0f);
-		int X = -Location.X / (float)GridSize;
-		int Y = Location.Y / (float)GridSize;
+		int X = -Location.X / (float)GridPositionSize;
+		int Y = Location.Y / (float)GridPositionSize;
 
 		int Index = Y * WorldGridSize + X;
 		if (Index < VectorMap.Num() - 1 && Index > 0)
@@ -476,8 +476,8 @@ void ALevelGeneration::SpawnEnemies()
 
 			int Remainder = i % WorldGridSize;
 			int Quotient = i / WorldGridSize;
-			int X = Remainder * GridSize + GridSize / 2;
-			int Y = Quotient * GridSize + GridSize / 2;
+			int X = Remainder * GridPositionSize + GridPositionSize / 2;
+			int Y = Quotient * GridPositionSize + GridPositionSize / 2;
 
 			USphereComponent * SphereComponent = NewObject<USphereComponent>(this);
 			//SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
@@ -538,8 +538,8 @@ void ALevelGeneration::CreateCollisionCubes()
 
 			int Remainder = i % WorldGridSize;
 			int Quotient = i / WorldGridSize;
-			int X = Remainder * GridSize + GridSize / 2;
-			int Y = Quotient * GridSize + GridSize / 2;
+			int X = Remainder * GridPositionSize + GridPositionSize / 2;
+			int Y = Quotient * GridPositionSize + GridPositionSize / 2;
 
 			UBoxComponent * BoxComponent = NewObject<UBoxComponent>(this);
 			UPhysicalMaterial * PhysMat = NewObject<UPhysicalMaterial>(this);
@@ -608,8 +608,8 @@ int ALevelGeneration::GetGridIndex(FVector APostion)
 {
 	int X = 0;
 	int Y = 0;
-	X = (int)-APostion.X / GridSize;
-	Y = (int)APostion.Y / GridSize;
+	X = (int)-APostion.X / GridPositionSize;
+	Y = (int)APostion.Y / GridPositionSize;
 
 	return Y * WorldGridSize + X;
 }
@@ -1114,8 +1114,8 @@ void ALevelGeneration::SpawnMeshes(FGenerationData AGenerationData, TArray<EWorl
 		{
 			int Remainder = i % WorldGridSize;
 			int Quotient = i / WorldGridSize;
-			int X = Remainder * GridSize + GridSize / 2;
-			int Y = Quotient * GridSize + GridSize / 2;
+			int X = Remainder * GridPositionSize + GridPositionSize / 2;
+			int Y = Quotient * GridPositionSize + GridPositionSize / 2;
 
 			float RandXY = 0;
 			float RandZ = 0;

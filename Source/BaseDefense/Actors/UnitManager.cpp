@@ -4,34 +4,27 @@
 #include "UnitManager.h"
 #include "BDGameState.h"
 #include "LevelGeneration.h"
-#include "UBDGameInstance"
+#include "BDGameInstance.h"
 #include <Engine/World.h>
 #include "HISMManager.h"
 #include <Components/SphereComponent.h>
 #include <PhysicalMaterials/PhysicalMaterial.h>
+#include "BDSphereComponent.h"
 
 // Sets default values
 AUnitManager::AUnitManager()
 {
-<<<<<<< HEAD
-	
-=======
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
->>>>>>> 9027e835f44aee79149949402f10503ec882f74b
 }
+
 // Called when the game starts or when spawned
 
 //When the game starts we set up all of the HISM managers.
 void AUnitManager::BeginPlay()
 {
 	Super::BeginPlay();
-<<<<<<< HEAD
-	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
-
-	LevelGenerationActor = GameState->LevelGenerationActor;
-=======
 
 	UBDGameInstance* GameInstance = nullptr;
 	GameInstance = GetWorld()->GetGameInstance<UBDGameInstance>();
@@ -59,10 +52,10 @@ void AUnitManager::BeginPlay()
 void AUnitManager::ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount)
 {
 	FUnitInstance* UnitInstance = nullptr;
-	UnitData = UnitIDMap.Find(AUnitID);
-	if (UnitData != nullptr)
+	UnitInstance = UnitIDMap.Find(AUnitID);
+	if (UnitInstance != nullptr)
 	{
-		UnitData->Sphere->AddForce(Direction * AnAmount);
+		UnitInstance->CollisionSphere->AddForce(Direction * AnAmount);
 
 	}
 }
@@ -73,80 +66,106 @@ void AUnitManager::SetupAllHISMS()
 	{
 		SetupHISM(AUnitData.Value);
 	}
->>>>>>> 9027e835f44aee79149949402f10503ec882f74b
 }
 //Spawns a HISM Manager and adds it to the Manager map.
 void AUnitManager::SetupHISM(FUnitData AUnitData)
 {
 	AHISMManager* HISM = (AHISMManager*)GetWorld()->SpawnActor<AHISMManager>(AHISMManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
-	HISMManagers.Add(AUnitData.UnitType, HISM);
+	HISMManagers.Add(AUnitData.Type, HISM);
 }
 
-
-<<<<<<< HEAD
-
-
-
-
-
-USphereComponent* AUnitManager::CreateSphere(FTransform AnInitialTransform)
+void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 {
-	//First we create 
-=======
-void AUnitManager::SpawnUnit(EUnit AUnit, FTransform AnInitialTransform)
-{
-	FUnitData* UnitData = UnitDataMap[AUnit];
+	FUnitData UnitData = UnitDataMap[AUnit];
 
 
->>>>>>> 9027e835f44aee79149949402f10503ec882f74b
-	USphereComponent* SphereComponent = NewObject<USphereComponent>(this);
+	UBDSphereComponent* CollisionSphere = NewObject<UBDSphereComponent>(this);
 	//SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
-	SphereComponent->GetBodyInstance()->bLockZTranslation = true;
-	SphereComponent->GetBodyInstance()->SetEnableGravity(false);
-	SphereComponent->GetBodyInstance()->bLockXRotation = true;
-	SphereComponent->GetBodyInstance()->bLockYRotation = true;
-	SphereComponent->GetBodyInstance()->bLockZRotation = true;
-	SphereComponent->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
-	SphereComponent->GetBodyInstance()->SetMassScale(0.1);
-	SphereComponent->GetBodyInstance()->SetUseCCD(false);
+	CollisionSphere->GetBodyInstance()->bLockZTranslation = true;
+	CollisionSphere->GetBodyInstance()->SetEnableGravity(false);
+	CollisionSphere->GetBodyInstance()->bLockXRotation = true;
+	CollisionSphere->GetBodyInstance()->bLockYRotation = true;
+	CollisionSphere->GetBodyInstance()->bLockZRotation = true;
+	CollisionSphere->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
+	CollisionSphere->GetBodyInstance()->SetMassScale(0.1);
+	CollisionSphere->GetBodyInstance()->SetUseCCD(false);
+	CollisionSphere->SetLinearDamping(0.5f);
+	CollisionSphere->SetGenerateOverlapEvents(false);
 
-	SphereComponent->SetLinearDamping(0.5f);
-
-	SphereComponent->SetWorldScale3D(FVector(UnitData->Size));
+	CollisionSphere->SetWorldScale3D(FVector(UnitData.Size));
 	UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
 	PhysMat->Friction = 0;
-	SphereComponent->SetPhysMaterialOverride(PhysMat);
-	SphereComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-	SphereComponent->SetCollisionResponseToAllChannels(ECR_Block);
-	SphereComponent->SetSimulatePhysics(true);
-	SphereComponent->SetWorldTransform(AnInitialTransform);
-	SphereComponent->SetHiddenInGame(true);
-	SphereComponent->RegisterComponent();
-<<<<<<< HEAD
-	return SphereComponent;
-}
+	CollisionSphere->SetPhysMaterialOverride(PhysMat);
+	CollisionSphere->SetSimulatePhysics(true);
+	CollisionSphere->SetWorldTransform(AnInitialTransform);
+	CollisionSphere->SetHiddenInGame(true);
+	CollisionSphere->RegisterComponent();
 
+	//Add the sphere component for the attack range.
 
+	USphereComponent* RangeSphere = nullptr;
 
-void AUnitManager::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-=======
-	FUnitInstance Unit;
-	Unit.UnitType = AUnit;
-	Unit.PushForce = UnitData->PushForce;
-	Unit.Size = UnitData->PushForce;
-	Unit.Sphere = SphereComponent;
-	UnitTypeMap[AUnit].Add(Unit);
+	if (UnitData.AttackRange != 0)
+	{
+		RangeSphere = NewObject<USphereComponent>(this);
+		RangeSphere->SetWorldScale3D(FVector(UnitData.AttackRange));
+		RangeSphere->SetGenerateOverlapEvents(true);
+		RangeSphere->AttachToComponent(CollisionSphere, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
+		RangeSphere->SetSimulatePhysics(false);
+		FScriptDelegate OverlapDelegate;
+		OverlapDelegate.BindUFunction(this, "OnRangeOverlap");
+		RangeSphere->OnComponentBeginOverlap.Add(OverlapDelegate);
+	}
+
+	 
+
+	if (UnitData.Team == ETeam::Enemy)
+	{
+		//Set collision to enemy type.
+		CollisionSphere->SetCollisionProfileName("EnemyUnit");
+
+		//Set range to react to friendly type.
+		if (RangeSphere != nullptr)
+		{
+			RangeSphere->SetCollisionProfileName("EnemyRange");
+		}
+
+	}
+	else if (UnitData.Team == ETeam::Friendly)
+	{
+		//Set collision to enemy type.
+		CollisionSphere->SetCollisionProfileName("FriendlyUnit");
+
+		//Set range to react to friendly type.
+		if (RangeSphere != nullptr)
+		{
+			RangeSphere->SetCollisionProfileName("FriendlyRange");
+		}
+	}
+
 	++UnitIDCount;
-	Unit.UnitID = UnitIDCount;
-	UnitIDMap.Add(Unit.UnitID, Unit);
+	FUnitInstance Unit;
+	//If is an enemy unit start off pathing to center of map.
+	if (UnitData.Team == ETeam::Enemy)
+	{
+		Unit.PathingDestination = LevelGenerationActor->WorldGridSize / 2;
+	}
+	Unit.Type = AUnit;
+	Unit.PushForce = UnitData.PushForce;
+	Unit.Size = UnitData.PushForce;
+	Unit.CollisionSphere = CollisionSphere;
+	UnitTypeMap[AUnit].Add(Unit);
+	//Add the ID to the Unit and the collisionsphere
+	CollisionSphere->ID = UnitIDCount;
+	Unit.ID = UnitIDCount;
+
+	UnitIDMap.Add(Unit.ID, Unit);
 
 	AHISMManager* HISMManager = *HISMManagers.Find(AUnit);
 
 	if (HISMManager != nullptr)
 	{
-		HISMManager->SpawnIM(Unit.UnitID, AnInitialTransform);
+		HISMManager->SpawnIM(Unit.ID, AnInitialTransform);
 	}
 }
 
@@ -157,7 +176,7 @@ void AUnitManager::TestSpawn()
 void AUnitManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
+	PerformActions();
 	UpdateHISMPositions();
 }
 //ai ideas.
@@ -168,6 +187,8 @@ void AUnitManager::Tick(float DeltaTime)
 //could be priority list:
 //1. walk to location
 //2. attack team ally
+
+//Second idea: Units do things based on set states/data such as target location. These states are changed by outside forces and not by the unit manager. IE if tower attacks zombie, tower sets zombie's target to itself. If tower dies. tower sets zombies target to default. This means the unit manager does not need to constantly check what each zombie should be doing.
 
 void AUnitManager::PerformActions()
 {
@@ -180,104 +201,60 @@ void AUnitManager::PerformActions()
 		{
 			for (int i = 0; i < AnElem.Value.Num(); i++)
 			{
-				switch (AnElem.Value[i])
+				switch (AnElem.Value[i].CurrentAction)
 				{
 					case EUnitAction::None: break;
-					case EUnitAction::Pathing: PathTowardsPoint();
+					case EUnitAction::Pathing: PathTowardsPosition(AnElem.Value[i]);
 					case EUnitAction::Attacking: break;
-
 				}
 			}
 		}
-
-		AHISMManager* HISMManager = nullptr;
-		HISMManager = HISMManagers[AnElem.Key];
-
-		if (HISMManager != nullptr)
-		{
-			for (int i = 0; i < AnElem.Value.Num(); i++)
-			{
-				HISMManager->TransformIM(AnElem.Value[i].UnitID, AnElem.Value[i].Sphere->GetComponentTransform());
-				int test = 888;
-			}
-		}
-
 	}
 }
+
+void AUnitManager::SetActionToDefault(FUnitInstance* AUnitInstance)
+{
+	if (AUnitInstance != nullptr)
+	{
+		if (AUnitInstance->PathingDestination != 0)
+		{
+			AUnitInstance->CurrentAction = EUnitAction::Pathing;
+		}
+	}
+}
+
+
 void AUnitManager::PathTowardsPosition(FUnitInstance AnInstance)
 {
 	if (LevelGenerationActor != nullptr)
 	{
 		FTransform Trans;
-		FVector Location = AnInstance.Sphere->GetComponentLocation();
+		FVector Location = AnInstance.CollisionSphere->GetComponentLocation();
 		Location = FVector(Location.X, Location.Y, 0.0f);
-		int GridSize = LevelGenerationActor->GridSize;
-
+		int GridSize = LevelGenerationActor->GridPositionSize;
+		float WorldGridSize = LevelGenerationActor->WorldGridSize;
 		int X = -Location.X / (float)GridSize;
 		int Y = Location.Y / (float)GridSize;
 
 		int Index = Y * WorldGridSize + X;
-		if (Index < VectorMap.Num() - 1 && Index > 0)
+		if (Index < LevelGenerationActor->VectorMap.Num() - 1 && Index > 0)
 		{
-
 			float ForceAmount = 80;
-			SphereComponents[i]->AddForce(FVector(-VectorMap[Index].X * ForceAmount, VectorMap[Index].Y * ForceAmount, 0));
-
-			FTransform InstanceTransform;
-			FortGolemHISM->GetInstanceTransform(i, InstanceTransform, true);
-
-			//FVector Location = SphereComponents[i]->GetComponentLocation();
-			FRotator CurrentRotation = InstanceTransform.GetRotation().Rotator();
-			FRotator Rotation = CurrentRotation;
-			FVector ComponentVelocity = SphereComponents[i]->GetComponentVelocity();
-			FVector Scale;
-			if (ComponentVelocity.Size() > 45)
-			{
-				//Set scale to 5 when faster than 10 velocity.
-				Scale = FVector(2);
-			}
-			else
-			{
-				//Set scale to for less than 10 speed.
-				Scale = FVector(1);
-			}
-
-			FRotator VelocityRotation = ComponentVelocity.Rotation() + FRotator(0, -90, 0);
-			Rotation.Yaw = Rotation.Yaw + (VelocityRotation.Yaw - CurrentRotation.Yaw) * DeltaTime * FMath::Clamp(ComponentVelocity.Size(), 0.0f, 100.0f) / 100;
-
-			//FVector Scale = FVector(1 + (FMath::Clamp(ComponentVelocity.Size(), 0.0f, 100.0f) / 100) + 1);
-			//FVector Scale = FVector(1 + GetWorld()->TimeSeconds / 200);
-
-			//Trans.SetLocation(FVector(Location.X, Location.Y, 0));
-			Trans.SetLocation(Location);
-
-			Trans.SetRotation(FQuat(Rotation));
-			Trans.SetScale3D(Scale);
-			/*if (i == 50)
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Velocity of enemy index found: %f, %f"), ComponentVelocity.Size(), UGameplayStatics::GetRealTimeSeconds(GetWorld()));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("Velocity of enemy: %i"), SphereComponents.Num());
-			}*/
-			//FortGolemHISM->UpdateInstanceTransform(i, Trans, false, LastOne, false);
-			FortGolemHISM->UpdateInstanceTransform(i, Trans, false, false, false);
-
-			if (EnemyPositions.Num() - 1 > i)
-			{
-				EnemyPositions[i] = FVector_NetQuantize(Location);
-			}
-			else
-			{
-				EnemyPositions.Insert(FVector_NetQuantize(Location), i);
-			}
-
+			AnInstance.CollisionSphere->AddForce(FVector(-LevelGenerationActor->VectorMap[Index].X * ForceAmount, LevelGenerationActor->VectorMap[Index].Y * ForceAmount, 0));
 		}
 	}
 	
 }
-//We go though every unit's sphere and update the instances position via their HISM manager.
+
+void AUnitManager::OnRangeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (UBDSphereComponent* BDSphere = Cast<UBDSphereComponent>(OverlappedComp))
+	{
+		//BDSphere->ID;
+	}
+}
+
+//We go though every unit's CollisionSphere and update the instances position via their HISM manager.
 void AUnitManager::UpdateHISMPositions()
 {
 	for (auto& AnElem : UnitTypeMap)
@@ -289,12 +266,9 @@ void AUnitManager::UpdateHISMPositions()
 		{
 			for (int i = 0; i < AnElem.Value.Num(); i++)
 			{
-				HISMManager->TransformIM(AnElem.Value[i].UnitID, AnElem.Value[i].Sphere->GetComponentTransform());
-				int test = 888;
+				HISMManager->TransformIM(AnElem.Value[i].ID, AnElem.Value[i].CollisionSphere->GetComponentTransform());
 			}
 		}
 		
 	}
->>>>>>> 9027e835f44aee79149949402f10503ec882f74b
 }
-

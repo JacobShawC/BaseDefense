@@ -263,7 +263,7 @@ public:
 
 	int WorldGridSize = 256;
 
-	int GridSize = 50;
+	int GridPositionSize = 50;
 
 	TArray<uint8> CollisionGrid;
 

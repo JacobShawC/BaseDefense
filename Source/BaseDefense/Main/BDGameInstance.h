@@ -29,7 +29,7 @@
 
 #include "BDGameInstance.generated.h"
 /**
- * 
+ *
  */
 DECLARE_MULTICAST_DELEGATE(FFriendsUpdated);
 DECLARE_MULTICAST_DELEGATE(FSavesUpdated);
@@ -40,7 +40,7 @@ UCLASS()
 class BASEDEFENSE_API UBDGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
+
 private:
 	UBDGameInstance(const FObjectInitializer& ObjectInitializer);
 
@@ -51,18 +51,18 @@ public:
 	virtual void Init() override;
 
 	UFUNCTION(Exec)
-	void Host(FString ServerName);
+		void Host(FString ServerName);
 
 	UFUNCTION(Exec)
-	void Join(uint32 Index);
+		void Join(uint32 Index);
 
 	UFUNCTION()
-	void JoinFriend(int Index);
+		void JoinFriend(int Index);
 
 	void OnSessionUserInviteAccepted(const bool bWasSuccessful, const int32 LocalUserNum, TSharedPtr< const FUniqueNetId > UserId, const FOnlineSessionSearchResult& SearchResult);
-	
+
 	UFUNCTION()
-	void InviteFriend(int Index);
+		void InviteFriend(int Index);
 
 	void StartSession();
 
@@ -83,20 +83,20 @@ public:
 	void RefreshLevelRewards();
 
 private:
-	
+
 	UFUNCTION()
-	void OnCreateSessionComplete(FName SessionName, bool Success);
+		void OnCreateSessionComplete(FName SessionName, bool Success);
 	UFUNCTION()
-	void OnDestroySessionComplete(FName SessionName, bool Success);
+		void OnDestroySessionComplete(FName SessionName, bool Success);
 	UFUNCTION()
-	void OnFindSessionsComplete(bool Success);
+		void OnFindSessionsComplete(bool Success);
 	/*UFUNCTION()
 	void OnJoinSessionComplete(FName SessionName, EOnJoinSessionCompleteResult::Type Result);*/
 	UFUNCTION()
-	void OnReadFriendsComplete(int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr);
+		void OnReadFriendsComplete(int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr);
 	void OnFindFriendSessionComplete(int32 LocalUserNum, bool bWasSuccessful, const TArray<FOnlineSessionSearchResult>& SearchResult);
 	void OnJoinSessionComplete(FName AServerName, EOnJoinSessionCompleteResult::Type AResult);
-	
+
 
 	FString DesiredServerName;
 	void CreateSession();
@@ -118,12 +118,12 @@ public:
 	TMap<EBuilding, class UTexture2D*> Images;
 	TMap<EBuilding, FBuildingData> Buildings;
 	TMap<EEnemy, FEnemyData> Enemies;
-	TMap<EUnit, FUnitData>Units;
+	TMap<EGameUnit, FUnitData>Units;
 	TMap<ELevel, FLevelData> Levels;
 	FPlayerData DefaultPlayerData;
 	UPROPERTY()
-	TArray<class UBDSaveGame*> Saves;
+		TArray<class UBDSaveGame*> Saves;
 
 	UPROPERTY()
-	class UBDSaveGame* CurrentSave = nullptr;
+		class UBDSaveGame* CurrentSave = nullptr;
 };

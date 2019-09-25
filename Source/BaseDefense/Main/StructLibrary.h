@@ -1,4 +1,4 @@
-	// Fill out your copyright notice in the Description page of Project Settings.
+// Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once
 
@@ -7,8 +7,15 @@
 #include "StructLibrary.generated.h"
 
 /**
- * 
+ *
  */
+UENUM()
+enum class EGameUnit : uint8
+{
+	None,
+	SlowZombie,
+	FastZombie,
+};
 
 UENUM()
 enum class EWorldGridType : uint8
@@ -185,31 +192,31 @@ struct FBuildingBuffStruct
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	EBuildingBuffType Type = EBuildingBuffType::None;
-	
-	UPROPERTY()
-	EBuffOperator Operator = EBuffOperator::None;
+		UPROPERTY()
+		EBuildingBuffType Type = EBuildingBuffType::None;
 
 	UPROPERTY()
-	float Magnitude = 0.0f;
+		EBuffOperator Operator = EBuffOperator::None;
 
 	UPROPERTY()
-	float StartTime = 0.0f;
+		float Magnitude = 0.0f;
 
 	UPROPERTY()
-	float Duration = 0.0f;
+		float StartTime = 0.0f;
 
 	UPROPERTY()
-	class AActor* EffectHelper = nullptr;
+		float Duration = 0.0f;
 
-	
+	UPROPERTY()
+		class AActor* EffectHelper = nullptr;
+
+
 
 	FBuildingBuffStruct()
 	{
 	}
 
-	FORCEINLINE bool operator==(const FBuildingBuffStruct &Other) const
+	FORCEINLINE bool operator==(const FBuildingBuffStruct& Other) const
 	{
 		return (Type == Other.Type && Operator == Other.Operator && Magnitude == Other.Magnitude && StartTime == Other.StartTime && EffectHelper == Other.EffectHelper && Duration == Other.Duration);
 	}
@@ -267,7 +274,7 @@ UENUM()
 enum class ETeam : uint8
 {
 	None 			UMETA(DisplayName = "None"),
-	Ally			UMETA(DisplayName = "Ally"),
+	Friendly		UMETA(DisplayName = "Ally"),
 	Enemy 			UMETA(DisplayName = "Enemy")
 };
 
@@ -323,7 +330,7 @@ struct FLevelSave
 {
 	GENERATED_BODY()
 
-	ELevel Level = ELevel::None;
+		ELevel Level = ELevel::None;
 
 	//Difficulties levels completed
 	TArray<ELevelDifficulty> ChallengesCompleted;
@@ -334,7 +341,7 @@ struct FPreBuildingData
 {
 	GENERATED_BODY()
 
-	EBuilding Building = EBuilding::None;
+		EBuilding Building = EBuilding::None;
 	TArray<EBuildingUpgrade> Upgrades;
 };
 
@@ -343,7 +350,7 @@ struct FLoadout
 {
 	GENERATED_BODY()
 
-	TMap<EBuilding, FPreBuildingData> Buildings;
+		TMap<EBuilding, FPreBuildingData> Buildings;
 };
 
 USTRUCT()
@@ -351,7 +358,7 @@ struct FServerData
 {
 	GENERATED_BODY()
 
-	FString Name;
+		FString Name;
 	uint16 CurrentPlayers;
 	uint16 MaxPlayers;
 	FString HostUsername;
@@ -362,11 +369,11 @@ struct FIncome
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	bool RequiresSource = false;
+		UPROPERTY()
+		bool RequiresSource = false;
 
 	UPROPERTY()
-	float IncomeAmount = 0;
+		float IncomeAmount = 0;
 
 	UPROPERTY()
 		float Cooldown = 1;
@@ -377,14 +384,14 @@ struct FRegen
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	bool DamageStops = false;
+		UPROPERTY()
+		bool DamageStops = false;
 
 	UPROPERTY()
-	float Cooldown = 1;
+		float Cooldown = 1;
 
 	UPROPERTY()
-	float RegenAmount = 0;
+		float RegenAmount = 0;
 
 };
 
@@ -393,14 +400,14 @@ struct FDOT
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	int Damage = 0;
+		UPROPERTY()
+		int Damage = 0;
 
 	UPROPERTY()
-	float Frequency = 0;
+		float Frequency = 0;
 
 	UPROPERTY()
-	float Length = 0;
+		float Length = 0;
 };
 
 USTRUCT()
@@ -408,11 +415,11 @@ struct FSlow
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	float SlowPercent = 0;
+		UPROPERTY()
+		float SlowPercent = 0;
 
 	UPROPERTY()
-	float Length = 0;
+		float Length = 0;
 };
 
 
@@ -422,11 +429,11 @@ struct FProjectileData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	float Speed = 1;
+		UPROPERTY()
+		float Speed = 1;
 
 	UPROPERTY()
-	class UStaticMesh* Mesh = nullptr;
+		class UStaticMesh* Mesh = nullptr;
 
 };
 
@@ -435,35 +442,35 @@ struct FAttack
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	FProjectileData Projectile;
+		UPROPERTY()
+		FProjectileData Projectile;
 
 	UPROPERTY()
-	TArray<EAttackProperty> AttackProperties;
+		TArray<EAttackProperty> AttackProperties;
 
 	UPROPERTY()
-	EAttackRule AttackRule = EAttackRule::Closest;
+		EAttackRule AttackRule = EAttackRule::Closest;
 
 	UPROPERTY()
-	float Damage = 0;
+		float Damage = 0;
 
 	UPROPERTY()
-	float AnimationTime = 0;
+		float AnimationTime = 0;
 
 	UPROPERTY()
-	float ReloadTime = 0;
+		float ReloadTime = 0;
 
 	UPROPERTY()
-	EAttackType AttackType = EAttackType::None;
+		EAttackType AttackType = EAttackType::None;
 
 	UPROPERTY()
-	float Range = 100;
+		float Range = 100;
 
 	UPROPERTY()
-	FDOT Dot;
+		FDOT Dot;
 
 	UPROPERTY()
-	FSlow Slow;
+		FSlow Slow;
 
 };
 
@@ -483,22 +490,6 @@ enum class EEnemy : uint8
 	MechanicalGolem UMETA(DisplayName = "MechanicalGolem"),
 };
 
-UENUM()
-enum class EUnit : uint8
-{
-	None,
-	SlowZombie,
-	FastZombie,
-	BigZombie,
-	RangedZombie,
-	Seaman,
-	FirstMate,
-	FemalePirate,
-	ElementalGolem,
-	FortGolem,
-	MechanicalGolem,
-};
-
 
 
 USTRUCT()
@@ -506,17 +497,17 @@ struct FBuildingUpgrade
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	FString Description = "This needs a description.";
+		UPROPERTY()
+		FString Description = "This needs a description.";
 
 	UPROPERTY()
-	TArray<FBuildingBuffStruct> Upgrades;
+		TArray<FBuildingBuffStruct> Upgrades;
 
 	UPROPERTY()
-	float UpgradeTime = 0.0f;
+		float UpgradeTime = 0.0f;
 
 	UPROPERTY()
-	float Cost = 0.0f;
+		float Cost = 0.0f;
 };
 
 USTRUCT()
@@ -524,80 +515,80 @@ struct FBuildingData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	FString Name = "NoName";
-	
-	UPROPERTY()
-	EBuilding Building = EBuilding::None;
-	
-	UPROPERTY()
-	ETeam Team = ETeam::None;
+		UPROPERTY()
+		FString Name = "NoName";
 
 	UPROPERTY()
-	int BuildingSizeX = 1;
+		EBuilding Building = EBuilding::None;
 
 	UPROPERTY()
-	int BuildingSizeY = 1;
+		ETeam Team = ETeam::None;
 
 	UPROPERTY()
-	EWorldGridType MustBeOn = EWorldGridType::None;
+		int BuildingSizeX = 1;
+
+	UPROPERTY()
+		int BuildingSizeY = 1;
+
+	UPROPERTY()
+		EWorldGridType MustBeOn = EWorldGridType::None;
 
 
 	UPROPERTY()
-	class UStaticMesh* Mesh = nullptr;
+		class UStaticMesh* Mesh = nullptr;
 
 	UPROPERTY()
-	float MeshScale = 1;
+		float MeshScale = 1;
 
 	UPROPERTY()
-	float CostPenalty = 0.9f;
+		float CostPenalty = 0.9f;
 
 	UPROPERTY()
-	UTexture2D* Thumbnail = nullptr;
+		UTexture2D* Thumbnail = nullptr;
 
 	UPROPERTY()
-	EBuildingType BuildingType = EBuildingType::None;
+		EBuildingType BuildingType = EBuildingType::None;
 
 	UPROPERTY()
-	float MaxHealth = 100;
+		float MaxHealth = 100;
 
 	UPROPERTY()
-	float Cost = 0;
+		float Cost = 0;
 
 	UPROPERTY()
-	bool CanBeBuffed = true;
+		bool CanBeBuffed = true;
 
 	UPROPERTY()
-	TMap<EBuildingUpgrade, FBuildingUpgrade> LoadoutUpgrades;
+		TMap<EBuildingUpgrade, FBuildingUpgrade> LoadoutUpgrades;
 
 	UPROPERTY()
-	TMap<EBuildingUpgrade, FBuildingUpgrade> Upgrades;
+		TMap<EBuildingUpgrade, FBuildingUpgrade> Upgrades;
 
 	UPROPERTY()
-	float ConstructionTime = 0;
+		float ConstructionTime = 0;
 
 	UPROPERTY()
-	TArray<EBuildingProperty> Properties;
+		TArray<EBuildingProperty> Properties;
 
 	UPROPERTY()
-	FAttack Attack;
+		FAttack Attack;
 
 	UPROPERTY()
-	FIncome Income;
+		FIncome Income;
 
 	UPROPERTY()
-	FRegen Regeneration;
+		FRegen Regeneration;
 
 	//PreGame data
 
 	UPROPERTY()
-	FString Description = "This probably needs a description";
+		FString Description = "This probably needs a description";
 
 	UPROPERTY()
-	int PreGameUnlockCost = 0;
+		int PreGameUnlockCost = 0;
 
 	UPROPERTY()
-	bool PreGameUnlockable = false;
+		bool PreGameUnlockable = false;
 
 
 
@@ -608,7 +599,7 @@ struct FBuildingData
 
 
 	TArray<FBuildingBuffStruct> GetBuffsFromUpgrades(TArray<EBuildingUpgrade> Buffs);
-	
+
 };
 
 USTRUCT()
@@ -616,32 +607,32 @@ struct FLevelData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	ELevel Level = ELevel::None;
+		UPROPERTY()
+		ELevel Level = ELevel::None;
 
 	UPROPERTY()
-	int StartingGold = 400;
+		int StartingGold = 400;
 
 	UPROPERTY()
-	FString Name = "Needs a name";
+		FString Name = "Needs a name";
 
 	UPROPERTY()
-	FString Description = "This level needs a description";
+		FString Description = "This level needs a description";
 
 	UPROPERTY()
-	int PreGameUnlockCost = 0;
+		int PreGameUnlockCost = 0;
 
 	UPROPERTY()
-	TMap<ELevelDifficulty, int> DifficultyRewards;
+		TMap<ELevelDifficulty, int> DifficultyRewards;
 
 	UPROPERTY()
-	UTexture2D* Thumbnail = nullptr;
+		UTexture2D* Thumbnail = nullptr;
 
 	UPROPERTY()
-	UTexture2D* MiniMap = nullptr;
+		UTexture2D* MiniMap = nullptr;
 
 	UPROPERTY()
-	FString URL = "";
+		FString URL = "";
 
 	int GetReward(ELevelDifficulty ADifficulty)
 	{
@@ -660,7 +651,8 @@ struct FLevelData
 };
 
 USTRUCT()
-struct FIMInstance {
+struct FIMInstance 
+{
 	GENERATED_USTRUCT_BODY()
 
 	uint32 Index;
@@ -676,14 +668,22 @@ struct FIMInstance {
 USTRUCT()
 struct FUnitInstance
 {
+	GENERATED_USTRUCT_BODY()
+
+	UPROPERTY()
+	uint32 ID;
+
 	UPROPERTY()
 	FIMInstance Instance;
 
 	UPROPERTY()
-	EUnit UnitType;
+	EGameUnit Type;
 
 	UPROPERTY()
-	class USphereComponent* Sphere = nullptr;
+	class USphereComponent* CollisionSphere = nullptr;
+
+	UPROPERTY()
+	class USphereComponent* RangeSphere = nullptr;
 
 	UPROPERTY()
 	uint32 PathingDestination;
@@ -692,7 +692,7 @@ struct FUnitInstance
 	uint32 CurrentLocation;
 
 	UPROPERTY()
-	EAction CurrentAction;
+	EUnitAction CurrentAction;
 
 	UPROPERTY()
 	float Size = 1;
@@ -702,49 +702,20 @@ struct FUnitInstance
 };
 
 USTRUCT()
-struct FUnitDefault
+struct FUnitData
 {
 	GENERATED_USTRUCT_BODY()
 
 	UPROPERTY()
-<<<<<<< HEAD
-	uint32 UnitID;
-	UPROPERTY()
-		int Team = 0;
-	UPROPERTY()
-		class USphereComponent* Sphere = nullptr;
-
-	UPROPERTY()
-		float MaxHealth = 0;
-
-	UPROPERTY()
-		float MoveSpeed = 0;
-=======
 	ETeam Team = ETeam::None;
 
 	UPROPERTY()
 	float Size = 1;
 
 	UPROPERTY()
-	EUnit Type;
->>>>>>> 9027e835f44aee79149949402f10503ec882f74b
+	EGameUnit Type;
 
 	UPROPERTY()
-		float TurnSpeed = 0;
-
-	UPROPERTY()
-<<<<<<< HEAD
-		float Size = 1;
-
-	UPROPERTY()
-		float AttackDamage = 0;
-
-	UPROPERTY()
-		float AttackSpeed = 0;
-
-	UPROPERTY()
-		float AttackRange = 0;
-=======
 	class UStaticMesh* UnitMesh = nullptr;
 
 	UPROPERTY()
@@ -763,6 +734,9 @@ struct FUnitDefault
 	float PushForce = 0;
 
 	UPROPERTY()
+	float AttackRange = 0;
+
+	UPROPERTY()
 	float AttackDamage = 0;
 
 	UPROPERTY()
@@ -771,86 +745,50 @@ struct FUnitDefault
 	UPROPERTY()
 	float ProjectileSpeed = 0;
 
-
 	UPROPERTY()
 	float Bounty = 0;
 
->>>>>>> 9027e835f44aee79149949402f10503ec882f74b
 };
-
-USTRUCT()
-struct FUnitDefault
-{
-	GENERATED_USTRUCT_BODY()
-
-		UPROPERTY()
-		uint32 UnitID;
-
-	UPROPERTY()
-		class USphereComponent* Sphere = nullptr;
-
-	UPROPERTY()
-		float MaxHealth = 0;
-
-	UPROPERTY()
-		float MoveSpeed = 0;
-
-	UPROPERTY()
-		float TurnSpeed = 0;
-
-	UPROPERTY()
-		float Size = 1;
-
-	UPROPERTY()
-		float AttackDamage = 0;
-
-	UPROPERTY()
-		float AttackSpeed = 0;
-
-	UPROPERTY()
-		float AttackRange = 0;
-};
-
 
 USTRUCT()
 struct FEnemyData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	FString Name = "NoName";
+		UPROPERTY()
+		FString Name = "NoName";
 
 	UPROPERTY()
-	EEnemy Enemy = EEnemy::None;
+		EEnemy Enemy = EEnemy::None;
 
 
 
 	UPROPERTY()
-	float MaxHealth = 0;
+		float MaxHealth = 0;
 
 	UPROPERTY()
-	float MovementSpeed = 0;
+		float MovementSpeed = 0;
 
 	UPROPERTY()
-	float Size = 1;
+		float Size = 1;
 
 	UPROPERTY()
-	float PushForce = 1;
+		float PushForce = 1;
 
 	UPROPERTY()
-	class USkeletalMesh* Mesh = nullptr;
+		class USkeletalMesh* Mesh = nullptr;
 
 	UPROPERTY()
-	class UStaticMesh* StaticMesh = nullptr;
+		class UStaticMesh* StaticMesh = nullptr;
 
 	UPROPERTY()
-	class UAnimBlueprintGeneratedClass* Anim = nullptr;
+		class UAnimBlueprintGeneratedClass* Anim = nullptr;
 
 	UPROPERTY()
-	float Bounty = 0;
+		float Bounty = 0;
 
 	UPROPERTY()
-	FAttack Attack;
+		FAttack Attack;
 };
 
 USTRUCT()
@@ -858,30 +796,30 @@ struct FPlayerData
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	TArray<EBuilding> HotbarSlots;
+		UPROPERTY()
+		TArray<EBuilding> HotbarSlots;
 
 	UPROPERTY()
-	int Money;
-	
-	UPROPERTY()
-	float BuildRangeHorizontal = 400.0f;
+		int Money;
 
 	UPROPERTY()
-	float MaxHealth = 100;
+		float BuildRangeHorizontal = 400.0f;
 
 	UPROPERTY()
-	float BuildRangeVertical = 100.0f;
+		float MaxHealth = 100;
 
 	UPROPERTY()
-	float RepairRange = 200.0f;
+		float BuildRangeVertical = 100.0f;
+
+	UPROPERTY()
+		float RepairRange = 200.0f;
 
 	//HPPerSecond
 	UPROPERTY()
-	float RepairSpeed = 20.0f;
+		float RepairSpeed = 20.0f;
 
 	UPROPERTY()
-	float RepairCost = 0.2f;
+		float RepairCost = 0.2f;
 };
 
 USTRUCT()
@@ -889,22 +827,22 @@ struct FBuildingLocationInfo
 {
 	GENERATED_USTRUCT_BODY()
 
+		UPROPERTY()
+		bool Buildable = false;
 	UPROPERTY()
-	bool Buildable = false;
-	UPROPERTY()
-	bool Reachable = false;
+		bool Reachable = false;
 
 	UPROPERTY()
-	bool ClearFromBuildings = false;
+		bool ClearFromBuildings = false;
 
 	UPROPERTY()
-	bool EvenSurface = false;
+		bool EvenSurface = false;
 
 	UPROPERTY()
-	bool RoundedVector = false;
+		bool RoundedVector = false;
 
 	UPROPERTY()
-	bool Mineable = false;
+		bool Mineable = false;
 };
 
 
@@ -913,16 +851,15 @@ struct FLevelEvent
 {
 	GENERATED_USTRUCT_BODY()
 
-	UPROPERTY()
-	ELevelEvent Event = ELevelEvent::None;
+		UPROPERTY()
+		ELevelEvent Event = ELevelEvent::None;
 
 	UPROPERTY()
-	float StartSeconds = 0;
+		float StartSeconds = 0;
 
 	UPROPERTY()
-	float EndSeconds = 0;
+		float EndSeconds = 0;
 
 	UPROPERTY()
-	float Frequency = 0;
+		float Frequency = 0;
 };
-

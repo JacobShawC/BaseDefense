@@ -20,7 +20,6 @@
 MSVC_PRAGMA(warning(push))
 MSVC_PRAGMA(warning(disable : ALL_CODE_ANALYSIS_WARNINGS))
 #endif    // USING_CODE_ANALYSIS
-#pragma warning(disable:4996)
 
 #include "ThirdParty/Steamworks/Steamv142/sdk/public/steam/steam_api.h"
 #include "ThirdParty/Steamworks/Steamv142/sdk/public/steam/isteamuser.h"
@@ -51,7 +50,7 @@ MSVC_PRAGMA(warning(pop))
 const static FName SESSION_NAME = TEXT("Game");
 const static FName SERVER_NAME_SETTINGS_KEY = TEXT("ServerName");
 
-UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): Super(ObjectInitializer)
+UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer) : Super(ObjectInitializer)
 {
 
 	//Blueprints
@@ -63,7 +62,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FClassFinder<UUserWidget> FriendRowBP(TEXT("WidgetBlueprint'/Game/UI/FriendRowWidget.FriendRowWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> SaveRowBP(TEXT("WidgetBlueprint'/Game/UI/SaveRowWidget.SaveRowWidget_C'"));
 	static ConstructorHelpers::FClassFinder<UUserWidget> PreGameBP(TEXT("WidgetBlueprint'/Game/UI/PreGameWidget.PreGameWidget_C'"));
-	
+
 	//Meshes
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> BarrelMesh(TEXT("/Game/PolygonPirates/Meshes/Props/SM_Prop_Barrel_04.SM_Prop_Barrel_04"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonMesh(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_Cannon_03.SM_Prop_Cannon_03'"));
@@ -75,7 +74,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	//Thumbnails
 	static ConstructorHelpers::FObjectFinder<UTexture2D> BarrelImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/BarrelIcon.BarrelIcon'"));
 	static ConstructorHelpers::FObjectFinder<UTexture2D> CannonImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/CannonIcon.CannonIcon'"));
-	
+
 	//MiniMaps
 	static ConstructorHelpers::FObjectFinder<UTexture2D> TestLevelMiniMap(TEXT("Texture2D'/Game/Textures/MiniMap/TestLevel_Tex.TestLevel_Tex'"));
 	static ConstructorHelpers::FObjectFinder<UTexture2D> Level1MiniMap(TEXT("Texture2D'/Game/Textures/MiniMap/Level1_Tex.Level1_Tex'"));
@@ -91,7 +90,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> FortGolemMesh(TEXT("SkeletalMesh'/Game/PolygonFantasyRivals/Meshes/Characters/SK_BR_Character_FortGolem_01.SK_BR_Character_FortGolem_01'"));
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MechanicalGolemMesh(TEXT("SkeletalMesh'/Game/PolygonFantasyRivals/Meshes/Characters/SK_BR_Character_MechanicalGolem_01.SK_BR_Character_MechanicalGolem_01'"));
 
-	
+
 	//Animations
 	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> PirateSeamanAnimBP(TEXT("AnimBlueprint'/Game/PolygonPirates/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
 	static ConstructorHelpers::FObjectFinder<UAnimBlueprintGeneratedClass> BRANimBP(TEXT("AnimBlueprint'/Game/PolygonFantasyRivals/Animations/ThirdPerson_AnimBP.ThirdPerson_AnimBP_C'"));
@@ -119,7 +118,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 
 	//BaseBuilding
 	FBuildingData BaseBuildingData;
-	BaseBuildingData.Team = ETeam::Ally;
+	BaseBuildingData.Team = ETeam::Friendly;
 	BaseBuildingData.Mesh = BarrelMesh.Object;
 	BaseBuildingData.Thumbnail = BarrelImage.Object;
 
@@ -136,7 +135,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	ConstructionData.CanBeBuffed = false;
 	ConstructionData.ConstructionTime = 0.0f;
 
-	
+
 	Buildings.Add(EBuilding::Construction, ConstructionData);
 
 
@@ -156,11 +155,11 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	WallBuildingData.PreGameUnlockable = true;
 	WallBuildingData.Description = "This is a basic wall building.";
 	WallBuildingData.PreGameUnlockCost = 0;
-	
+
 
 	//Wall Loadout Upgrades
 	FBuildingUpgrade WallPreLevel1;
-	
+
 	//Level 1
 	WallPreLevel1.Cost = 1;
 	WallBuildingData.LoadoutUpgrades.Add(EBuildingUpgrade::PreLevel1, WallPreLevel1);
@@ -266,7 +265,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	FUnitData SlowZombie;
 	SlowZombie.Name = "Zombie";
 	SlowZombie.Size = 1;
-	SlowZombie.Type = EUnit::SlowZombie;
+	SlowZombie.Type = EGameUnit::SlowZombie;
 	SlowZombie.PushForce = 1;
 	//SlowZombie.Mesh =
 	SlowZombie.MaxHealth = 100;
@@ -274,36 +273,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	SlowZombie.PushForce = 100;
 	SlowZombie.Bounty = 100;
 
-	UPROPERTY()
-		EUnit Type;
-
-	UPROPERTY()
-		float PushForce = 1;
-
-	UPROPERTY()
-		class UStaticMesh* Mesh = nullptr;
-
-	UPROPERTY()
-		FString Name = "NoName";
-
-	UPROPERTY()
-		float MaxHealth = 0;
-
-	UPROPERTY()
-		float MovementSpeed = 0;
-
-	UPROPERTY()
-		float PushForce = 1;
-
-	UPROPERTY()
-		class USkeletalMesh* Mesh = nullptr;
-
-	UPROPERTY()
-		class UStaticMesh* StaticMesh = nullptr;
-
-	UPROPERTY()
-		float Bounty = 0;
-
+	
 	//Seaman
 	FEnemyData SeamanData;
 	SeamanData.Name = "Small Zombie";
@@ -351,7 +321,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 
 	FemalePirateData.Attack.AttackRule = EAttackRule::Closest;
 	Enemies.Add(EEnemy::FemalePirate, FemalePirateData);
-	
+
 	//Elemental Golem
 	FEnemyData ElementalGolemData;
 	ElementalGolemData.Name = "Elemental Golem";
@@ -402,7 +372,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	//----------------------------------------------------------------------------------------------------------
 	//Levels
 	//----------------------------------------------------------------------------------------------------------
-	
+
 	//Level1
 	FLevelData Level1;
 	Level1.Level = ELevel::Level1;
@@ -414,7 +384,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Level1.URL = "/Game/Maps/Level1?listen";
 	Level1.DifficultyRewards.Add(ELevelDifficulty::Medium, 1);
 	Levels.Add(ELevel::Level1, Level1);
-	
+
 
 	//Level2
 	FLevelData Level2;
@@ -427,7 +397,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer): S
 	Level2.URL = "/Game/Maps/Level2?listen";
 	Level2.DifficultyRewards.Add(ELevelDifficulty::Medium, 1);
 	Levels.Add(ELevel::Level2, Level2);
-	
+
 	//Level3
 	FLevelData Level3;
 	Level3.Level = ELevel::Level3;
@@ -581,7 +551,7 @@ void UBDGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 
 	Engine->AddOnScreenDebugMessage(0, 2, FColor::Green, TEXT("Hosting"));
 
-	UWorld * World = GetWorld();
+	UWorld* World = GetWorld();
 	if (!ensure(World != nullptr)) return;
 	//World->ServerTravel("/Game/PuzzlePlatforms/Maps/Lobby?listen");
 	World->GetAuthGameMode()->bUseSeamlessTravel = false;
@@ -589,9 +559,9 @@ void UBDGameInstance::OnCreateSessionComplete(FName SessionName, bool Success)
 	//World->ServerTravel("/Game/Maps/PreGame?listen?game=/Script/BaseDefense.PreGameGameMode", true, false);
 	//World->ServerTravel("/Game/Maps/TestLevel", true, false);
 	World->ServerTravel("/Game/Maps/PreGame?listen", false, false);
-	
+
 	FString MapName = GetWorld()->GetMapName();
-	
+
 	Engine->AddOnScreenDebugMessage(0, 2, FColor::Green, *MapName);
 
 	StartSession();
@@ -675,7 +645,7 @@ void UBDGameInstance::RefreshSaves()
 	TArray<FString> SavesNames;
 	TArray<UBDSaveGame*> TempSaves;
 	//FString SaveDirectory = "C:/Users/Ziggy/Documents/Unreal Projects/BaseDefense/Saved/Cooked/WindowsNoEditor/BaseDefense/Saved/SaveGames";
-	
+
 	ISaveGameSystem* SaveSystem = IPlatformFeaturesModule::Get().GetSaveGameSystem();
 	FString SaveDirectory = "";
 
@@ -740,7 +710,7 @@ void UBDGameInstance::CreateSave()
 void UBDGameInstance::LoadSave(UBDSaveGame* ASave)
 {
 	if (ASave != nullptr && ASave->IsValidLowLevel())
-	CurrentSave = ASave;
+		CurrentSave = ASave;
 	Host(CurrentSave->UserSaveName);
 
 
@@ -809,7 +779,7 @@ void UBDGameInstance::InviteFriend(int Index)
 	}
 }
 
-void UBDGameInstance::OnSessionUserInviteAccepted(bool bWasSuccessful, int32 ControllerId, TSharedPtr<const FUniqueNetId> InUserId, const FOnlineSessionSearchResult & SearchResult)
+void UBDGameInstance::OnSessionUserInviteAccepted(bool bWasSuccessful, int32 ControllerId, TSharedPtr<const FUniqueNetId> InUserId, const FOnlineSessionSearchResult& SearchResult)
 {
 	UE_LOG_ONLINE_SESSION(Verbose, TEXT("OnSessionInviteAccepted ControllerId: %d bSuccess: %d"), ControllerId, bWasSuccessful);
 	// Don't clear invite accept delegate
@@ -832,7 +802,7 @@ void UBDGameInstance::Join(uint32 Index)
 
 
 
-void UBDGameInstance::OnReadFriendsComplete(int32 LocalUserNum, bool bWasSuccessful, const FString & ListName, const FString & ErrorStr)
+void UBDGameInstance::OnReadFriendsComplete(int32 LocalUserNum, bool bWasSuccessful, const FString& ListName, const FString& ErrorStr)
 {
 	TArray< TSharedRef<FOnlineFriend> > TempFriends;
 	if (IOnlineSubsystem::Get()->GetFriendsInterface()->GetFriendsList(LocalUserNum, ListName, TempFriends))
