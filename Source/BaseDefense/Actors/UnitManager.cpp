@@ -254,6 +254,17 @@ void AUnitManager::OnRangeOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 	}
 }
 
+void AUnitManager::OnRep_UpdatePositions()
+{
+	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+
+	//float ServerTime = GameState->GetServerWorldTimeSeconds();
+	float CurrentTime = GameState->GetGameTimeSinceCreation();
+
+	FEnemyKeyframe Keyframe = FEnemyKeyframe(EnemyPositions, CurrentTime);
+	CurrentEnemyFrame = Keyframe;
+}
+
 //We go though every unit's CollisionSphere and update the instances position via their HISM manager.
 void AUnitManager::UpdateHISMPositions()
 {

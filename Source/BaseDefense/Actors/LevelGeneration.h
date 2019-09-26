@@ -313,6 +313,5 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_UpdatePositions)
 	TArray<FVector_NetQuantize> EnemyPositions;
-	TArray<FEnemyKeyframe> EnemyKeyframes;
 	FEnemyKeyframe CurrentEnemyFrame;
 };

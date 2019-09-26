@@ -38,6 +38,9 @@ protected:
 	UFUNCTION()
 	void OnRangeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
+	UFUNCTION()
+	void OnRep_UpdatePositions();
+
 	void TestSpawn();
 
 	void Tick(float DeltaTime);
