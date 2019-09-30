@@ -170,6 +170,22 @@ void ABDPlayerController::UpdateCommands()
 	}*/
 }
 
+
+void ABDPlayerController::ClientReportServerTime_Implementation(float requestWorldTime, float serverTime)
+{
+	// Apply the round-trip request time to the server's         
+	// reported time to get the up-to-date server time
+	float roundTripTime = GetWorld()->GetTimeSeconds() -
+		requestWorldTime;
+	float adjustedTime = serverTime + (roundTripTime * 0.5f);
+	ServerTime = adjustedTime;
+}
+
+bool ABDPlayerController::ClientReportServerTime_Validate(float requestWorldTime, float serverTime)
+{
+	return true;
+}
+
 void ABDPlayerController::ServerUpdatePositions_Implementation(FVector APawnPosition, FVector AMousePosition)
 {
 	Cast<APlayerChar>(GetPawn())->PawnLocation = APawnPosition;
@@ -226,5 +242,29 @@ void ABDPlayerController::CancelAction()
 		{
 			GUIWidget->HotBar->Select(-1);
 		}
+	}
+}
+void ABDPlayerController::ServerRequestServerTime_Implementation(APlayerController* requester,float requestWorldTime)
+{
+	float serverTime = GetWorld()->GetGameState()->
+		GetServerWorldTimeSeconds();
+	ClientReportServerTime(requestWorldTime, serverTime);
+}
+
+bool ABDPlayerController::ServerRequestServerTime_Validate(APlayerController* requester,float requestWorldTime)
+{
+	return true;
+}
+
+void ABDPlayerController::ReceivedPlayer()
+{
+	Super::ReceivedPlayer();
+
+	if (IsLocalController())
+	{
+		ServerRequestServerTime(
+			this,
+			GetWorld()->GetTimeSeconds()
+		);
 	}
 }

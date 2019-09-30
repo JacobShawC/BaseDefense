@@ -16,7 +16,8 @@ AUnitManager::AUnitManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
-
+	CurrentFrame.OnItemAddedOrChanged.AddUObject(this, &AUnitManager::OnItemChangedOrAdded);
+	CurrentFrame.OnItemRemoved.AddUObject(this, &AUnitManager::OnItemRemoved);
 }
 
 // Called when the game starts or when spawned
@@ -223,7 +224,6 @@ void AUnitManager::SetActionToDefault(FUnitInstance* AUnitInstance)
 	}
 }
 
-
 void AUnitManager::PathTowardsPosition(FUnitInstance AnInstance)
 {
 	if (LevelGenerationActor != nullptr)
@@ -243,7 +243,24 @@ void AUnitManager::PathTowardsPosition(FUnitInstance AnInstance)
 			AnInstance.CollisionSphere->AddForce(FVector(-LevelGenerationActor->VectorMap[Index].X * ForceAmount, LevelGenerationActor->VectorMap[Index].Y * ForceAmount, 0));
 		}
 	}
-	
+}
+
+//When the current frame gets replicated we add the new or changed frames to the unit frame array.
+void AUnitManager::OnItemChangedOrAdded(FUnitFrameItem& AnItem)
+{
+	TArray<FUnitFrameItem>* UnitFrameArray = &UnitFrames.FindOrAdd(AnItem.UnitID);
+	AnItem.CurrentTime = CurrentFrame.CurrentTime;
+	UnitFrameArray->Add(AnItem);
+}
+
+//When we remove an item from the array we add a frame with the dead attribute set to true.
+void AUnitManager::OnItemRemoved(FUnitFrameItem& AnItem)
+{
+	TArray<FUnitFrameItem>* UnitFrameArray = &UnitFrames.FindOrAdd(AnItem.UnitID);
+	AnItem.CurrentTime = CurrentFrame.CurrentTime;
+	AnItem.Dead = true;
+
+	UnitFrameArray->Add(AnItem);
 }
 
 void AUnitManager::OnRangeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -254,15 +271,16 @@ void AUnitManager::OnRangeOverlap(UPrimitiveComponent* OverlappedComp, AActor* O
 	}
 }
 
-void AUnitManager::OnRep_UpdatePositions()
+void AUnitManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
-	//float ServerTime = GameState->GetServerWorldTimeSeconds();
-	float CurrentTime = GameState->GetGameTimeSinceCreation();
+	DOREPLIFETIME(AUnitManager, CurrentFrame);
+}
 
-	FEnemyKeyframe Keyframe = FEnemyKeyframe(EnemyPositions, CurrentTime);
-	CurrentEnemyFrame = Keyframe;
+void AUnitManager::OnRep_CurrentFrame()
+{
+	//Frame updated
 }
 
 //We go though every unit's CollisionSphere and update the instances position via their HISM manager.
@@ -282,4 +300,20 @@ void AUnitManager::UpdateHISMPositions()
 		}
 		
 	}
+}
+
+void FUnitFrameItem::PreReplicatedRemove(const struct FUnitFrame& InArraySerializer)
+{
+	InArraySerializer.OnItemRemoved.Broadcast(*this);
+}
+
+void FUnitFrameItem::PostReplicatedAdd(const struct FUnitFrame& InArraySerializer)
+{
+	InArraySerializer.OnItemAddedOrChanged.Broadcast(*this);
+
+}
+
+void FUnitFrameItem::PostReplicatedChange(const struct FUnitFrame& InArraySerializer)
+{
+	InArraySerializer.OnItemAddedOrChanged.Broadcast(*this);
 }

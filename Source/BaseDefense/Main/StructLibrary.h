@@ -190,7 +190,7 @@ enum class EEnemyBuffType : uint8
 USTRUCT()
 struct FBuildingBuffStruct
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		EBuildingBuffType Type = EBuildingBuffType::None;
@@ -367,7 +367,7 @@ struct FServerData
 USTRUCT()
 struct FIncome
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		bool RequiresSource = false;
@@ -382,7 +382,7 @@ struct FIncome
 USTRUCT()
 struct FRegen
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		bool DamageStops = false;
@@ -398,7 +398,7 @@ struct FRegen
 USTRUCT()
 struct FDOT
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		int Damage = 0;
@@ -413,7 +413,7 @@ struct FDOT
 USTRUCT()
 struct FSlow
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		float SlowPercent = 0;
@@ -427,7 +427,7 @@ struct FSlow
 USTRUCT()
 struct FProjectileData
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		float Speed = 1;
@@ -440,7 +440,7 @@ struct FProjectileData
 USTRUCT()
 struct FAttack
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		FProjectileData Projectile;
@@ -495,7 +495,7 @@ enum class EEnemy : uint8
 USTRUCT()
 struct FBuildingUpgrade
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		FString Description = "This needs a description.";
@@ -513,7 +513,7 @@ struct FBuildingUpgrade
 USTRUCT()
 struct FBuildingData
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		FString Name = "NoName";
@@ -605,7 +605,7 @@ struct FBuildingData
 USTRUCT()
 struct FLevelData
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		ELevel Level = ELevel::None;
@@ -653,7 +653,7 @@ struct FLevelData
 USTRUCT()
 struct FIMInstance 
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 	uint32 Index;
 	FIMInstance()
@@ -668,7 +668,7 @@ struct FIMInstance
 USTRUCT()
 struct FUnitInstance
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 	UPROPERTY()
 	uint32 ID;
@@ -704,7 +704,7 @@ struct FUnitInstance
 USTRUCT()
 struct FUnitData
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 	UPROPERTY()
 	ETeam Team = ETeam::None;
@@ -753,7 +753,7 @@ struct FUnitData
 USTRUCT()
 struct FEnemyData
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		FString Name = "NoName";
@@ -794,7 +794,7 @@ struct FEnemyData
 USTRUCT()
 struct FPlayerData
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		TArray<EBuilding> HotbarSlots;
@@ -825,7 +825,7 @@ struct FPlayerData
 USTRUCT()
 struct FBuildingLocationInfo
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		bool Buildable = false;
@@ -849,7 +849,7 @@ struct FBuildingLocationInfo
 USTRUCT()
 struct FLevelEvent
 {
-	GENERATED_USTRUCT_BODY()
+	GENERATED_BODY()
 
 		UPROPERTY()
 		ELevelEvent Event = ELevelEvent::None;

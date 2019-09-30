@@ -115,7 +115,6 @@ public:
 	}
 	float GetHeuristicCost(const FASGraph::FNodeRef StartNodeRef, const FASGraph::FNodeRef EndNodeRef) const
 	{
-
 		int StartX = (StartNodeRef + 1) % MapSize;
 		int StartY = (StartNodeRef + 1) / MapSize + 1;
 

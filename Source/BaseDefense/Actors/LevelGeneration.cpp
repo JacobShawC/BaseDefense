@@ -5,8 +5,6 @@
 #include "BDGameInstance.h"
 #include "BDGameState.h"
 #include "Engine/World.h"
-//#include "C:\Users\Ziggy\Documents\Unreal Projects\BaseDefense\Plugins\SimplexNoise-master\Source\SimplexNoise\Public\SimplexNoiseBPLibrary.h"
-//#include "Engine/Texture2D.h"
 #include "Public/ImageUtils.h"
 #include <ConstructorHelpers.h>
 #include <Engine/StaticMesh.h>
