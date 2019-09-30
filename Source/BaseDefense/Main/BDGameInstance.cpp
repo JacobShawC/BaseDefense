@@ -70,6 +70,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer) : 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CannonBall(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Props/SM_Prop_CannonBalls_01.SM_Prop_CannonBalls_01'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Flowers(TEXT("StaticMesh'/Game/PolygonPirates/Meshes/Environments/SM_Env_Flowers_02.SM_Env_Flowers_02'"));
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> Tree(TEXT("StaticMesh'/Game/PolygonFantasyRivals/Meshes/Props/SM_Prop_Tree_02.SM_Prop_Tree_02'"));
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> FortGolem(TEXT("StaticMesh'/Game/VertexAnimations/SK_BR_Character_FortGolem_2_Test9.SK_BR_Character_FortGolem_2_Test9'"));
 
 	//Thumbnails
 	static ConstructorHelpers::FObjectFinder<UTexture2D> BarrelImage(TEXT("Texture2D'/Game/Textures/Icons/Completed/BarrelIcon.BarrelIcon'"));
@@ -267,12 +268,13 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer) : 
 	SlowZombie.Size = 1;
 	SlowZombie.Type = EGameUnit::SlowZombie;
 	SlowZombie.PushForce = 1;
-	//SlowZombie.Mesh =
+	SlowZombie.UnitMesh = FortGolem.Object;
 	SlowZombie.MaxHealth = 100;
 	SlowZombie.MovementSpeed = 10;
 	SlowZombie.PushForce = 100;
 	SlowZombie.Bounty = 100;
-
+	SlowZombie.Team = ETeam::Enemy;
+	Units.Add(EGameUnit::SlowZombie, SlowZombie);
 	
 	//Seaman
 	FEnemyData SeamanData;

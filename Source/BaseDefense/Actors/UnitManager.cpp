@@ -72,6 +72,7 @@ void AUnitManager::SetupAllHISMS()
 void AUnitManager::SetupHISM(FUnitData AUnitData)
 {
 	AHISMManager* HISM = (AHISMManager*)GetWorld()->SpawnActor<AHISMManager>(AHISMManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+	HISM->SetStaticMesh(AUnitData.UnitMesh);
 	HISMManagers.Add(AUnitData.Type, HISM);
 }
 
@@ -82,25 +83,7 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 
 	UBDSphereComponent* CollisionSphere = NewObject<UBDSphereComponent>(this);
 	//SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
-	CollisionSphere->GetBodyInstance()->bLockZTranslation = true;
-	CollisionSphere->GetBodyInstance()->SetEnableGravity(false);
-	CollisionSphere->GetBodyInstance()->bLockXRotation = true;
-	CollisionSphere->GetBodyInstance()->bLockYRotation = true;
-	CollisionSphere->GetBodyInstance()->bLockZRotation = true;
-	CollisionSphere->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
-	CollisionSphere->GetBodyInstance()->SetMassScale(0.1);
-	CollisionSphere->GetBodyInstance()->SetUseCCD(false);
-	CollisionSphere->SetLinearDamping(0.5f);
-	CollisionSphere->SetGenerateOverlapEvents(false);
-
-	CollisionSphere->SetWorldScale3D(FVector(UnitData.Size));
-	UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
-	PhysMat->Friction = 0;
-	CollisionSphere->SetPhysMaterialOverride(PhysMat);
-	CollisionSphere->SetSimulatePhysics(true);
-	CollisionSphere->SetWorldTransform(AnInitialTransform);
-	CollisionSphere->SetHiddenInGame(true);
-	CollisionSphere->RegisterComponent();
+	
 
 	//Add the sphere component for the attack range.
 
@@ -130,7 +113,6 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 		{
 			RangeSphere->SetCollisionProfileName("EnemyRange");
 		}
-
 	}
 	else if (UnitData.Team == ETeam::Friendly)
 	{
@@ -143,6 +125,27 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 			RangeSphere->SetCollisionProfileName("FriendlyRange");
 		}
 	}
+	CollisionSphere->GetBodyInstance()->bLockZTranslation = true;
+	CollisionSphere->GetBodyInstance()->SetEnableGravity(false);
+	CollisionSphere->GetBodyInstance()->bLockXRotation = true;
+	CollisionSphere->GetBodyInstance()->bLockYRotation = true;
+	CollisionSphere->GetBodyInstance()->bLockZRotation = true;
+	CollisionSphere->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
+	CollisionSphere->GetBodyInstance()->SetMassScale(0.1);
+	CollisionSphere->GetBodyInstance()->SetUseCCD(false);
+	CollisionSphere->SetLinearDamping(0.5f);
+	CollisionSphere->SetGenerateOverlapEvents(false);
+
+	CollisionSphere->SetWorldScale3D(FVector(UnitData.Size));
+	UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
+	PhysMat->Friction = 0;
+	CollisionSphere->SetPhysMaterialOverride(PhysMat);
+	CollisionSphere->SetSimulatePhysics(true);
+	CollisionSphere->SetWorldTransform(AnInitialTransform);
+	CollisionSphere->SetHiddenInGame(true);
+
+	CollisionSphere->RegisterComponent();
+
 
 	++UnitIDCount;
 	FUnitInstance Unit;
@@ -155,10 +158,10 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 	Unit.PushForce = UnitData.PushForce;
 	Unit.Size = UnitData.PushForce;
 	Unit.CollisionSphere = CollisionSphere;
-	UnitTypeMap[AUnit].Add(Unit);
 	//Add the ID to the Unit and the collisionsphere
 	CollisionSphere->ID = UnitIDCount;
 	Unit.ID = UnitIDCount;
+	UnitTypeMap.FindOrAdd(AUnit).Add(Unit);
 
 	UnitIDMap.Add(Unit.ID, Unit);
 
@@ -172,6 +175,23 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 
 void AUnitManager::TestSpawn()
 {
+	int NumberOfUnits = 1500;
+	int UnitsSpawned = 0;
+	for (int i = 0; i < LevelGenerationActor->WorldGridSize * LevelGenerationActor->WorldGridSize && UnitsSpawned < NumberOfUnits; i++)
+	{
+		//Only spawn if it is possible to path find from there
+		if (LevelGenerationActor->VectorMap[i].X != 0 || LevelGenerationActor->VectorMap[i].Y != 0)
+		{
+			int Remainder = i % LevelGenerationActor->WorldGridSize;
+			int Quotient = i / LevelGenerationActor->WorldGridSize;
+			int X = Remainder * LevelGenerationActor->GridPositionSize + LevelGenerationActor->GridPositionSize / 2;
+			int Y = Quotient * LevelGenerationActor->GridPositionSize + LevelGenerationActor->GridPositionSize / 2;
+			FTransform Trans = FTransform(FVector(-X, Y, 100));
+
+			SpawnUnit(EGameUnit::SlowZombie, Trans);
+			UnitsSpawned++;
+		}
+	}
 }
 //Apply pathfinding forces, update HISM positions and update multiplayer data.
 void AUnitManager::Tick(float DeltaTime)
@@ -204,7 +224,7 @@ void AUnitManager::PerformActions()
 			{
 				switch (AnElem.Value[i].CurrentAction)
 				{
-					case EUnitAction::None: break;
+					case EUnitAction::None: SetActionToDefault(&AnElem.Value[i]);
 					case EUnitAction::Pathing: PathTowardsPosition(AnElem.Value[i]);
 					case EUnitAction::Attacking: break;
 				}

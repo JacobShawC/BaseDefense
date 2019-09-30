@@ -96,6 +96,8 @@ public:
 
 	UPROPERTY(ReplicatedUsing = OnRep_LevelGenerationActor)	class ALevelGeneration* LevelGenerationActor = nullptr;
 
+	UPROPERTY(Replicated)	class AUnitManager* UnitManagerActor = nullptr;
+
 private:
 	UPROPERTY(ReplicatedUsing = OnRep_CurrentState)	EGameState CurrentState = EGameState::PreGame;
 

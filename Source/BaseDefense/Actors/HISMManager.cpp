@@ -3,12 +3,14 @@
 
 #include "HISMManager.h"
 #include <Components/HierarchicalInstancedStaticMeshComponent.h>
+#include <Engine/StaticMesh.h>
 
 // Sets default values
 AHISMManager::AHISMManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	MeshPool = CreateDefaultSubobject<UHierarchicalInstancedStaticMeshComponent>(TEXT("MeshPool"));
 
 }
 
@@ -16,6 +18,11 @@ AHISMManager::AHISMManager()
 void AHISMManager::FinishUpdates()
 {
 	MeshPool->MarkRenderStateDirty();
+}
+
+void AHISMManager::SetStaticMesh(UStaticMesh* AMesh)
+{
+	MeshPool->SetStaticMesh(AMesh);
 }
 
 //We can only delete the last instance so therefore we swap the chosen actor with the last actor and then delete the last actor.

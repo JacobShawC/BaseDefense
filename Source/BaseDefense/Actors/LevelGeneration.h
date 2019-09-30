@@ -204,7 +204,6 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 
-	void SpawnEnemies();
 
 	void CreateCollisionCubes();
 
@@ -236,11 +235,6 @@ protected:
 	UFUNCTION()
 	void OnRep_SetSeed();
 
-	UFUNCTION()
-	void OnRep_UpdatePositions();
-
-	void UpdateClientEnemies(float DeltaTime);
-	void UpdateEnemies(float DeltaTime);
 
 	void SpawnMeshes(FGenerationData AGenerationData, TArray<EWorldGridType> AFromGrid, TArray<float> AFromElevation);
 	void AddGridToGrid(TArray<float> AFromGrid, TArray<EWorldGridType>& AToGrid, TArray<float>& AToElevation, float ACutOff, bool AMoreThan, EWorldGridType AType);
@@ -310,7 +304,4 @@ public:
 
 	TMap<EWorldGridType, FGenerationData> GenerationData;
 
-	UPROPERTY(ReplicatedUsing = OnRep_UpdatePositions)
-	TArray<FVector_NetQuantize> EnemyPositions;
-	FEnemyKeyframe CurrentEnemyFrame;
 };

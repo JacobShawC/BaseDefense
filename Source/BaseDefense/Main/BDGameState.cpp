@@ -20,6 +20,7 @@
 #include "LevelGeneration.h"
 #include "Public/KismetAnimationLibrary.h"
 #include <GameFramework/Actor.h>
+#include "UnitManager.h"
 
 
 void ABDGameState::GetMiniMap()
@@ -84,6 +85,9 @@ void ABDGameState::BeginPlay()
 	{
 		LevelGenerationActor = (ALevelGeneration*)GetWorld()->SpawnActor<ALevelGeneration>(ALevelGeneration::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
 		OnRep_LevelGenerationActor();
+
+		UnitManagerActor = (AUnitManager*)GetWorld()->SpawnActor<AUnitManager>(AUnitManager::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
+
 
 		for (APlayerState* AState : PlayerArray)
 		{
@@ -187,6 +191,7 @@ void ABDGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 	DOREPLIFETIME(ABDGameState, LevelSaves);
 	DOREPLIFETIME(ABDGameState, CurrentState);
 	DOREPLIFETIME(ABDGameState, LevelGenerationActor);
+	DOREPLIFETIME(ABDGameState, UnitManagerActor);
 }
 void ABDGameState::OnRep_LevelRewards()
 {

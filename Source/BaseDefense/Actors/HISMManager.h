@@ -30,7 +30,7 @@ protected:
 
 public:
 
-	void SetStaticMesh();
+	void SetStaticMesh(class UStaticMesh* AMesh);
 	TMap<uint32, FIMInstance> IDToInstanceMapping;
 
 	void DestroyIM(uint32 AUnitID);

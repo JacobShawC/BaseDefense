@@ -692,7 +692,7 @@ struct FUnitInstance
 	uint32 CurrentLocation;
 
 	UPROPERTY()
-	EUnitAction CurrentAction;
+	EUnitAction CurrentAction = EUnitAction::None;
 
 	UPROPERTY()
 	float Size = 1;
