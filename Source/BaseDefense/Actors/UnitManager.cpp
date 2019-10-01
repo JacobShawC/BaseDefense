@@ -14,6 +14,8 @@
 // Sets default values
 AUnitManager::AUnitManager()
 {
+	bReplicates = true;
+	bAlwaysRelevant = true;
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 	CurrentFrame.OnItemAddedOrChanged.AddUObject(this, &AUnitManager::OnItemChangedOrAdded);
@@ -75,6 +77,7 @@ void AUnitManager::SetupHISM(FUnitData AUnitData)
 	HISM->SetStaticMesh(AUnitData.UnitMesh);
 	HISMManagers.Add(AUnitData.Type, HISM);
 }
+
 
 void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 {
@@ -175,7 +178,7 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 
 void AUnitManager::TestSpawn()
 {
-	int NumberOfUnits = 1500;
+	int NumberOfUnits = 3000;
 	int UnitsSpawned = 0;
 	for (int i = 0; i < LevelGenerationActor->WorldGridSize * LevelGenerationActor->WorldGridSize && UnitsSpawned < NumberOfUnits; i++)
 	{
@@ -186,7 +189,7 @@ void AUnitManager::TestSpawn()
 			int Quotient = i / LevelGenerationActor->WorldGridSize;
 			int X = Remainder * LevelGenerationActor->GridPositionSize + LevelGenerationActor->GridPositionSize / 2;
 			int Y = Quotient * LevelGenerationActor->GridPositionSize + LevelGenerationActor->GridPositionSize / 2;
-			FTransform Trans = FTransform(FVector(-X, Y, 100));
+			FTransform Trans = FTransform(FVector(-X, Y, 20));
 
 			SpawnUnit(EGameUnit::SlowZombie, Trans);
 			UnitsSpawned++;
@@ -197,8 +200,14 @@ void AUnitManager::TestSpawn()
 void AUnitManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	PerformActions();
-	UpdateHISMPositions();
+	if (Role == ROLE_Authority)
+	{
+		//CurrentFrame.CurrentTime = GetWorld()->TimeSeconds;
+		PerformActions();
+		UpdateHISMPositions();
+
+		UpdateCurrentFrame();
+	}
 }
 //ai ideas.
 //rules
@@ -265,23 +274,7 @@ void AUnitManager::PathTowardsPosition(FUnitInstance AnInstance)
 	}
 }
 
-//When the current frame gets replicated we add the new or changed frames to the unit frame array.
-void AUnitManager::OnItemChangedOrAdded(FUnitFrameItem& AnItem)
-{
-	TArray<FUnitFrameItem>* UnitFrameArray = &UnitFrames.FindOrAdd(AnItem.UnitID);
-	AnItem.CurrentTime = CurrentFrame.CurrentTime;
-	UnitFrameArray->Add(AnItem);
-}
 
-//When we remove an item from the array we add a frame with the dead attribute set to true.
-void AUnitManager::OnItemRemoved(FUnitFrameItem& AnItem)
-{
-	TArray<FUnitFrameItem>* UnitFrameArray = &UnitFrames.FindOrAdd(AnItem.UnitID);
-	AnItem.CurrentTime = CurrentFrame.CurrentTime;
-	AnItem.Dead = true;
-
-	UnitFrameArray->Add(AnItem);
-}
 
 void AUnitManager::OnRangeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
@@ -300,9 +293,22 @@ void AUnitManager::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLife
 
 void AUnitManager::OnRep_CurrentFrame()
 {
-	//Frame updated
+	CurrentFrame;
 }
-
+//Here we add all the relevant information for a unit in each frame
+void AUnitManager::UpdateCurrentFrame()
+{
+	float CurrentTime = GetWorld()->TimeSeconds;
+	for (auto& AnElem : UnitTypeMap)
+	{
+		int AnIndex = 0;
+		for (int i = 0; i < AnElem.Value.Num(); i++)
+		{
+			CurrentFrame.UpdateUnit(AnElem.Value[i], AnElem.Value[i].CollisionSphere->GetComponentTransform().GetTranslation(), CurrentTime, AnIndex);
+			AnIndex++;
+		}
+	}
+}
 //We go though every unit's CollisionSphere and update the instances position via their HISM manager.
 void AUnitManager::UpdateHISMPositions()
 {
@@ -330,10 +336,27 @@ void FUnitFrameItem::PreReplicatedRemove(const struct FUnitFrame& InArraySeriali
 void FUnitFrameItem::PostReplicatedAdd(const struct FUnitFrame& InArraySerializer)
 {
 	InArraySerializer.OnItemAddedOrChanged.Broadcast(*this);
-
 }
 
 void FUnitFrameItem::PostReplicatedChange(const struct FUnitFrame& InArraySerializer)
 {
 	InArraySerializer.OnItemAddedOrChanged.Broadcast(*this);
+}
+
+//When the current frame gets replicated we add the new or changed frames to the unit frame array.
+void AUnitManager::OnItemChangedOrAdded(FUnitFrameItem& AnItem)
+{
+	TArray<FUnitFrameItem>* UnitFrameArray = &UnitFrames.FindOrAdd(AnItem.UnitID);
+	AnItem.CurrentTime = CurrentFrame.CurrentTime;
+	UnitFrameArray->Add(AnItem);
+}
+
+//When we remove an item from the array we add a frame with the dead attribute set to true.
+void AUnitManager::OnItemRemoved(FUnitFrameItem& AnItem)
+{
+	TArray<FUnitFrameItem>* UnitFrameArray = &UnitFrames.FindOrAdd(AnItem.UnitID);
+	AnItem.CurrentTime = CurrentFrame.CurrentTime;
+	AnItem.Dead = true;
+
+	UnitFrameArray->Add(AnItem);
 }

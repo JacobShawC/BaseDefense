@@ -19,12 +19,17 @@ struct FUnitFrameItem : public FFastArraySerializerItem
 {
 	GENERATED_BODY()
 
+	UPROPERTY()
 	float CurrentTime = 0;
 
+	UPROPERTY(NotReplicated)
 	bool Dead = false;
 
 	UPROPERTY()
 	uint32 UnitID;
+
+	UPROPERTY()
+	EGameUnit UnitType = EGameUnit::None;
 
 	UPROPERTY()
 	uint16 XPosition = 0;
@@ -32,22 +37,15 @@ struct FUnitFrameItem : public FFastArraySerializerItem
 	UPROPERTY()
 	uint16 YPosition = 0;
 
-
-
-	/*bool operator == (const FUnitFrameItem AnOtherItem)
-	{
-		if (UnitID == AnOtherItem.UnitID && XPosition == AnOtherItem.XPosition && YPosition == AnOtherItem.YPosition)
-		{
-			return true;
-		}
-		else return false;
-	}*/
-
 	FORCEINLINE bool operator==(const FUnitFrameItem& AnOtherItem) const
 	{
-		return (UnitID == AnOtherItem.UnitID && XPosition == AnOtherItem.XPosition && YPosition == AnOtherItem.YPosition);
+		return (UnitID == AnOtherItem.UnitID && UnitType == AnOtherItem.UnitType && XPosition == AnOtherItem.XPosition && YPosition == AnOtherItem.YPosition);
 	}
-
+	
+	FORCEINLINE bool operator!=(const FUnitFrameItem& AnOtherItem) const
+	{
+		return !(this->operator==(AnOtherItem));
+	}
 
 	/**
 	 * Optional functions you can implement for client side notification of changes to items;
@@ -77,41 +75,67 @@ struct FUnitFrame : public FFastArraySerializer
 	UPROPERTY()
 	TArray<FUnitFrameItem>	Items;	/** Step 3: You MUST have a TArray named Items of the struct you made in step 1. */
 
-	TMap<uint32, FUnitFrameItem*> IDMap;
 
 	FUnitFrameItemChangedOrAddedDelegate OnItemAddedOrChanged;
 	
 	FUnitFrameItemRemovedDelegate OnItemRemoved;
 
-	void AddItem(uint32 ItemID, FVector APosition, float ACurrentTime)
+	void UpdateUnit(FUnitInstance& AUnitInstance, FVector AVector, float ACurrentTime, int AnIndex)
 	{
 		FUnitFrameItem Item;
-		Item.XPosition = APosition.X;
-		Item.YPosition = APosition.Y;
-		CurrentTime = ACurrentTime;
-		this->MarkItemDirty(Item);
-		IDMap.Add(ItemID, &Item);
-		Items.Add(Item);
-	}
+		Item.UnitID = AUnitInstance.ID;
+		Item.XPosition = AVector.X;
+		Item.YPosition = AVector.Y;
+		Item.UnitType = AUnitInstance.Type;
 
-	void ChangeItem(uint32 ItemID, FVector APosition, float ACurrentTime)
-	{
-		FUnitFrameItem* Item = *IDMap.Find(ItemID);
-		if (Item != nullptr)
+		// if a unit has been killed or removed we remove it from the item list. This is done by comparing the unit list and item list one by one.
+		while (Items.Num() > AnIndex && Items[AnIndex].UnitID != Item.UnitID)
 		{
-			Item->XPosition = APosition.X;
-			Item->YPosition = APosition.Y;
+			RemoveItem(AnIndex);
 			CurrentTime = ACurrentTime;
-			this->MarkItemDirty(*Item);
-			Items.Add(*Item);
+		}
+
+		//if the units list is larger than the items list we need to add a new item. otherwise we simply change an existing item.
+		if (Items.Num() <= AnIndex)
+		{
+			AddItem(Item);
+			CurrentTime = ACurrentTime;
+		}
+		else
+		{
+			// we only set the current time if the item has been changed.
+			if (ChangeItem(Item, AnIndex))
+			{
+				CurrentTime = ACurrentTime;
+			}
 		}
 	}
 
-	void RemoveItem(uint32 ItemID)
+	void AddItem(FUnitFrameItem Item)
 	{
-		FUnitFrameItem* Item = IDMap.FindAndRemoveChecked(ItemID);
-		Items.Remove(*Item);
-		this->MarkArrayDirty();
+		this->MarkItemDirty(Items.Add_GetRef(Item));
+	}
+
+	//returns whether the item was changed or not.
+	bool ChangeItem(FUnitFrameItem Item, int AnIndex)
+	{
+		if (Item != Items[AnIndex])
+		{
+			Items[AnIndex].UnitID = Item.UnitID;
+			Items[AnIndex].UnitType = Item.UnitType;
+			Items[AnIndex].XPosition = Item.XPosition;
+			Items[AnIndex].YPosition = Item.YPosition;
+
+			this->MarkItemDirty(Items[AnIndex]);
+			return true;
+		}
+		return false;
+	}
+
+	void RemoveItem(int AnIndex)
+	{
+		Items.RemoveAt(AnIndex);
+		MarkArrayDirty();
 	}
 
 		/** Step 4: Copy this, replace example with your names */
@@ -152,9 +176,11 @@ protected:
 
 	void SetupHISM(FUnitData AUnitData);
 
+	void UpdateCurrentFrame();
+
 	void PerformActions();
 	void SetActionToDefault(FUnitInstance* AUnitInstance);
-
+	
 	void PathTowardsPosition(FUnitInstance AnInstance);
 
 	UFUNCTION()
@@ -193,7 +219,7 @@ public:
 	//virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY()
-		TMap<EGameUnit, AHISMManager*> HISMManagers;
+	TMap<EGameUnit, AHISMManager*> HISMManagers;
 
 	TMap<uint32, TArray<FUnitFrameItem>> UnitFrames;
 };
