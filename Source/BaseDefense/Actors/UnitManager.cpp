@@ -10,6 +10,11 @@
 #include <Components/SphereComponent.h>
 #include <PhysicalMaterials/PhysicalMaterial.h>
 #include "BDSphereComponent.h"
+#include <Engine/EngineTypes.h>
+#include <GameFramework/Actor.h>
+#include "Public/TimerManager.h"
+#include <TimerManager.h>
+#include <WeakObjectPtr.h>
 
 // Sets default values
 AUnitManager::AUnitManager()
@@ -43,23 +48,12 @@ void AUnitManager::BeginPlay()
 
 		if (!LevelGenerationActor->HasGenerated)
 		{
-			LevelGenerationActor->OnGenerateWorld.AddUObject(this, &AUnitManager::TestSpawn);
+			LevelGenerationActor->OnGenerateWorld.AddUObject(this, &AUnitManager::OnLevelGenerated);
 		}
 		else
 		{
-			TestSpawn();
+			OnLevelGenerated();
 		}
-	}
-}
-//applies a force in a direction to a unit in a specific unit, takes the unit id.
-void AUnitManager::ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount)
-{
-	FUnitInstance* UnitInstance = nullptr;
-	UnitInstance = UnitIDMap.Find(AUnitID);
-	if (UnitInstance != nullptr)
-	{
-		UnitInstance->CollisionSphere->AddForce(Direction * AnAmount);
-
 	}
 }
 //Goes through the unit data map on the gameinstance and spawns a hism manager for each one.
@@ -83,28 +77,56 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 {
 	FUnitData UnitData = UnitDataMap[AUnit];
 
-
 	UBDSphereComponent* CollisionSphere = NewObject<UBDSphereComponent>(this);
 	//SphereComponent->SetConstraintMode(EDOFMode::XYPlane);
 	
-
 	//Add the sphere component for the attack range.
 
 	USphereComponent* RangeSphere = nullptr;
 
-	if (UnitData.AttackRange != 0)
-	{
-		RangeSphere = NewObject<USphereComponent>(this);
-		RangeSphere->SetWorldScale3D(FVector(UnitData.AttackRange));
-		RangeSphere->SetGenerateOverlapEvents(true);
-		RangeSphere->AttachToComponent(CollisionSphere, FAttachmentTransformRules::SnapToTargetNotIncludingScale);
-		RangeSphere->SetSimulatePhysics(false);
-		FScriptDelegate OverlapDelegate;
-		OverlapDelegate.BindUFunction(this, "OnRangeOverlap");
-		RangeSphere->OnComponentBeginOverlap.Add(OverlapDelegate);
-	}
+	
 
-	 
+	CollisionSphere->GetBodyInstance()->bLockZTranslation = true;
+	CollisionSphere->GetBodyInstance()->SetEnableGravity(false);
+	CollisionSphere->GetBodyInstance()->bLockXRotation = true;
+	CollisionSphere->GetBodyInstance()->bLockYRotation = true;
+	CollisionSphere->GetBodyInstance()->bLockZRotation = true;
+	CollisionSphere->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
+	CollisionSphere->GetBodyInstance()->SetMassScale(0.1);
+	CollisionSphere->GetBodyInstance()->SetUseCCD(false);
+	CollisionSphere->SetLinearDamping(0.5f);
+	CollisionSphere->SetGenerateOverlapEvents(true);
+	//FScriptDelegate OverlapDelegate;
+	//OverlapDelegate.BindUFunction(this, "OnUnitOverlap");
+	//FScriptDelegate OverlapEndDelegate;
+	//OverlapEndDelegate.BindUFunction(this, "OnUnitOverlapEnd");
+	//CollisionSphere->OnComponentBeginOverlap.Add(OverlapDelegate);
+	//CollisionSphere->OnComponentEndOverlap.Add(OverlapEndDelegate);
+
+	CollisionSphere->SetWorldScale3D(FVector(1));
+	CollisionSphere->InitSphereRadius(UnitData.Size);
+	UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
+	PhysMat->Friction = 0;
+	CollisionSphere->SetPhysMaterialOverride(PhysMat);
+	CollisionSphere->SetSimulatePhysics(true);
+	CollisionSphere->SetWorldTransform(AnInitialTransform);
+	CollisionSphere->SetHiddenInGame(true);
+
+	//if (UnitData.AttackRange != 0)
+	//{
+	//	RangeSphere = NewObject<USphereComponent>(this);
+	//	RangeSphere->SetWorldScale3D(FVector(1));
+	//	RangeSphere->InitSphereRadius(UnitData.AttackRange);
+	//	RangeSphere->SetGenerateOverlapEvents(true);
+	//	RangeSphere->SetupAttachment(CollisionSphere);
+	//	//RangeSphere->AttachToComponent(CollisionSphere, FAttachmentTransformRules::KeepRelativeTransform);
+	//	RangeSphere->SetSimulatePhysics(false);
+	//	RangeSphere->SetHiddenInGame(true);
+	//	FScriptDelegate OverlapDelegate;
+	//	OverlapDelegate.BindUFunction(this, "OnRangeOverlap");
+	//	RangeSphere->OnComponentBeginOverlap.Add(OverlapDelegate);
+
+	//}
 
 	if (UnitData.Team == ETeam::Enemy)
 	{
@@ -115,6 +137,7 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 		if (RangeSphere != nullptr)
 		{
 			RangeSphere->SetCollisionProfileName("EnemyRange");
+
 		}
 	}
 	else if (UnitData.Team == ETeam::Friendly)
@@ -128,26 +151,13 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 			RangeSphere->SetCollisionProfileName("FriendlyRange");
 		}
 	}
-	CollisionSphere->GetBodyInstance()->bLockZTranslation = true;
-	CollisionSphere->GetBodyInstance()->SetEnableGravity(false);
-	CollisionSphere->GetBodyInstance()->bLockXRotation = true;
-	CollisionSphere->GetBodyInstance()->bLockYRotation = true;
-	CollisionSphere->GetBodyInstance()->bLockZRotation = true;
-	CollisionSphere->GetBodyInstance()->SetMaxDepenetrationVelocity(1);
-	CollisionSphere->GetBodyInstance()->SetMassScale(0.1);
-	CollisionSphere->GetBodyInstance()->SetUseCCD(false);
-	CollisionSphere->SetLinearDamping(0.5f);
-	CollisionSphere->SetGenerateOverlapEvents(false);
-
-	CollisionSphere->SetWorldScale3D(FVector(UnitData.Size));
-	UPhysicalMaterial* PhysMat = NewObject<UPhysicalMaterial>(this);
-	PhysMat->Friction = 0;
-	CollisionSphere->SetPhysMaterialOverride(PhysMat);
-	CollisionSphere->SetSimulatePhysics(true);
-	CollisionSphere->SetWorldTransform(AnInitialTransform);
-	CollisionSphere->SetHiddenInGame(true);
 
 	CollisionSphere->RegisterComponent();
+	if (RangeSphere != nullptr)
+	{
+		RangeSphere->RegisterComponent();
+
+	}
 
 
 	++UnitIDCount;
@@ -166,13 +176,30 @@ void AUnitManager::SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform)
 	Unit.ID = UnitIDCount;
 	UnitTypeMap.FindOrAdd(AUnit).Add(Unit);
 
-	UnitIDMap.Add(Unit.ID, Unit);
 
 	AHISMManager* HISMManager = *HISMManagers.Find(AUnit);
 
 	if (HISMManager != nullptr)
 	{
 		HISMManager->SpawnIM(Unit.ID, AnInitialTransform);
+	}
+}
+
+void AUnitManager::OnUnitOverlap(UBDSphereComponent* AComponent, AActor* AnActor, USphereComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& ASweepResult)
+{
+	if (OtherComponent)
+	{
+		AComponent->OverlappingSpheres.AddUnique(OtherComponent);
+		int test = 8;
+	}
+}
+
+void AUnitManager::OnUnitOverlapEnd(UBDSphereComponent* AComponent, AActor* AnActor, USphereComponent* OtherComponent, int32 OtherBodyIndex)
+{
+
+	if (OtherComponent)
+	{
+		AComponent->OverlappingSpheres.Remove(OtherComponent);
 	}
 }
 
@@ -190,11 +217,29 @@ void AUnitManager::TestSpawn()
 			int X = Remainder * LevelGenerationActor->GridPositionSize + LevelGenerationActor->GridPositionSize / 2;
 			int Y = Quotient * LevelGenerationActor->GridPositionSize + LevelGenerationActor->GridPositionSize / 2;
 			FTransform Trans = FTransform(FVector(-X, Y, 20));
-
+			TestBuilding(Trans);
 			SpawnUnit(EGameUnit::SlowZombie, Trans);
 			UnitsSpawned++;
 		}
 	}
+}
+void AUnitManager::TestBuilding(FTransform ATransform)
+{
+	USphereComponent* RangeSphere = NewObject<USphereComponent>(this);
+	RangeSphere->SetWorldScale3D(FVector(1));
+	RangeSphere->InitSphereRadius(300);
+	RangeSphere->SetGenerateOverlapEvents(true);
+	RangeSphere->SetWorldTransform(ATransform);
+
+	//RangeSphere->AttachToComponent(CollisionSphere, FAttachmentTransformRules::KeepRelativeTransform);
+	RangeSphere->SetSimulatePhysics(false);
+	RangeSphere->SetHiddenInGame(true);
+	FScriptDelegate OverlapDelegate;
+	OverlapDelegate.BindUFunction(this, "OnRangeOverlap");
+	RangeSphere->OnComponentBeginOverlap.Add(OverlapDelegate);
+	RangeSphere->SetCollisionProfileName("FriendlyRange");
+
+	RangeSphere->RegisterComponent();
 }
 //Apply pathfinding forces, update HISM positions and update multiplayer data.
 void AUnitManager::Tick(float DeltaTime)
@@ -203,7 +248,6 @@ void AUnitManager::Tick(float DeltaTime)
 	if (Role == ROLE_Authority)
 	{
 		//CurrentFrame.CurrentTime = GetWorld()->TimeSeconds;
-		PerformActions();
 		UpdateHISMPositions();
 
 		UpdateCurrentFrame();
@@ -242,6 +286,50 @@ void AUnitManager::PerformActions()
 	}
 }
 
+void AUnitManager::PushAway(FUnitInstance& AUnitInstance)
+{
+	TSet<UPrimitiveComponent*> OverlappingComponents;
+	AUnitInstance.CollisionSphere->GetOverlappingComponents(OverlappingComponents);
+	if (OverlappingComponents.Num() > 0)
+	{
+		int test = 1;
+	}
+	/*if (AUnitInstance.CollisionSphere->OverlappingSpheres.Num() > 0)
+	{
+		FVector Total;
+		FVector TotalDirection;
+
+		FVector MyLocation = AUnitInstance.CollisionSphere->GetComponentLocation();
+		for (USphereComponent* ASphere : AUnitInstance.CollisionSphere->OverlappingSpheres)
+		{
+			FVector SphereVector = ASphere->GetComponentLocation();
+
+			FVector Direction;
+			float Length = 0;
+			FVector VectorBetween = FVector(MyLocation.X - SphereVector.X, MyLocation.Y - SphereVector.Y, 0);
+
+			VectorBetween.ToDirectionAndLength(Direction, Length);
+			float Closeness = AUnitInstance.CollisionSphere->Bounds.SphereRadius - Length;
+			if (Closeness < 0)
+			{
+				Closeness = 0.01;
+			}
+			Direction = Total.GetUnsafeNormal();
+			Total += -Direction * Closeness;
+		}
+		float PushForce = 6;
+		float PushAdd = 50;
+
+		Total = Total * 6;
+		FVector TotalDir = Total.GetUnsafeNormal();
+		Total += TotalDir * PushAdd;
+		Total.Z = 0;
+
+		AUnitInstance.CollisionSphere->AddForce(Total);
+
+	}*/
+}
+
 void AUnitManager::SetActionToDefault(FUnitInstance* AUnitInstance)
 {
 	if (AUnitInstance != nullptr)
@@ -268,13 +356,22 @@ void AUnitManager::PathTowardsPosition(FUnitInstance AnInstance)
 		int Index = Y * WorldGridSize + X;
 		if (Index < LevelGenerationActor->VectorMap.Num() - 1 && Index > 0)
 		{
-			float ForceAmount = 80;
+			float ForceAmount = 8000 * 0.1f;
 			AnInstance.CollisionSphere->AddForce(FVector(-LevelGenerationActor->VectorMap[Index].X * ForceAmount, LevelGenerationActor->VectorMap[Index].Y * ForceAmount, 0));
 		}
 	}
 }
 
 
+
+void AUnitManager::OnLevelGenerated()
+{
+	TestSpawn();
+	FTimerHandle FuzeTimerHandle;
+	//FTimerDelegate PerformActionDel = FTimerDelegate::CreateUObject(this, &AUnitManager::PerformActions);
+
+	GetWorld()->GetTimerManager().SetTimer(FuzeTimerHandle, this, &AUnitManager::PerformActions, 0.1f, true, 0.0f);
+}
 
 void AUnitManager::OnRangeOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {

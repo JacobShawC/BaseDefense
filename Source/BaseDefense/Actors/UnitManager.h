@@ -169,8 +169,10 @@ protected:
 	virtual void BeginPlay() override;
 	uint32 UnitIDCount = 0;
 	void SpawnUnit(EGameUnit AUnit, FTransform AnInitialTransform);
-
-	void ForceUnit(uint32 AUnitID, FVector Direction, float AnAmount);
+	UFUNCTION()
+	void OnUnitOverlap(class UBDSphereComponent* AComponent, AActor* AnActor, class USphereComponent* OtherComponent, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& ASweepResult);
+	UFUNCTION()
+	void OnUnitOverlapEnd(class UBDSphereComponent* AComponent, AActor* AnActor, class USphereComponent* OtherComponent, int32 OtherBodyIndex);
 
 	void SetupAllHISMS();
 
@@ -179,9 +181,12 @@ protected:
 	void UpdateCurrentFrame();
 
 	void PerformActions();
+	void PushAway(FUnitInstance& AUnitInstance);
 	void SetActionToDefault(FUnitInstance* AUnitInstance);
 	
 	void PathTowardsPosition(FUnitInstance AnInstance);
+
+	void OnLevelGenerated();
 
 	UFUNCTION()
 	void OnItemChangedOrAdded(FUnitFrameItem& AnItem);
@@ -199,11 +204,10 @@ protected:
 
 	void TestSpawn();
 
+	void TestBuilding(FTransform ATransform);
 	void Tick(float DeltaTime);
 
 	void UpdateHISMPositions();
-
-	TMap<uint32, FUnitInstance> UnitIDMap;
 
 	TMap<EGameUnit, TArray<FUnitInstance>> UnitTypeMap;
 	TMap<EGameUnit, FUnitData> UnitDataMap;

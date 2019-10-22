@@ -680,7 +680,8 @@ struct FUnitInstance
 	EGameUnit Type;
 
 	UPROPERTY()
-	class USphereComponent* CollisionSphere = nullptr;
+	class UBDSphereComponent* CollisionSphere = nullptr;
+
 
 	UPROPERTY()
 	class USphereComponent* RangeSphere = nullptr;

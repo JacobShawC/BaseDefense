@@ -16,4 +16,5 @@ class BASEDEFENSE_API UBDSphereComponent : public USphereComponent
 	
 public:
 	uint32 ID;
+	TArray<USphereComponent*> OverlappingSpheres;
 };

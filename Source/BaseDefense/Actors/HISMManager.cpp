@@ -35,8 +35,6 @@ void AHISMManager::DestroyIM(uint32 AUnitID)
 	uint32 LastInstanceIndex = IDToInstanceMapping[LastUnitID].Index;
 	MeshPool->RemoveInstance(LastInstanceIndex);
 
-
-
 	//Swap the mappings' instance id
 	IDBuffer[ActorInstance.Index] = LastUnitID;
 	IDToInstanceMapping[LastUnitID] = ActorInstance;

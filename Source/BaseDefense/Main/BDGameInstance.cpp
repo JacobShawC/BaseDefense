@@ -265,7 +265,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer) : 
 	//Slow Zombie
 	FUnitData SlowZombie;
 	SlowZombie.Name = "Zombie";
-	SlowZombie.Size = 1;
+	SlowZombie.Size = 30;
 	SlowZombie.Type = EGameUnit::SlowZombie;
 	SlowZombie.PushForce = 1;
 	SlowZombie.UnitMesh = FortGolem.Object;
@@ -274,6 +274,7 @@ UBDGameInstance::UBDGameInstance(const FObjectInitializer& ObjectInitializer) : 
 	SlowZombie.PushForce = 100;
 	SlowZombie.Bounty = 100;
 	SlowZombie.Team = ETeam::Enemy;
+	SlowZombie.AttackRange = 200;
 	Units.Add(EGameUnit::SlowZombie, SlowZombie);
 	
 	//Seaman

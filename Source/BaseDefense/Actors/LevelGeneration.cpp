@@ -299,13 +299,17 @@ void ALevelGeneration::CreateCollisionCubes()
 			UBoxComponent * BoxComponent = NewObject<UBoxComponent>(this);
 			UPhysicalMaterial * PhysMat = NewObject<UPhysicalMaterial>(this);
 			BoxComponent->SetBoxExtent(FVector(50.0f));
+			BoxComponent->SetMobility(EComponentMobility::Static);
 			PhysMat->Friction = 0;
 			BoxComponent->SetPhysMaterialOverride(PhysMat);
-			BoxComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-			BoxComponent->SetCollisionResponseToAllChannels(ECR_Block);
+			BoxComponent->SetGenerateOverlapEvents(false);
+			//BoxComponent->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+			//BoxComponent->SetCollisionResponseToAllChannels(ECR_Block);
 			BoxComponent->SetSimulatePhysics(false);
 			BoxComponent->SetWorldLocation(FVector(-X, Y, 50));
 			//BoxComponent->SetHiddenInGame(false);
+			BoxComponent->SetCollisionProfileName("Terrain");
+
 			BoxComponent->RegisterComponent();
 		}
 	}
