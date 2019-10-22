@@ -3,4 +3,4 @@ BaseDefense is a coop zombie base defense RTS I’ve been making in my spare tim
 
 It features up to 3000 zombies in a randomly generated world, with 4 player coop, with player connections handled via steam/steamworks.
 
-It was made entirely with c++, with blueprints only used for game design iteration.
+Its being made using c++, with blueprints only used for game design iteration.
