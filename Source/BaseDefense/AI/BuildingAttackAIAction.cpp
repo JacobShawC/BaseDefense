@@ -25,7 +25,7 @@ void UBuildingAttackAIAction::Initialise(ABuilding* ABuilding)
 		RangeCapsule->RegisterComponent();
 		RangeCapsule->AttachToComponent(Building->GetRootComponent(), FAttachmentTransformRules::SnapToTargetIncludingScale);
 
-		RangeCapsule->bVisible = true;
+		RangeCapsule->SetVisibility(true);
 		if (RangeCapsule)
 		{
 			RangeCapsule->OnComponentBeginOverlap.AddDynamic(this, &UBuildingAttackAIAction::OnRangeOverlap);

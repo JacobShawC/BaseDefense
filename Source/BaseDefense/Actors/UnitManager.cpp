@@ -41,7 +41,7 @@ void AUnitManager::BeginPlay()
 		UnitDataMap = GameInstance->Units;
 	}
 	SetupAllHISMS();
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
 		LevelGenerationActor = GameState->LevelGenerationActor;
@@ -245,7 +245,7 @@ void AUnitManager::TestBuilding(FTransform ATransform)
 void AUnitManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		//CurrentFrame.CurrentTime = GetWorld()->TimeSeconds;
 		UpdateHISMPositions();

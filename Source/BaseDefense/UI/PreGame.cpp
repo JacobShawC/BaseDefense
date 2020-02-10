@@ -18,7 +18,7 @@ void UPreGame::Setup()
 {
 	InviteFriendsButton->OnClicked.AddDynamic(this, &UPreGame::OnInviteFriendsButtonClicked);
 	
-	if (GetOwningPlayerPawn()->Role == ROLE_Authority)
+	if (GetOwningPlayerPawn()->GetLocalRole() == ROLE_Authority)
 	{
 		StartButton->OnClicked.AddDynamic(this, &UPreGame::OnStartButtonClicked);
 	}

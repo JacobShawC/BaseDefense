@@ -69,7 +69,7 @@ AEnemyChar::AEnemyChar()
 	OverlapCapsule->SetCollisionProfileName("Enemy");
 	OverlapCapsule->SetGenerateOverlapEvents(true);
 	OverlapCapsule->SetCapsuleSize(50, 50, true);
-	OverlapCapsule->bVisible = true;
+	OverlapCapsule->SetVisibility(true);
 	OverlapCapsule->SetupAttachment(RootComponent);
 
 	bUseControllerRotationPitch = false;
@@ -176,7 +176,7 @@ void AEnemyChar::BeginPlay()
 	}
 	
 	Initialise(EEnemy::Seaman);
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		SpawnDefaultController();
 	}
@@ -184,7 +184,7 @@ void AEnemyChar::BeginPlay()
 
 void AEnemyChar::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
-	if (Role == ROLE_Authority && EndPlayReason == EEndPlayReason::Destroyed)
+	if (GetLocalRole() == ROLE_Authority && EndPlayReason == EEndPlayReason::Destroyed)
 	{
 		OnKilled();
 	}

@@ -17,7 +17,7 @@ ABaseLevel::ABaseLevel()
 void ABaseLevel::BeginPlay()
 {
 	Super::BeginPlay();
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		TArray<AActor*> FoundActors;
 		UGameplayStatics::GetAllActorsOfClass(GetWorld(), ASpawnBox::StaticClass(), FoundActors);

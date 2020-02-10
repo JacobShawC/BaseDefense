@@ -55,7 +55,7 @@ void ABDPlayerState::OnRep_Money()
 
 void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade AnUpgrade, bool AddOrRemove)
 {
-	if (Role != ROLE_Authority) return;
+	if (GetLocalRole() != ROLE_Authority) return;
 
 	UBDGameInstance* GameInstance = Cast<UBDGameInstance>(GetGameInstance());
 
@@ -237,7 +237,7 @@ void ABDPlayerState::SelectBuildingUpgrade(EBuilding ABuilding, EBuildingUpgrade
 
 void ABDPlayerState::RefreshRemainingLevelRewards()
 {
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
 		UBDGameInstance* GameInstance = Cast<UBDGameInstance>(GetGameInstance());
@@ -276,7 +276,7 @@ void ABDPlayerState::BeginPlay()
 
 	ABDGameState* GameState = Cast<ABDGameState>(GetWorld()->GetGameState());
 
-	if (Role == ROLE_Authority && GameState != nullptr)
+	if (GetLocalRole() == ROLE_Authority && GameState != nullptr)
 	{
 		GameState->LevelRewardsUpdated.AddUObject(this, &ABDPlayerState::RefreshRemainingLevelRewards);
 	}

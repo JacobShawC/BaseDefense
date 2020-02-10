@@ -62,7 +62,7 @@ float ABDGameState::AddMoney(float AMoney)
 
 void ABDGameState::SetCurrentState(EGameState AState)
 {
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		CurrentState = AState;
 
@@ -81,7 +81,7 @@ void ABDGameState::SetCurrentState(EGameState AState)
 void ABDGameState::BeginPlay()
 {
 	Super::BeginPlay();
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		LevelGenerationActor = (ALevelGeneration*)GetWorld()->SpawnActor<ALevelGeneration>(ALevelGeneration::StaticClass(), FVector::ZeroVector, FRotator::ZeroRotator);
 		OnRep_LevelGenerationActor();
@@ -148,7 +148,7 @@ void ABDGameState::SetMapProperties(FVector APosition, float AWidth)
 
 void ABDGameState::RefreshLevelRewards()
 {
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		UBDGameInstance* GameInstance = GetWorld() != NULL ? GetWorld()->GetGameInstance<UBDGameInstance>() : nullptr;
 		if (GameInstance != nullptr)
@@ -225,7 +225,7 @@ void ABDGameState::OnRep_LevelGenerationActor()
 
 void ABDGameState::SetLevelRewards(int ALevelRewards)
 {
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		LevelRewards = ALevelRewards;
 		OnRep_LevelRewards();

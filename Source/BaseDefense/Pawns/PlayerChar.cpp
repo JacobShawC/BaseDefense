@@ -76,7 +76,7 @@ void APlayerChar::BeginPlay()
 	SetActorTickEnabled(true);
 
 	// if we are a client pawn we want to set up the updating of our pawn positions ever 0.1 seconds
-	if (Role == ROLE_AutonomousProxy)
+	if (GetLocalRole() == ROLE_AutonomousProxy)
 	{
 		FTimerHandle UniqueHandle;
 		FTimerDelegate UpdatePositionsDelegate = FTimerDelegate::CreateUObject(this, &APlayerChar::UpdatePositions);

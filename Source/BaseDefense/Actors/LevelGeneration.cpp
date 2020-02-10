@@ -261,7 +261,7 @@ ALevelGeneration::ALevelGeneration()
 void ALevelGeneration::BeginPlay()
 {
 	Super::BeginPlay();
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		Seed = FindValidSeed();
 		UE_LOG(LogTemp, Warning, TEXT("FindValidSeed Seed: %i"), Seed);
@@ -570,10 +570,10 @@ void ALevelGeneration::MakeMiniMapTexture()
 
 void ALevelGeneration::OnRep_SetSeed()
 {
-	ENetRole MyRole = Role;
+	ENetRole MyRole = GetLocalRole();
 	if (Seed != 0 && HasGenerated == false)
 	{
-		if (Role != ROLE_Authority)
+		if (GetLocalRole() != ROLE_Authority)
 		{
 			//we have already done this on the host as part of finding a valid seed
 			GenerateGrids(Seed);

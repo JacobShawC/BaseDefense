@@ -45,7 +45,7 @@ void AProjectile::Initialise(AActor* AnOwner, AActor* ATarget, FAttack AnAttack)
 void AProjectile::ReachedTarget()
 {
 	SetActorTickEnabled(false);
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		if (Target != nullptr)
 		{

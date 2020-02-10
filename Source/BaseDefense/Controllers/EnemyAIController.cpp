@@ -56,7 +56,7 @@ void AEnemyAIController::OnPossess(APawn* PossessedPawn)
 
 
 
-	if (Role == ROLE_Authority)
+	if (GetLocalRole() == ROLE_Authority)
 	{
 		WhatDo();
 	}
